@@ -17,6 +17,15 @@ const list = (v) => (v ? v.split(',').filter(Boolean) : [])
 
 export const toggleValue = (values, value) => (values.includes(value) ? values.filter((v) => v !== value) : [...values, value])
 
+// item: a category facet. A parent and its own subcategories are never selected together.
+export function toggleCategory(cats, item) {
+  const related = item.parent ? [item.parent] : (item.children ?? []).map((c) => c.slug)
+  return toggleValue(
+    cats.filter((s) => !related.includes(s)),
+    item.slug,
+  )
+}
+
 // URL query <-> filter state. Keys: q, cat, col, color, brand, min, max, stock, sort, page
 export function parseFilters(params) {
   return {
@@ -60,7 +69,13 @@ export function colorFamilies(product, colors) {
 
 // `skip` leaves one facet out so its own counts are not narrowed by itself.
 export function applyFilters(products, f, { categories, colors }, skip) {
-  const catIds = new Set(f.cats.map((slug) => categories.find((c) => c.slug === slug)?.id))
+  // A parent slug also covers its subcategories.
+  const catIds = new Set(
+    f.cats.flatMap((slug) => {
+      const c = categories.find((x) => x.slug === slug)
+      return c ? [c.id, ...(c.children ?? []).map((child) => child.id)] : []
+    }),
+  )
   return products.filter(
     (p) =>
       matchesSearch(p, f.q) &&

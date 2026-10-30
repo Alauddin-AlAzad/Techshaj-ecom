@@ -12,8 +12,8 @@ export default function FeaturedCategories({ categories }) {
         {categories.map((c) => (
           <li key={c.id}>
             <Link to={`/category/${c.slug}`} className="group flex flex-col items-center gap-1.5 text-center lg:gap-2.5">
-              <span className="flex size-[54px] items-center justify-center rounded-[14px] bg-fill text-text-secondary transition-colors group-hover:bg-primary-tint group-hover:text-primary lg:size-[76px] lg:rounded-[18px]">
-                <CategoryIcon name={c.icon} absoluteStrokeWidth className="size-[26px] lg:size-9" />
+              <span className="flex size-[54px] items-center justify-center overflow-hidden rounded-[14px] bg-fill text-text-secondary transition-colors group-hover:bg-primary-tint group-hover:text-primary lg:size-[76px] lg:rounded-[18px]">
+                <CategoryIcon name={c.icon} image={c.image} absoluteStrokeWidth className="size-[26px] lg:size-9" />
               </span>
               <span className="text-[11px] font-medium text-text-secondary lg:text-[14px]">{c.name}</span>
             </Link>

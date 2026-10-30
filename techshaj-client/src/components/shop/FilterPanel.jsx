@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { toggleValue as toggle } from '../../lib/shopFilters.js'
+import { toggleCategory, toggleValue as toggle } from '../../lib/shopFilters.js'
 import { CheckRow, PriceRange } from './FilterControls.jsx'
 
 function Section({ title, children }) {
@@ -56,8 +56,18 @@ export default function FilterPanel({ filters: f, facets, onChange, onClear }) {
       <Section title="Category">
         <ExpandableList
           items={facets.categories}
-          render={(c) => (
-            <CheckRow key={c.slug} label={c.name} count={c.count} checked={f.cats.includes(c.slug)} onChange={() => onChange({ cats: toggle(f.cats, c.slug) })} />
+          limit={4}
+          render={(p) => (
+            <div key={p.slug} className="flex flex-col gap-3">
+              <CheckRow label={p.name} count={p.count} checked={f.cats.includes(p.slug)} onChange={() => onChange({ cats: toggleCategory(f.cats, p) })} />
+              {p.children.length > 0 && (
+                <div className="flex flex-col gap-3 border-l border-border pl-3.5 ml-2">
+                  {p.children.map((c) => (
+                    <CheckRow key={c.slug} label={c.name} count={c.count} checked={f.cats.includes(c.slug)} onChange={() => onChange({ cats: toggleCategory(f.cats, c) })} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         />
       </Section>

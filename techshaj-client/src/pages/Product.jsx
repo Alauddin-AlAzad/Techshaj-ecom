@@ -25,6 +25,24 @@ import NotFound from './NotFound.jsx'
 // Keyed by slug from the route so state resets when moving between products.
 function ProductDetails({ product, store, reviews, related }) {
   const [variant, setVariant] = useState(() => defaultVariant(product))
+  const [focus, setFocus] = useState(null)
+  const optionImages = product.optionImages ?? {}
+  // Choosing an option shows its picture, also when it was already chosen; a new object re-focuses it.
+  const chooseVariant = (next, name) => {
+    const src = optionImages[name]?.[next[name]]
+    setVariant(next)
+    if (src) setFocus({ src })
+  }
+  // A gallery picture that belongs to an option selects that option.
+  const pickFromGallery = (src) => {
+    for (const [name, options] of Object.entries(optionImages)) {
+      const option = Object.keys(options).find((o) => options[o] === src)
+      if (option && product.variants?.some((v) => v.name === name && v.options.includes(option))) {
+        setVariant((v) => ({ ...v, [name]: option }))
+        return
+      }
+    }
+  }
   const [qty, setQty] = useState(1)
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openDrawer)
@@ -61,7 +79,7 @@ function ProductDetails({ product, store, reviews, related }) {
       <div className="lg:site-container">
         <section className="flex flex-col gap-0 lg:grid lg:grid-cols-[72px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-10 lg:rounded-2xl lg:bg-white lg:py-8 lg:pr-10 lg:pl-8 xl:grid-cols-[72px_500px_minmax(0,1fr)]">
           <div className="site-container pt-3 lg:contents">
-            <Gallery product={product} discount={discount} />
+            <Gallery product={product} discount={discount} focus={focus} onThumb={pickFromGallery} />
           </div>
           <div className="site-container pt-[18px] lg:w-auto lg:max-w-none lg:p-0">
             <BuyBox
@@ -70,7 +88,7 @@ function ProductDetails({ product, store, reviews, related }) {
               store={store}
               discount={discount}
               variant={variant}
-              onVariant={setVariant}
+              onVariant={chooseVariant}
               qty={qty}
               onQty={setQty}
               onAddToCart={addToCart}

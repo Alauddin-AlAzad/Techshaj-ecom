@@ -90,6 +90,7 @@ async function run() {
       return { valid: true, discount, message: "Coupon applied", code: coupon.code };
     };
     const lowStockLimit = 5;
+    const ratingModes = ["manual", "auto"];
     const orderStatuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
     const nextStatuses = { pending: ["confirmed", "cancelled"], confirmed: ["shipped", "cancelled"], shipped: ["delivered"], delivered: [], cancelled: [] };
     const timeZone = "Asia/Dhaka";
@@ -192,6 +193,25 @@ async function run() {
         if (!Number.isInteger(stock) || stock < 0) return { error: "stock must be a whole number of 0 or more" };
         data.stock = stock;
       }
+      for (const key of ["reviewCount", "soldCount"]) {
+        if (body[key] === undefined) continue;
+        const value = toNumber(body[key]);
+        if (!Number.isInteger(value) || value < 0) return { error: `${key} must be a whole number of 0 or more` };
+        data[key] = value;
+      }
+      if (body.rating !== undefined) {
+        const rating = toNumber(body.rating);
+        if (!Number.isFinite(rating) || rating < 0 || rating > 5) return { error: "rating must be between 0 and 5" };
+        data.rating = Math.round(rating * 10) / 10;
+      }
+      if (body.ratingMode !== undefined) {
+        if (!ratingModes.includes(body.ratingMode)) return { error: "ratingMode must be manual or auto" };
+        data.ratingMode = body.ratingMode;
+      }
+      if ((data.ratingMode ?? current?.ratingMode) === "auto") {
+        delete data.rating;
+        delete data.reviewCount;
+      }
       if (body.categoryId !== undefined) {
         category = await categoriesCollection.findOne({ id: toNumber(body.categoryId) });
         if (!category) return { error: "Category not found" };
@@ -216,6 +236,22 @@ async function run() {
         if (!valid) return { error: "variants must be an array of { name, options }" };
         data.variants = body.variants.map((v) => ({ name: v.name.trim(), options: v.options.map((o) => o.trim()) }));
       }
+      const variants = data.variants ?? current?.variants ?? [];
+      if (body.optionImages !== undefined || (data.variants && current?.optionImages)) {
+        const source = body.optionImages !== undefined ? body.optionImages : current.optionImages;
+        if (source !== null && !isPlainObject(source)) return { error: "optionImages must be { variant: { option: url } }" };
+        const optionImages = {};
+        for (const [name, options] of Object.entries(source ?? {})) {
+          if (!isPlainObject(options)) return { error: "optionImages must be { variant: { option: url } }" };
+          const group = variants.find((v) => v.name === name);
+          for (const [option, url] of Object.entries(options)) {
+            if (url === "" || url === null) continue;
+            if (typeof url !== "string" || !/^https:\/\/\S+$/.test(url)) return { error: `Picture for ${name}: ${option} must be an https URL` };
+            if (group?.options.includes(option)) optionImages[name] = { ...optionImages[name], [option]: url };
+          }
+        }
+        data.optionImages = optionImages;
+      }
       if (body.specs !== undefined) {
         const valid = Array.isArray(body.specs) && body.specs.every((s) => typeof s?.label === "string" && s.label.trim() && typeof s.value === "string");
         if (!valid) return { error: "specs must be an array of { label, value }" };
@@ -233,9 +269,15 @@ async function run() {
     };
     const readCategory = async (body, current) => {
       const data = {};
-      const textError = readText(body, data, ["name", "icon", "shortName", "menuName"]);
+      const textError = readText(body, data, ["name", "icon", "shortName", "menuName", "image"]) || readFlags(body, data, ["active"]);
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
+      if (data.image && !/^https:\/\/\S+$/.test(data.image)) return { error: "image must be empty or an https URL" };
+      if (body.order !== undefined) {
+        const order = toNumber(body.order);
+        if (!Number.isInteger(order)) return { error: "order must be a whole number" };
+        data.order = order;
+      }
       if (body.slug !== undefined) {
         data.slug = typeof body.slug === "string" ? slugify(body.slug) : "";
         if (!data.slug) return { error: "slug is invalid" };
@@ -341,6 +383,21 @@ async function run() {
       }
       return { zones: result };
     };
+    const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id;
+    const nextOrder = async (parentId) => {
+      const [last] = await categoriesCollection.find({ parentId: parentId ?? null }).sort({ order: -1 }).limit(1).toArray();
+      return (last?.order ?? 0) + 1;
+    };
+    const categoryTree = (categories, countOf) => {
+      const withCount = (c, children) => ({ ...c, productCount: countOf(c.id) + children.reduce((sum, child) => sum + countOf(child.id), 0) });
+      return categories
+        .filter((c) => !c.parentId)
+        .sort(byOrder)
+        .map((parent) => {
+          const children = categories.filter((c) => c.parentId === parent.id).sort(byOrder).map((c) => withCount(c, []));
+          return { ...withCount(parent, children), children };
+        });
+    };
     const refreshProductRating = async (productId) => {
       const [stats] = await reviewsCollection
         .aggregate([
@@ -349,7 +406,7 @@ async function run() {
         ])
         .toArray();
       const rating = stats?.rating ? Math.round(stats.rating * 10) / 10 : 0;
-      await productsCollection.updateOne({ id: productId }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
+      await productsCollection.updateOne({ id: productId, ratingMode: "auto" }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
     };
 
     // middlewares
@@ -472,6 +529,7 @@ async function run() {
           brand: "",
           oldPrice: null,
           variants: [],
+          optionImages: {},
           specs: [],
           shortDescription: "",
           description: "",
@@ -480,17 +538,19 @@ async function run() {
           isNew: true,
           collections: [],
           published: true,
-          ...data,
-          slug: data.slug || (await uniqueSlug(productsCollection, data.name)),
-          code: data.code || (await uniqueCode(category, id)),
           rating: 0,
           reviewCount: 0,
           soldCount: 0,
+          ratingMode: "manual",
+          ...data,
+          slug: data.slug || (await uniqueSlug(productsCollection, data.name)),
+          code: data.code || (await uniqueCode(category, id)),
           createdAt: now,
           updatedAt: now,
         };
         await productsCollection.insertOne(product);
-        res.send(product);
+        if (product.ratingMode === "auto") await refreshProductRating(id);
+        res.send(await productsCollection.findOne({ id }));
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -507,11 +567,15 @@ async function run() {
         if (data.code && (await productsCollection.findOne({ code: data.code, id: { $ne: current.id } }))) {
           return res.status(400).send({ message: "This product code is already used" });
         }
-        const product = await productsCollection.findOneAndUpdate(
+        let product = await productsCollection.findOneAndUpdate(
           { _id: current._id },
           { $set: { ...data, updatedAt: new Date() } },
           { returnDocument: "after" }
         );
+        if (data.ratingMode === "auto" && current.ratingMode !== "auto") {
+          await refreshProductRating(current.id);
+          product = await productsCollection.findOne({ _id: current._id });
+        }
         res.send(product);
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -530,6 +594,17 @@ async function run() {
     });
 
     // admin categories related api
+    app.get("/admin/categories", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const categories = await categoriesCollection.find().toArray();
+        const counts = await productsCollection.aggregate([{ $group: { _id: "$categoryId", count: { $sum: 1 } } }]).toArray();
+        const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
+        res.send(categoryTree(categories, countOf).flatMap(({ children, ...parent }) => [parent, ...children]));
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     app.post("/admin/categories", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { data, error } = await readCategory(req.body ?? {});
@@ -540,11 +615,33 @@ async function run() {
           id: await nextId(categoriesCollection),
           icon: "Package",
           parentId: null,
+          image: "",
+          active: true,
           ...data,
+          order: data.order ?? (await nextOrder(data.parentId)),
           slug: data.slug || (await uniqueSlug(categoriesCollection, data.name)),
         };
         await categoriesCollection.insertOne(category);
         res.send(category);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/categories/reorder", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { parentId = null, ids } = req.body ?? {};
+        const parent = parentId === null ? null : toNumber(parentId);
+        if (parent !== null && !Number.isInteger(parent)) return res.status(400).send({ message: "parentId must be a category id or null" });
+        if (!Array.isArray(ids) || !ids.every((id) => Number.isInteger(id))) return res.status(400).send({ message: "ids must be an array of category ids" });
+        const siblings = await categoriesCollection.find({ parentId: parent }).project({ id: 1 }).toArray();
+        if (siblings.length !== ids.length || new Set(ids).size !== ids.length || !siblings.every((c) => ids.includes(c.id))) {
+          return res.status(400).send({ message: "ids must list every category on this level exactly once" });
+        }
+        if (ids.length) {
+          await categoriesCollection.bulkWrite(ids.map((id, i) => ({ updateOne: { filter: { id }, update: { $set: { order: i + 1 } } } })));
+        }
+        res.send({ message: "Categories reordered", ids });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -558,6 +655,7 @@ async function run() {
         if (error) return res.status(400).send({ message: error });
         if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
         if (data.slug && (await slugTaken(categoriesCollection, data.slug, current.id))) return res.status(400).send({ message: "This slug is already used" });
+        if (data.parentId !== undefined && data.parentId !== (current.parentId ?? null) && data.order === undefined) data.order = await nextOrder(data.parentId);
         const category = await categoriesCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
         res.send(category);
       } catch (error) {
@@ -1060,19 +1158,12 @@ async function run() {
     // categories related api
     app.get("/categories", async (req, res) => {
       try {
-        const categories = await categoriesCollection.find().sort({ id: 1 }).toArray();
+        const categories = await categoriesCollection.find({ active: { $ne: false } }).toArray();
         const counts = await productsCollection
           .aggregate([{ $match: { published: { $ne: false } } }, { $group: { _id: "$categoryId", count: { $sum: 1 } } }])
           .toArray();
         const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
-        res.send(
-          categories.map((c) => ({
-            ...c,
-            productCount: c.parentId
-              ? countOf(c.id)
-              : countOf(c.id) + categories.filter((child) => child.parentId === c.id).reduce((sum, child) => sum + countOf(child.id), 0),
-          }))
-        );
+        res.send(categoryTree(categories, countOf));
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -1191,6 +1282,7 @@ async function run() {
             const group = product.variants?.find((v) => v.name === key);
             if (!group || !group.options.includes(value)) return res.status(400).send({ message: `Invalid ${key} option for ${product.name}` });
           }
+          const optionImage = Object.entries(variant).map(([key, value]) => product.optionImages?.[key]?.[value]).find(Boolean) ?? null;
           quantities[product.id] = (quantities[product.id] ?? 0) + item.quantity;
           if ((product.stock ?? 0) < quantities[product.id]) return res.status(400).send({ message: `${product.name} is out of stock` });
           lines.push({
@@ -1198,6 +1290,7 @@ async function run() {
             name: product.name,
             slug: product.slug,
             image: product.images?.[0] ?? null,
+            optionImage,
             variant,
             price: product.price,
             quantity: item.quantity,

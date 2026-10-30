@@ -1,16 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAxiosSecure } from './useAxiosSecure.js'
 
-// Parents in id order, each with its children; categories only go two levels deep.
-export const toTree = (categories = []) =>
-  categories.filter((c) => !c.parentId).map((p) => ({ ...p, children: categories.filter((c) => c.parentId === p.id) }))
+const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id
 
-// The server has no admin list route; the public /categories route returns every category.
+// Parents in admin order, each with its children; categories only go two levels deep.
+export const toTree = (categories = []) => {
+  const sorted = [...categories].sort(byOrder)
+  return sorted.filter((c) => !c.parentId).map((p) => ({ ...p, children: sorted.filter((c) => c.parentId === p.id) }))
+}
+
+// Every category, including inactive ones, as a flat list.
 export function useAdminCategories() {
   const axiosSecure = useAxiosSecure()
   return useQuery({
     queryKey: ['admin', 'categories'],
-    queryFn: async () => (await axiosSecure.get('/categories')).data,
+    queryFn: async () => (await axiosSecure.get('/admin/categories')).data,
   })
 }
 
@@ -35,4 +39,10 @@ export function useSaveCategory() {
 export function useDeleteCategory() {
   const axiosSecure = useAxiosSecure()
   return useCategoryMutation(async (id) => (await axiosSecure.delete(`/admin/categories/${id}`)).data)
+}
+
+// ids: every category on one level, in the new order.
+export function useReorderCategories() {
+  const axiosSecure = useAxiosSecure()
+  return useCategoryMutation(async ({ parentId, ids }) => (await axiosSecure.post('/admin/categories/reorder', { parentId, ids })).data)
 }

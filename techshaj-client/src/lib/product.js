@@ -7,3 +7,9 @@ export function whatsappOrderUrl(whatsapp, product) {
 export function defaultVariant(product) {
   return Object.fromEntries((product.variants ?? []).map((v) => [v.name, v.options[0]]))
 }
+
+// The picture of the first chosen option that has one, otherwise the main image.
+export function variantImage(product, variant = {}) {
+  const picked = Object.entries(variant).map(([name, option]) => product.optionImages?.[name]?.[option])
+  return picked.find(Boolean) ?? product.images[0]
+}

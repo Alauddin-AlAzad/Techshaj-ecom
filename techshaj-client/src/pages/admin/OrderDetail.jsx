@@ -269,7 +269,7 @@ export default function OrderDetail() {
               <ul className="flex flex-col divide-y divide-row-line">
                 {order.items.map((item, i) => (
                   <li key={i} className="flex items-center gap-3 py-3 first:pt-0">
-                    <Thumb src={item.image} />
+                    <Thumb src={item.optionImage ?? item.image} />
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                       {item.slug ? (
                         <a href={`/product/${item.slug}`} target="_blank" rel="noreferrer" className="line-clamp-2 text-body font-semibold text-text hover:text-primary">

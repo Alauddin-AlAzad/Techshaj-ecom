@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { cn } from '../../lib/cn.js'
-import { toggleValue as toggle } from '../../lib/shopFilters.js'
+import { toggleCategory, toggleValue as toggle } from '../../lib/shopFilters.js'
 import { Chip, PriceRange, Toggle } from './FilterControls.jsx'
 
 function Group({ title, children }) {
@@ -30,7 +30,7 @@ export default function FilterSheet({ onClose, filters, facets, emptyFilters, co
   }, [onClose])
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
-  const cats = allCats ? facets.categories : facets.categories.slice(0, 8)
+  const cats = allCats ? facets.categories : facets.categories.slice(0, 4)
   const count = countFor(draft)
 
   return (
@@ -70,15 +70,22 @@ export default function FilterSheet({ onClose, filters, facets, emptyFilters, co
           </Group>
 
           <Group title="Category">
-            <div className="flex flex-wrap gap-2">
-              {cats.map((c) => (
-                <Chip key={c.slug} active={draft.cats.includes(c.slug)} onClick={() => set({ cats: toggle(draft.cats, c.slug) })}>
-                  {c.name}
-                </Chip>
+            <div className="flex flex-col gap-3">
+              {cats.map((p) => (
+                <div key={p.slug} className="flex flex-wrap gap-2">
+                  <Chip active={draft.cats.includes(p.slug)} onClick={() => set({ cats: toggleCategory(draft.cats, p) })}>
+                    {p.children.length ? `All ${p.name}` : p.name}
+                  </Chip>
+                  {p.children.map((c) => (
+                    <Chip key={c.slug} active={draft.cats.includes(c.slug)} onClick={() => set({ cats: toggleCategory(draft.cats, c) })}>
+                      {c.name}
+                    </Chip>
+                  ))}
+                </div>
               ))}
-              {facets.categories.length > 8 && (
-                <button type="button" onClick={() => setAllCats(!allCats)} className="px-1 text-label-sm text-primary">
-                  {allCats ? 'Show less' : `+${facets.categories.length - 8} more`}
+              {facets.categories.length > 4 && (
+                <button type="button" onClick={() => setAllCats(!allCats)} className="self-start px-1 text-label-sm text-primary">
+                  {allCats ? 'Show less' : `+${facets.categories.length - 4} more`}
                 </button>
               )}
             </div>

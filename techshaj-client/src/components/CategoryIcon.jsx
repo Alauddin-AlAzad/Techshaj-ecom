@@ -1,26 +1,9 @@
-import {
-  AudioLines,
-  BatteryCharging,
-  Bluetooth,
-  Boxes,
-  Cable,
-  Clock,
-  Headphones,
-  Keyboard,
-  Lamp,
-  Mouse,
-  Package,
-  Plug,
-  Snowflake,
-  Speaker,
-  Watch,
-  Zap,
-} from 'lucide-react'
+import { Package } from 'lucide-react'
+import { categoryIcons } from '../lib/categoryIcons.js'
 
-// Explicit map keeps the bundle small; add an entry when a category uses a new icon name.
-const icons = { AudioLines, BatteryCharging, Bluetooth, Boxes, Cable, Clock, Headphones, Keyboard, Lamp, Mouse, Package, Plug, Snowflake, Speaker, Watch, Zap }
-
-export default function CategoryIcon({ name, ...props }) {
-  const Icon = icons[name] ?? Package
+// The category picture when it has one, otherwise its icon. Image tiles need overflow-hidden.
+export default function CategoryIcon({ name, image, ...props }) {
+  if (image) return <img src={image} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+  const Icon = categoryIcons[name] ?? Package
   return <Icon {...props} />
 }

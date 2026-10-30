@@ -19,6 +19,7 @@ import { variantLabel } from '../lib/cart.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice, toBanglaDigits, toLatinDigits } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
+import { variantImage } from '../lib/product.js'
 import { errorMessage } from '../lib/query.js'
 import { zodResolver } from '../lib/zodResolver.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
@@ -55,7 +56,7 @@ function OrderItems({ lines }) {
       {lines.map(({ key, product, qty, variant }) => (
         <li key={key} className="flex items-center gap-3 lg:border-b lg:border-border lg:pb-3.5">
           <span className="size-[52px] shrink-0 overflow-hidden rounded-lg bg-fill lg:size-14">
-            <img src={product.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
+            <img src={variantImage(product, variant)} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-[3px] lg:gap-1">
             <span className="truncate text-[13px] font-semibold text-text lg:text-label">{product.name}</span>

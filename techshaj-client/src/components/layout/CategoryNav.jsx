@@ -24,10 +24,10 @@ function MegaMenu({ categories, promo, onClose }) {
           {categories.map((c) => (
             <div key={c.id} className="flex w-[196px] flex-col items-start gap-2.5">
               <Link to={`/category/${c.slug}`} onClick={onClose} className="flex w-full items-center gap-2.5 text-[14px] font-bold text-text hover:text-primary">
-                <span className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-primary-tint text-primary">
-                  <CategoryIcon name={c.icon} size={16} />
+                <span className="flex size-[30px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary-tint text-primary">
+                  <CategoryIcon name={c.icon} image={c.image} size={16} />
                 </span>
-                {c.menuName ?? c.name}
+                {c.menuName || c.name}
               </Link>
               {c.children.map((child) => (
                 <Link
@@ -71,8 +71,8 @@ function CategoryDropdown({ category, left, onClose }) {
               onClick={onClose}
               className="group/row flex h-[46px] items-center gap-3 rounded-[10px] pr-3 pl-2.5 hover:bg-primary-tint"
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-text group-hover/row:bg-white">
-                <CategoryIcon name={child.icon} size={16} />
+              <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface text-text group-hover/row:bg-white">
+                <CategoryIcon name={child.icon} image={child.image} size={16} />
               </span>
               <span className="flex-1 text-[14px] font-medium text-text group-hover/row:font-semibold group-hover/row:text-primary">{child.name}</span>
               <span className="text-[12px] font-medium text-text-faint group-hover/row:text-primary">{child.productCount}</span>
@@ -80,7 +80,7 @@ function CategoryDropdown({ category, left, onClose }) {
             </Link>
           ))}
           <Link to={`/category/${category.slug}`} onClick={onClose} className="flex h-11 items-center gap-1.5 px-3 text-[13px] font-semibold text-primary">
-            View all {category.menuName ?? category.name}
+            View all {category.menuName || category.name}
             <ArrowRight size={14} />
           </Link>
         </div>
@@ -131,10 +131,10 @@ function MoreDropdown({ categories, left, onClose }) {
             onClick={onClose}
             className="group/row flex h-[46px] items-center gap-3 rounded-[10px] pr-3 pl-2.5 hover:bg-primary-tint"
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-text group-hover/row:bg-white">
-              <CategoryIcon name={c.icon} size={16} />
+            <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface text-text group-hover/row:bg-white">
+              <CategoryIcon name={c.icon} image={c.image} size={16} />
             </span>
-            <span className="flex-1 text-[14px] font-medium text-text group-hover/row:font-semibold group-hover/row:text-primary">{c.menuName ?? c.name}</span>
+            <span className="flex-1 text-[14px] font-medium text-text group-hover/row:font-semibold group-hover/row:text-primary">{c.menuName || c.name}</span>
             <span className="text-[12px] font-medium text-text-faint group-hover/row:text-primary">{c.productCount}</span>
             <ChevronRight size={14} className="text-text-faint group-hover/row:text-primary" />
           </Link>
