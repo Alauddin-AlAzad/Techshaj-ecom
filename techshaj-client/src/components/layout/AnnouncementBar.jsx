@@ -71,7 +71,7 @@ function useCopies(wrapRef, halfRef, count, key) {
   return copies
 }
 
-// Thin bar above the navbar: fixed items on the sides, a marquee in the middle that always runs right to left.
+// Thin bar above the navbar: the marquee runs across the full width, fixed items sit on top at the sides.
 // It ignores hover and reduced-motion on purpose: the bar must keep moving on every device.
 export default function AnnouncementBar({ settings }) {
   const wrapRef = useRef(null)
@@ -89,9 +89,8 @@ export default function AnnouncementBar({ settings }) {
 
   return (
     <div className="bg-primary text-[13px] font-semibold text-white lg:text-[14px]">
-      <div className="site-container flex h-[30px] items-center gap-6 max-lg:px-0 lg:h-10">
-        <FixedItems items={left} />
-        <div ref={wrapRef} className="relative h-full min-w-0 flex-1 overflow-hidden lg:[mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]">
+      <div className="relative h-[30px] lg:h-10">
+        <div ref={wrapRef} className="absolute inset-0 overflow-hidden">
           {messages.length > 0 && (
             <>
               <ul className="sr-only">
@@ -112,7 +111,10 @@ export default function AnnouncementBar({ settings }) {
             </>
           )}
         </div>
-        <FixedItems items={right} />
+        <div className="site-container pointer-events-none relative flex h-full items-center justify-between max-lg:px-0">
+          <FixedItems items={left} className="pointer-events-auto h-full bg-[linear-gradient(to_right,transparent,var(--color-primary)_32px,var(--color-primary)_calc(100%-32px),transparent)] px-10" />
+          <FixedItems items={right} className="pointer-events-auto ml-auto h-full bg-[linear-gradient(to_right,transparent,var(--color-primary)_32px,var(--color-primary)_calc(100%-32px),transparent)] px-10" />
+        </div>
       </div>
     </div>
   )
