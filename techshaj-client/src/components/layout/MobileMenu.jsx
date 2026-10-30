@@ -81,10 +81,10 @@ export default function MobileMenu({ store, categories = [], onClose }) {
                     aria-expanded={open}
                     className={cn('flex h-[52px] w-full items-center gap-3 pr-2.5 pl-2 text-left', !open && 'border-b border-drawer-row')}
                   >
-                    <span className={cn('flex size-[34px] shrink-0 items-center justify-center rounded-[9px] text-primary', open ? 'bg-primary text-white' : 'bg-drawer-field')}>
-                      <CategoryIcon name={c.icon} size={17} />
+                    <span className={cn('flex size-[34px] shrink-0 items-center justify-center overflow-hidden rounded-[9px] text-primary', open ? 'bg-primary text-white' : 'bg-drawer-field')}>
+                      <CategoryIcon name={c.icon} image={c.image} size={17} />
                     </span>
-                    <span className="flex-1 text-label text-white">{c.menuName ?? c.name}</span>
+                    <span className="flex-1 text-label text-white">{c.menuName || c.name}</span>
                     <ChevronDown size={18} className={cn('shrink-0 transition-transform', open ? 'rotate-180 text-white' : 'text-text-muted')} />
                   </button>
                   {open && (
@@ -94,14 +94,15 @@ export default function MobileMenu({ store, categories = [], onClose }) {
                           key={child.id}
                           to={`/category/${child.slug}`}
                           onClick={onClose}
-                          className="flex h-10 items-center justify-between border-b border-drawer-sub-line text-[13px] font-medium text-drawer-sub"
+                          className="flex h-10 items-center gap-2.5 border-b border-drawer-sub-line text-[13px] font-medium text-drawer-sub"
                         >
-                          {child.name}
+                          {child.image && <img src={child.image} alt="" loading="lazy" decoding="async" className="size-6 shrink-0 rounded-md object-cover" />}
+                          <span className="flex-1">{child.name}</span>
                           <ChevronRight size={14} className="text-text-muted" />
                         </Link>
                       ))}
                       <Link to={`/category/${c.slug}`} onClick={onClose} className="flex h-10 items-center gap-1.5 text-[13px] font-semibold text-primary">
-                        View all {c.menuName ?? c.name}
+                        View all {c.menuName || c.name}
                         <ArrowRight size={14} />
                       </Link>
                     </div>

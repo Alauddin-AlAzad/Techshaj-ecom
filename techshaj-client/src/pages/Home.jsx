@@ -44,7 +44,9 @@ export default function Home() {
 
   const categories = categoriesQuery.data ?? []
   const flat = categories.flatMap((p) => [p, ...p.children])
-  const featured = storefront.featuredCategorySlugs.map((slug) => flat.find((c) => c.slug === slug)).filter(Boolean)
+  const picked = storefront.featuredCategorySlugs.map((slug) => flat.find((c) => c.slug === slug)).filter(Boolean)
+  // Any other category with a picture (set in the admin) follows the configured list.
+  const featured = [...picked, ...flat.filter((c) => c.image && !picked.includes(c))]
 
   const row = (title, query, seeAllTo, tag) => <ProductRow title={title} tag={tag} products={query.data?.products} loading={query.isLoading} seeAllTo={seeAllTo} />
   const categoryRow = ({ category, query }) => (

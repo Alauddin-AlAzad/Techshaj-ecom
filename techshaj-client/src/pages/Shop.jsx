@@ -81,8 +81,8 @@ export default function Shop() {
 
   const category = slug ? data?.flat.find((c) => c.slug === slug) : null
   const parent = category?.parentId ? data.flat.find((c) => c.id === category.parentId) : null
-  // A category page filters to its own leaf categories until the user picks categories explicitly.
-  const scopeCats = useMemo(() => (category ? (category.parentId ? [category.slug] : category.children.map((c) => c.slug)) : []), [category])
+  // A category page filters to itself (a parent covers its subcategories) until the user picks categories explicitly.
+  const scopeCats = useMemo(() => (category ? [category.slug] : []), [category])
 
   const raw = parseFilters(params)
   const filters = { ...raw, cats: raw.hasCatParam ? raw.cats : scopeCats }
@@ -100,10 +100,19 @@ export default function Shop() {
 
     const facets = {
       price: { min: Math.floor(Math.min(...prices) / 50) * 50, max: Math.ceil(Math.max(...prices) / 50) * 50 },
-      categories: data.flat
-        .filter((c) => c.parentId && (catCounts.get(c.id) || filters.cats.includes(c.slug)))
-        .map((c) => ({ slug: c.slug, name: c.name, count: catCounts.get(c.id) ?? 0 }))
-        .sort((a, b) => filters.cats.includes(b.slug) - filters.cats.includes(a.slug) || b.count - a.count),
+      // Parents with their subcategories nested under them.
+      categories: data.tree
+        .map((p) => {
+          const picked = (c) => filters.cats.includes(c.slug)
+          const children = p.children
+            .filter((c) => catCounts.get(c.id) || picked(c))
+            .map((c) => ({ slug: c.slug, name: c.name, count: catCounts.get(c.id) ?? 0, parent: p.slug }))
+            .sort((a, b) => b.count - a.count)
+          const count = (catCounts.get(p.id) ?? 0) + p.children.reduce((sum, c) => sum + (catCounts.get(c.id) ?? 0), 0)
+          return { slug: p.slug, name: p.name, count, children, picked: picked(p) || children.some(picked) }
+        })
+        .filter((p) => p.count || p.picked)
+        .sort((a, b) => b.picked - a.picked || b.count - a.count),
       collections: data.collections.map((c) => ({ ...c, count: colCounts.get(c.slug) ?? 0 })),
       colors: data.colors.filter((c) => colorCounts.get(c.name)).map((c) => ({ ...c, count: colorCounts.get(c.name) })),
       brands: [...brandCounts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),

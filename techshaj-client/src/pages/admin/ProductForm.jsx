@@ -469,7 +469,7 @@ function ProductEditor({ product }) {
             <FormField label="Category" htmlFor="categoryId" required error={errors.categoryId?.message}>
               <Select id="categoryId" error={errors.categoryId} className="[&_select]:h-12 [&_select]:rounded-[10px] [&_select]:text-body" {...register('categoryId')}>
                 <option value="">Choose a category</option>
-                <CategoryOptions tree={tree} />
+                <CategoryOptions tree={tree} leafOnly current={initial.categoryId} />
               </Select>
             </FormField>
             {categoriesFailed && (

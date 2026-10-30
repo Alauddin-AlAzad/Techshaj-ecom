@@ -14,8 +14,8 @@ function Group({ department, children }) {
     <section id={department.slug} className="scroll-mt-4 pt-7 lg:pt-12">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:gap-3.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary text-white lg:size-11 lg:rounded-xl">
-            <CategoryIcon name={department.icon} className="size-[18px] lg:size-[22px]" />
+          <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-primary text-white lg:size-11 lg:rounded-xl">
+            <CategoryIcon name={department.icon} image={department.image} className="size-[18px] lg:size-[22px]" />
           </span>
           <div className="flex min-w-0 flex-col gap-0.5">
             <h2 className="font-heading text-[15px] font-bold text-text lg:text-h3">{department.name}</h2>
@@ -37,8 +37,8 @@ function Group({ department, children }) {
               to={`/category/${c.slug}`}
               className="flex h-[132px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface px-2 pt-3.5 pb-3 text-center transition hover:border-[1.5px] hover:border-primary hover:bg-white hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--color-secondary)_12%,transparent)] lg:h-[184px] lg:gap-3 lg:rounded-[14px] lg:px-3.5 lg:pt-6 lg:pb-5"
             >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-border bg-white text-text-secondary lg:size-[68px]">
-                <CategoryIcon name={c.icon} className="size-[22px] lg:size-[30px]" />
+              <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-white text-text-secondary lg:size-[68px]">
+                <CategoryIcon name={c.icon} image={c.image} className="size-[22px] lg:size-[30px]" />
               </span>
               <span className="text-label-sm text-text lg:text-label">{c.name}</span>
               <span className="text-[11px] text-text-muted lg:text-body-sm">
@@ -117,7 +117,7 @@ export default function Categories() {
           </label>
           <div className="no-scrollbar -mx-4 flex w-[calc(100%+32px)] gap-2 overflow-x-auto px-4 lg:mx-0 lg:w-full lg:flex-wrap lg:justify-center lg:px-0">
             {chip('all', 'All')}
-            {tree.map((d) => chip(d.slug, d.shortName ?? d.name))}
+            {tree.map((d) => chip(d.slug, d.shortName || d.name))}
           </div>
         </div>
 
