@@ -19,7 +19,7 @@ app.listen( port, ()=>{
     console.log(`Bistro boss is  sitting on port ${port}`)
 })
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const user = encodeURIComponent(process.env.DB_USER);
 const pass = encodeURIComponent(process.env.DB_PASS);
@@ -74,6 +74,230 @@ async function run() {
       const amount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
       const discount = Math.min(amount, subtotal);
       return { valid: true, discount, message: "Coupon applied", code: coupon.code };
+    };
+    const lowStockLimit = 5;
+    const bannerTypes = ["hero", "side", "promo", "menu"];
+    const cloudinaryUrl = /^https:\/\/res\.cloudinary\.com\/\S+$/;
+    const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+    const toNumber = (value) => (typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN);
+    const toDate = (value) => (value === null || value === "" ? null : new Date(value));
+    const isBadDate = (date) => date !== null && isNaN(date.getTime());
+    const idFilter = (id) => (/^[a-f\d]{24}$/i.test(id) ? { _id: new ObjectId(id) } : { id: Number(id) });
+    const pageOf = (query) => {
+      const page = Math.max(parseInt(query.page) || 1, 1);
+      const limit = Math.min(Math.max(parseInt(query.limit) || 20, 1), 100);
+      return { page, limit, skip: (page - 1) * limit };
+    };
+    const slugify = (text) => String(text).toLowerCase().replace(/&/g, " ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const slugTaken = (collection, slug, id) => collection.findOne({ slug, ...(id !== undefined && { id: { $ne: id } }) });
+    const uniqueSlug = async (collection, text) => {
+      const base = slugify(text) || "item";
+      let slug = base;
+      for (let n = 2; await slugTaken(collection, slug); n++) slug = `${base}-${n}`;
+      return slug;
+    };
+    const nextId = async (collection) => {
+      const [last] = await collection.find({ id: { $type: "number" } }).sort({ id: -1 }).limit(1).toArray();
+      return (last?.id ?? 0) + 1;
+    };
+    const categoryShort = (category) => {
+      if (category.code) return category.code;
+      const words = category.name.split(/[^A-Za-z0-9]+/).filter(Boolean);
+      const short = words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "").slice(0, 2);
+      return (short || "XX").toUpperCase();
+    };
+    const uniqueCode = async (category, start) => {
+      const codeFor = (n) => `TS-${categoryShort(category)}-${String(n).padStart(3, "0")}`;
+      let n = start;
+      while (await productsCollection.findOne({ code: codeFor(n) })) n++;
+      return codeFor(n);
+    };
+    const readText = (body, data, keys) => {
+      for (const key of keys) {
+        if (body[key] === undefined) continue;
+        if (typeof body[key] !== "string") return `${key} must be text`;
+        data[key] = body[key].trim();
+      }
+    };
+    const readFlags = (body, data, keys) => {
+      for (const key of keys) {
+        if (body[key] === undefined) continue;
+        if (typeof body[key] !== "boolean") return `${key} must be true or false`;
+        data[key] = body[key];
+      }
+    };
+    const readProduct = async (body, current) => {
+      const data = {};
+      let category = null;
+      const textError = readText(body, data, ["name", "brand", "shortDescription", "description", "adminNote"]) || readFlags(body, data, ["freeDelivery", "isNew", "published"]);
+      if (textError) return { error: textError };
+      if (data.name === "") return { error: "Name is required" };
+      for (const key of ["price", "oldPrice", "costPrice"]) {
+        if (body[key] === undefined) continue;
+        if (key !== "price" && body[key] === null) {
+          data[key] = null;
+          continue;
+        }
+        const value = toNumber(body[key]);
+        if (!Number.isFinite(value) || value < 0 || (key === "price" && value === 0)) return { error: `${key} must be a positive number` };
+        data[key] = value;
+      }
+      if (body.stock !== undefined) {
+        const stock = toNumber(body.stock);
+        if (!Number.isInteger(stock) || stock < 0) return { error: "stock must be a whole number of 0 or more" };
+        data.stock = stock;
+      }
+      if (body.categoryId !== undefined) {
+        category = await categoriesCollection.findOne({ id: toNumber(body.categoryId) });
+        if (!category) return { error: "Category not found" };
+        data.categoryId = category.id;
+      }
+      if (body.images !== undefined) {
+        if (!Array.isArray(body.images) || body.images.length === 0) return { error: "images must be a non-empty array" };
+        const known = current?.images ?? [];
+        if (!body.images.every((url) => typeof url === "string" && (cloudinaryUrl.test(url) || known.includes(url)))) {
+          return { error: "images must be Cloudinary URLs" };
+        }
+        data.images = body.images;
+      }
+      if (body.collections !== undefined) {
+        if (!Array.isArray(body.collections) || !body.collections.every((c) => typeof c === "string" && c.trim())) return { error: "collections must be an array of text" };
+        data.collections = [...new Set(body.collections.map((c) => c.trim()))];
+      }
+      if (body.variants !== undefined) {
+        const valid =
+          Array.isArray(body.variants) &&
+          body.variants.every((v) => typeof v?.name === "string" && v.name.trim() && Array.isArray(v.options) && v.options.length && v.options.every((o) => typeof o === "string" && o.trim()));
+        if (!valid) return { error: "variants must be an array of { name, options }" };
+        data.variants = body.variants.map((v) => ({ name: v.name.trim(), options: v.options.map((o) => o.trim()) }));
+      }
+      if (body.specs !== undefined) {
+        const valid = Array.isArray(body.specs) && body.specs.every((s) => typeof s?.label === "string" && s.label.trim() && typeof s.value === "string");
+        if (!valid) return { error: "specs must be an array of { label, value }" };
+        data.specs = body.specs.map((s) => ({ label: s.label.trim(), value: s.value.trim() }));
+      }
+      if (body.slug !== undefined) {
+        data.slug = typeof body.slug === "string" ? slugify(body.slug) : "";
+        if (!data.slug) return { error: "slug is invalid" };
+      }
+      if (body.code !== undefined) {
+        data.code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+        if (!data.code) return { error: "code is invalid" };
+      }
+      return { data, category };
+    };
+    const readCategory = async (body, current) => {
+      const data = {};
+      const textError = readText(body, data, ["name", "icon", "shortName", "menuName"]);
+      if (textError) return { error: textError };
+      if (data.name === "") return { error: "Name is required" };
+      if (body.slug !== undefined) {
+        data.slug = typeof body.slug === "string" ? slugify(body.slug) : "";
+        if (!data.slug) return { error: "slug is invalid" };
+      }
+      if (body.code !== undefined) {
+        data.code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+        if (!/^[A-Z0-9]{1,4}$/.test(data.code)) return { error: "code must be 1 to 4 letters or digits" };
+      }
+      if (body.parentId !== undefined) {
+        if (body.parentId === null) {
+          data.parentId = null;
+        } else {
+          const parent = await categoriesCollection.findOne({ id: toNumber(body.parentId) });
+          if (!parent) return { error: "Parent category not found" };
+          if (parent.parentId) return { error: "Parent must be a top level category" };
+          if (current && parent.id === current.id) return { error: "A category cannot be its own parent" };
+          if (current && (await categoriesCollection.countDocuments({ parentId: current.id }))) {
+            return { error: "A category with subcategories cannot become a subcategory" };
+          }
+          data.parentId = parent.id;
+        }
+      }
+      return { data };
+    };
+    const readBanner = (body, current) => {
+      const data = {};
+      const textError = readText(body, data, ["eyebrow", "title", "shortTitle", "subtitle", "link", "icon", "theme", "image"]) || readFlags(body, data, ["active"]);
+      if (textError) return { error: textError };
+      if (body.type !== undefined) {
+        if (!bannerTypes.includes(body.type)) return { error: "type must be hero, side, promo or menu" };
+        data.type = body.type;
+      }
+      if (data.image !== undefined && !/^https:\/\/\S+$/.test(data.image)) return { error: "image must be an https URL" };
+      if (body.order !== undefined) {
+        const order = toNumber(body.order);
+        if (!Number.isInteger(order)) return { error: "order must be a whole number" };
+        data.order = order;
+      }
+      for (const key of ["startAt", "endAt"]) {
+        if (body[key] === undefined) continue;
+        data[key] = toDate(body[key]);
+        if (isBadDate(data[key])) return { error: `${key} must be a valid date` };
+      }
+      const startAt = data.startAt !== undefined ? data.startAt : current?.startAt;
+      const endAt = data.endAt !== undefined ? data.endAt : current?.endAt;
+      if (startAt && endAt && new Date(endAt) <= new Date(startAt)) return { error: "endAt must be after startAt" };
+      return { data };
+    };
+    const readCoupon = (body, current) => {
+      const data = {};
+      const flagError = readFlags(body, data, ["active", "isPublic"]);
+      if (flagError) return { error: flagError };
+      if (body.code !== undefined) {
+        data.code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+        if (!/^[A-Z0-9_-]{3,30}$/.test(data.code)) return { error: "code must be 3 to 30 letters, digits, - or _" };
+      }
+      if (body.type !== undefined) {
+        if (!["percent", "fixed"].includes(body.type)) return { error: "type must be percent or fixed" };
+        data.type = body.type;
+      }
+      if (body.value !== undefined) {
+        data.value = toNumber(body.value);
+        if (!Number.isFinite(data.value) || data.value <= 0) return { error: "value must be a positive number" };
+      }
+      if (body.minOrder !== undefined) {
+        data.minOrder = body.minOrder === null ? 0 : toNumber(body.minOrder);
+        if (!Number.isFinite(data.minOrder) || data.minOrder < 0) return { error: "minOrder must be 0 or more" };
+      }
+      if (body.expiresAt !== undefined) {
+        data.expiresAt = toDate(body.expiresAt);
+        if (isBadDate(data.expiresAt)) return { error: "expiresAt must be a valid date" };
+      }
+      const type = data.type ?? current?.type;
+      const value = data.value ?? current?.value;
+      if (type === "percent" && value > 100) return { error: "A percent coupon cannot be more than 100" };
+      return { data };
+    };
+    const readShippingZones = (zones) => {
+      if (!Array.isArray(zones) || zones.length === 0) return { error: "shippingZones must be a non-empty array" };
+      const result = [];
+      for (const zone of zones) {
+        const name = typeof zone?.name === "string" ? zone.name.trim() : "";
+        const charge = toNumber(zone?.charge);
+        if (!name) return { error: "Every shipping zone needs a name" };
+        if (!Number.isFinite(charge) || charge < 0) return { error: `Charge for ${name} must be 0 or more` };
+        const id = typeof zone.id === "string" && zone.id.trim() ? slugify(zone.id) : slugify(name);
+        if (!id) return { error: `Shipping zone ${name} needs a valid id` };
+        if (result.some((z) => z.id === id)) return { error: `Shipping zone id ${id} is used twice` };
+        result.push({
+          id,
+          name,
+          nameBn: typeof zone.nameBn === "string" ? zone.nameBn.trim() : "",
+          charge,
+          days: typeof zone.days === "string" ? zone.days.trim() : "",
+        });
+      }
+      return { zones: result };
+    };
+    const refreshProductRating = async (productId) => {
+      const [stats] = await reviewsCollection
+        .aggregate([
+          { $match: { productId, status: { $nin: ["pending", "rejected"] } } },
+          { $group: { _id: null, rating: { $avg: "$rating" }, count: { $sum: 1 } } },
+        ])
+        .toArray();
+      const rating = stats?.rating ? Math.round(stats.rating * 10) / 10 : 0;
+      await productsCollection.updateOne({ id: productId }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
     };
 
     // middlewares
@@ -141,13 +365,397 @@ async function run() {
       }
     });
 
+    // admin products related api
+    app.get("/admin/products", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { search, category, status, stock } = req.query;
+        const { page, limit, skip } = pageOf(req.query);
+        const query = {};
+        if (category) {
+          const cat = await categoriesCollection.findOne(/^\d+$/.test(category) ? { id: Number(category) } : { slug: category });
+          if (!cat) return res.send({ products: [], total: 0, page, totalPages: 0 });
+          query.categoryId = { $in: await categoryIdsFor(cat) };
+        }
+        if (status === "published") query.published = { $ne: false };
+        else if (status === "draft") query.published = false;
+        else if (status) return res.status(400).send({ message: "status must be published or draft" });
+        if (stock === "in") query.stock = { $gt: 0 };
+        else if (stock === "low") query.stock = { $gt: 0, $lte: lowStockLimit };
+        else if (stock === "out") query.stock = { $not: { $gt: 0 } };
+        else if (stock) return res.status(400).send({ message: "stock must be in, low or out" });
+        if (typeof search === "string" && search.trim()) {
+          const regex = { $regex: escapeRegex(search.trim()), $options: "i" };
+          query.$or = [{ name: regex }, { code: regex }, { slug: regex }];
+        }
+
+        const total = await productsCollection.countDocuments(query);
+        const products = await productsCollection.find(query).sort({ id: -1 }).skip(skip).limit(limit).toArray();
+        res.send({ products, total, page, totalPages: Math.ceil(total / limit) });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/products", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { data, category, error } = await readProduct(req.body ?? {});
+        if (error) return res.status(400).send({ message: error });
+        if (!data.name || !category || data.price === undefined || !data.images) {
+          return res.status(400).send({ message: "name, categoryId, price and images are required" });
+        }
+        const id = await nextId(productsCollection);
+        if (data.slug && (await slugTaken(productsCollection, data.slug))) return res.status(400).send({ message: "This slug is already used" });
+        if (data.code && (await productsCollection.findOne({ code: data.code }))) return res.status(400).send({ message: "This product code is already used" });
+        const now = new Date();
+        const product = {
+          id,
+          brand: "",
+          oldPrice: null,
+          variants: [],
+          specs: [],
+          shortDescription: "",
+          description: "",
+          stock: 0,
+          freeDelivery: false,
+          isNew: true,
+          collections: [],
+          published: true,
+          ...data,
+          slug: data.slug || (await uniqueSlug(productsCollection, data.name)),
+          code: data.code || (await uniqueCode(category, id)),
+          rating: 0,
+          reviewCount: 0,
+          soldCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        };
+        await productsCollection.insertOne(product);
+        res.send(product);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/products/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const current = await productsCollection.findOne(idFilter(req.params.id));
+        if (!current) return res.status(404).send({ message: "Product not found" });
+        const { data, error } = await readProduct(req.body ?? {}, current);
+        if (error) return res.status(400).send({ message: error });
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        if (data.slug && (await slugTaken(productsCollection, data.slug, current.id))) return res.status(400).send({ message: "This slug is already used" });
+        if (data.code && (await productsCollection.findOne({ code: data.code, id: { $ne: current.id } }))) {
+          return res.status(400).send({ message: "This product code is already used" });
+        }
+        const product = await productsCollection.findOneAndUpdate(
+          { _id: current._id },
+          { $set: { ...data, updatedAt: new Date() } },
+          { returnDocument: "after" }
+        );
+        res.send(product);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/products/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const product = await productsCollection.findOneAndDelete(idFilter(req.params.id));
+        if (!product) return res.status(404).send({ message: "Product not found" });
+        await offersCollection.updateMany({ productIds: product.id }, { $pull: { productIds: product.id } });
+        res.send({ message: "Product deleted", id: product.id });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin categories related api
+    app.post("/admin/categories", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { data, error } = await readCategory(req.body ?? {});
+        if (error) return res.status(400).send({ message: error });
+        if (!data.name) return res.status(400).send({ message: "Name is required" });
+        if (data.slug && (await slugTaken(categoriesCollection, data.slug))) return res.status(400).send({ message: "This slug is already used" });
+        const category = {
+          id: await nextId(categoriesCollection),
+          icon: "Package",
+          parentId: null,
+          ...data,
+          slug: data.slug || (await uniqueSlug(categoriesCollection, data.name)),
+        };
+        await categoriesCollection.insertOne(category);
+        res.send(category);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/categories/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const current = await categoriesCollection.findOne(idFilter(req.params.id));
+        if (!current) return res.status(404).send({ message: "Category not found" });
+        const { data, error } = await readCategory(req.body ?? {}, current);
+        if (error) return res.status(400).send({ message: error });
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        if (data.slug && (await slugTaken(categoriesCollection, data.slug, current.id))) return res.status(400).send({ message: "This slug is already used" });
+        const category = await categoriesCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
+        res.send(category);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/categories/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const category = await categoriesCollection.findOne(idFilter(req.params.id));
+        if (!category) return res.status(404).send({ message: "Category not found" });
+        const productCount = await productsCollection.countDocuments({ categoryId: category.id });
+        const subcategoryCount = await categoriesCollection.countDocuments({ parentId: category.id });
+        if (productCount || subcategoryCount) {
+          return res.status(400).send({
+            message: `This category still has ${productCount} products and ${subcategoryCount} subcategories`,
+            productCount,
+            subcategoryCount,
+          });
+        }
+        await categoriesCollection.deleteOne({ _id: category._id });
+        res.send({ message: "Category deleted", id: category.id });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin banners related api
+    app.get("/admin/banners", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const query = {};
+        if (req.query.type) query.type = req.query.type;
+        if (req.query.active === "true") query.active = true;
+        if (req.query.active === "false") query.active = { $ne: true };
+        const banners = await bannersCollection.find(query).sort({ type: 1, order: 1, id: 1 }).toArray();
+        res.send(banners);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/banners", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { data, error } = readBanner(req.body ?? {});
+        if (error) return res.status(400).send({ message: error });
+        if (!data.type || !data.image) return res.status(400).send({ message: "type and image are required" });
+        const banner = { id: await nextId(bannersCollection), active: true, order: 0, startAt: null, endAt: null, ...data, createdAt: new Date() };
+        await bannersCollection.insertOne(banner);
+        res.send(banner);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/banners/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const current = await bannersCollection.findOne(idFilter(req.params.id));
+        if (!current) return res.status(404).send({ message: "Banner not found" });
+        const { data, error } = readBanner(req.body ?? {}, current);
+        if (error) return res.status(400).send({ message: error });
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        const banner = await bannersCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
+        res.send(banner);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/banners/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const banner = await bannersCollection.findOneAndDelete(idFilter(req.params.id));
+        if (!banner) return res.status(404).send({ message: "Banner not found" });
+        res.send({ message: "Banner deleted", id: banner.id });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin coupons and offers related api
+    app.get("/admin/coupons", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const coupons = await couponsCollection.find().sort({ createdAt: -1, code: 1 }).toArray();
+        res.send(coupons);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/coupons", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { data, error } = readCoupon(req.body ?? {});
+        if (error) return res.status(400).send({ message: error });
+        if (!data.code || !data.type || data.value === undefined) return res.status(400).send({ message: "code, type and value are required" });
+        if (await couponsCollection.findOne({ code: { $regex: `^${escapeRegex(data.code)}$`, $options: "i" } })) {
+          return res.status(400).send({ message: "This coupon code already exists" });
+        }
+        const coupon = { minOrder: 0, expiresAt: null, active: true, isPublic: true, usedCount: 0, ...data, createdAt: new Date() };
+        await couponsCollection.insertOne(coupon);
+        res.send(coupon);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/coupons/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const current = await couponsCollection.findOne(idFilter(req.params.id));
+        if (!current) return res.status(404).send({ message: "Coupon not found" });
+        const { data, error } = readCoupon(req.body ?? {}, current);
+        if (error) return res.status(400).send({ message: error });
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        if (data.code && (await couponsCollection.findOne({ code: { $regex: `^${escapeRegex(data.code)}$`, $options: "i" }, _id: { $ne: current._id } }))) {
+          return res.status(400).send({ message: "This coupon code already exists" });
+        }
+        const coupon = await couponsCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
+        res.send(coupon);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/coupons/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const coupon = await couponsCollection.findOneAndDelete(idFilter(req.params.id));
+        if (!coupon) return res.status(404).send({ message: "Coupon not found" });
+        res.send({ message: "Coupon deleted", code: coupon.code });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/offers/flash-sale", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { title, endsAt, productIds, active } = req.body ?? {};
+        const data = {};
+        if (title !== undefined) {
+          data.title = typeof title === "string" ? title.trim() : "";
+          if (!data.title) return res.status(400).send({ message: "title is required" });
+        }
+        if (endsAt !== undefined) {
+          data.endsAt = toDate(endsAt);
+          if (!data.endsAt || isBadDate(data.endsAt)) return res.status(400).send({ message: "endsAt must be a valid date" });
+        }
+        if (productIds !== undefined) {
+          const ids = Array.isArray(productIds) ? [...new Set(productIds.map(toNumber))] : [];
+          if (!Array.isArray(productIds) || !ids.every(Number.isInteger)) return res.status(400).send({ message: "productIds must be an array of product ids" });
+          const found = await productsCollection.countDocuments({ id: { $in: ids } });
+          if (found !== ids.length) return res.status(400).send({ message: "Some products in productIds were not found" });
+          data.productIds = ids;
+        }
+        if (active !== undefined) {
+          if (typeof active !== "boolean") return res.status(400).send({ message: "active must be true or false" });
+          data.active = active;
+        }
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+
+        const current = await offersCollection.findOne({ type: "flashSale" }, { sort: { endsAt: -1 } });
+        if (!current) {
+          if (!data.title || !data.endsAt || !data.productIds) return res.status(400).send({ message: "title, endsAt and productIds are required" });
+          const sale = { type: "flashSale", active: true, ...data, updatedAt: new Date() };
+          await offersCollection.insertOne(sale);
+          return res.send(sale);
+        }
+        const sale = await offersCollection.findOneAndUpdate(
+          { _id: current._id },
+          { $set: { ...data, updatedAt: new Date() } },
+          { returnDocument: "after" }
+        );
+        res.send(sale);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin settings related api
+    app.patch("/admin/settings", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { store, shippingZones, freeShippingThreshold } = req.body ?? {};
+        const data = {};
+        if (store !== undefined) {
+          if (!isPlainObject(store)) return res.status(400).send({ message: "store must be an object" });
+          for (const [key, value] of Object.entries(store)) {
+            if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)) return res.status(400).send({ message: `Invalid store field ${key}` });
+            data[`store.${key}`] = typeof value === "string" ? value.trim() : value;
+          }
+        }
+        if (shippingZones !== undefined) {
+          const { zones, error } = readShippingZones(shippingZones);
+          if (error) return res.status(400).send({ message: error });
+          data.shippingZones = zones;
+        }
+        if (freeShippingThreshold !== undefined) {
+          const threshold = freeShippingThreshold === null ? null : toNumber(freeShippingThreshold);
+          if (threshold !== null && (!Number.isFinite(threshold) || threshold < 0)) {
+            return res.status(400).send({ message: "freeShippingThreshold must be 0 or more" });
+          }
+          data.freeShippingThreshold = threshold;
+        }
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        const settings = await settingsCollection.findOneAndUpdate({}, { $set: data }, { upsert: true, returnDocument: "after" });
+        res.send(settings);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin reviews related api
+    app.get("/admin/reviews", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { status, productId } = req.query;
+        const { page, limit, skip } = pageOf(req.query);
+        const query = {};
+        if (status === "pending" || status === "rejected") query.status = status;
+        else if (status === "approved") query.status = { $nin: ["pending", "rejected"] };
+        else if (status) return res.status(400).send({ message: "status must be pending, approved or rejected" });
+        if (productId) query.productId = Number(productId);
+
+        const total = await reviewsCollection.countDocuments(query);
+        const reviews = await reviewsCollection.find(query).sort({ createdAt: -1, id: -1 }).skip(skip).limit(limit).toArray();
+        const products = await productsCollection
+          .find({ id: { $in: [...new Set(reviews.map((r) => r.productId))] } })
+          .project({ id: 1, name: 1, slug: 1 })
+          .toArray();
+        res.send({
+          reviews: reviews.map((r) => ({ ...r, product: products.find((p) => p.id === r.productId) ?? null })),
+          total,
+          page,
+          totalPages: Math.ceil(total / limit),
+        });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/reviews/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { status } = req.body ?? {};
+        if (!["approved", "rejected"].includes(status)) return res.status(400).send({ message: "status must be approved or rejected" });
+        const review = await reviewsCollection.findOneAndUpdate(
+          idFilter(req.params.id),
+          { $set: { status, reviewedAt: new Date() } },
+          { returnDocument: "after" }
+        );
+        if (!review) return res.status(404).send({ message: "Review not found" });
+        await refreshProductRating(review.productId);
+        res.send(review);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     // products related api
     app.get("/products", async (req, res) => {
       try {
         const { category, collection, minPrice, maxPrice, inStock, freeDelivery, search, sort } = req.query;
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
-        const query = {};
+        const query = { published: { $ne: false } };
 
         if (category) {
           const cat = await categoriesCollection.findOne({ slug: category });
@@ -183,7 +791,7 @@ async function run() {
 
     app.get("/products/:slug", async (req, res) => {
       try {
-        const product = await productsCollection.findOne({ slug: req.params.slug }, { projection: productProjection });
+        const product = await productsCollection.findOne({ slug: req.params.slug, published: { $ne: false } }, { projection: productProjection });
         if (!product) return res.status(404).send({ message: "Product not found" });
         const category = await categoriesCollection.findOne({ id: product.categoryId });
         const parentCategory = category?.parentId ? await categoriesCollection.findOne({ id: category.parentId }) : null;
@@ -195,10 +803,10 @@ async function run() {
 
     app.get("/products/:slug/related", async (req, res) => {
       try {
-        const product = await productsCollection.findOne({ slug: req.params.slug });
+        const product = await productsCollection.findOne({ slug: req.params.slug, published: { $ne: false } });
         if (!product) return res.status(404).send({ message: "Product not found" });
         const related = await productsCollection
-          .find({ categoryId: product.categoryId, id: { $ne: product.id } })
+          .find({ categoryId: product.categoryId, id: { $ne: product.id }, published: { $ne: false } })
           .project(productProjection)
           .sort({ soldCount: -1, id: 1 })
           .limit(10)
@@ -213,7 +821,9 @@ async function run() {
     app.get("/categories", async (req, res) => {
       try {
         const categories = await categoriesCollection.find().sort({ id: 1 }).toArray();
-        const counts = await productsCollection.aggregate([{ $group: { _id: "$categoryId", count: { $sum: 1 } } }]).toArray();
+        const counts = await productsCollection
+          .aggregate([{ $match: { published: { $ne: false } } }, { $group: { _id: "$categoryId", count: { $sum: 1 } } }])
+          .toArray();
         const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
         res.send(
           categories.map((c) => ({
@@ -231,7 +841,14 @@ async function run() {
     // banners, offers and settings related api
     app.get("/banners", async (req, res) => {
       try {
-        const banners = await bannersCollection.find({ active: true }).sort({ id: 1 }).toArray();
+        const now = new Date();
+        const banners = await bannersCollection
+          .find({
+            active: true,
+            $and: [{ $or: [{ startAt: null }, { startAt: { $lte: now } }] }, { $or: [{ endAt: null }, { endAt: { $gt: now } }] }],
+          })
+          .sort({ order: 1, id: 1 })
+          .toArray();
         const ofType = (type) => banners.filter((b) => b.type === type).map(({ type, ...b }) => b);
         res.send({ hero: ofType("hero"), side: ofType("side"), promo: ofType("promo"), menu: ofType("menu")[0] ?? null });
       } catch (error) {
@@ -248,7 +865,7 @@ async function run() {
           .project({ usedCount: 0, usageLimit: 0, usedBy: 0 })
           .toArray();
         const flashSale = sale
-          ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds } }).project(productProjection).toArray() }
+          ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }
           : null;
         res.send({ coupons, flashSale });
       } catch (error) {
@@ -323,7 +940,7 @@ async function run() {
         if (!zone) return res.status(400).send({ message: "Please select a valid delivery zone" });
 
         const productIds = [...new Set(items.map((item) => Number(item.productId)))];
-        const products = await productsCollection.find({ id: { $in: productIds } }).toArray();
+        const products = await productsCollection.find({ id: { $in: productIds }, published: { $ne: false } }).toArray();
         const quantities = {};
         const lines = [];
         for (const item of items) {
