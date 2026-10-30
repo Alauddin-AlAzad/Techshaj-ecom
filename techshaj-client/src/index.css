@@ -234,3 +234,14 @@
     @apply font-heading;
   }
 }
+
+/* Admin order slip: one A4 page, no toasts or browser margins beyond these. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}

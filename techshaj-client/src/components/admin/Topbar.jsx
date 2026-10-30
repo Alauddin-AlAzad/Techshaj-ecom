@@ -11,7 +11,7 @@ const initials = (admin) =>
 // Figma "Admin/Topbar" (54:7798).
 export default function Topbar({ title, admin, onMenu, onLogout }) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-nav-line bg-white px-4 lg:h-[72px] lg:gap-4 lg:px-7">
+    <header className="sticky top-0 z-30 flex print:hidden h-16 items-center gap-3 border-b border-nav-line bg-white px-4 lg:h-[72px] lg:gap-4 lg:px-7">
       <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1 flex size-10 items-center justify-center rounded-full text-text hover:bg-fill lg:hidden">
         <Menu size={22} />
       </button>

@@ -49,12 +49,12 @@ const AdminPlaceholder = page(() => import('./pages/admin/Placeholder.jsx'))
 const AdminProducts = page(() => import('./pages/admin/Products.jsx'))
 const AdminProductForm = page(() => import('./pages/admin/ProductForm.jsx'))
 const AdminCategories = page(() => import('./pages/admin/Categories.jsx'))
+const AdminDashboard = page(() => import('./pages/admin/Dashboard.jsx'))
+const AdminOrders = page(() => import('./pages/admin/Orders.jsx'))
+const AdminOrderDetail = page(() => import('./pages/admin/OrderDetail.jsx'))
 
 // Admin pages not built yet: [path, title].
 const adminPlaceholders = [
-  ['', 'Dashboard'],
-  ['orders', 'Orders'],
-  ['orders/:orderId', 'Order details'],
   ['banners', 'Banners'],
   ['coupons', 'Coupons'],
   ['flash-sale', 'Flash Sale'],
@@ -76,8 +76,11 @@ export default function App() {
             }
           >
             {adminPlaceholders.map(([path, title]) =>
-              path ? <Route key={path} path={path} element={<AdminPlaceholder title={title} />} /> : <Route key="index" index element={<AdminPlaceholder title={title} />} />,
+              <Route key={path} path={path} element={<AdminPlaceholder title={title} />} />,
             )}
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders/:orderId" element={<AdminOrderDetail />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/new" element={<AdminProductForm />} />
             <Route path="products/:id/edit" element={<AdminProductForm />} />
