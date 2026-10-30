@@ -141,8 +141,8 @@ function MobileFooter({ store, bestSelling, bestDeals }) {
 
 export default function Footer({ store }) {
   const ids = store?.footerProducts
-  const bestSelling = toProductLinks(useAsync(() => getProductsByIds(ids?.bestSelling), [ids]))
-  const bestDeals = toProductLinks(useAsync(() => getProductsByIds(ids?.bestDeals), [ids]))
+  const bestSelling = toProductLinks(useAsync(() => getProductsByIds(ids?.bestSelling, { instant: true }), [ids]))
+  const bestDeals = toProductLinks(useAsync(() => getProductsByIds(ids?.bestDeals, { instant: true }), [ids]))
   const props = { store, bestSelling, bestDeals }
 
   return (

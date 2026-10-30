@@ -5,6 +5,7 @@ import RichText from '../components/info/RichText.jsx'
 import { getPage, getStore } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 async function loadFaq() {
   const [page, store] = await Promise.all([getPage('faq'), getStore()])
@@ -38,6 +39,7 @@ function FaqItem({ item, open, onToggle }) {
 
 // Figma "FAQ" desktop (42:6853) and mobile (43:7383).
 export default function Faq() {
+  usePageTitle('FAQ')
   const data = useAsync(loadFaq)
   const [query, setQuery] = useState('')
   const [topic, setTopic] = useState('all')

@@ -1,6 +1,5 @@
 import { ArrowRight, Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import { z } from 'zod'
 import PageHero from '../components/info/PageHero.jsx'
 import { TINTS } from '../components/info/tints.js'
@@ -9,6 +8,8 @@ import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
 import { toLatinDigits } from '../lib/format.js'
 import { zodResolver } from '../lib/zodResolver.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
+import { notify } from '../lib/notify.jsx'
 
 const schema = z.object({
   name: z.string().trim().min(2, 'Please enter your name'),
@@ -53,6 +54,7 @@ function Input({ label, error, multiline, className, ...props }) {
 
 // Figma "Contact" desktop (42:6628) and mobile (43:7279). The form only shows a toast for now.
 export default function Contact() {
+  usePageTitle('Contact Us')
   const data = useAsync(loadContact)
   const {
     register,
@@ -72,7 +74,7 @@ export default function Contact() {
   ]
 
   const onSubmit = () => {
-    toast.success(page.form.success)
+    notify.success(page.form.success)
     reset()
   }
 

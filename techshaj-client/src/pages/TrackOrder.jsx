@@ -10,6 +10,7 @@ import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
 import { toLatinDigits } from '../lib/format.js'
 import { zodResolver } from '../lib/zodResolver.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const schema = z.object({
   id: z.string().trim().toUpperCase(),
@@ -32,6 +33,7 @@ async function findOrders({ id, phone }, localOrders) {
 
 // Figma "Track Order" desktop (34:3456) and mobile (34:3811).
 export default function TrackOrder() {
+  usePageTitle('Track Order')
   const [params, setParams] = useSearchParams()
   const localOrders = useOrderStore((s) => s.orders)
   const store = useAsync(getStore)

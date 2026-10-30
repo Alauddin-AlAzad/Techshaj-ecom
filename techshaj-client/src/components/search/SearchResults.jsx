@@ -37,7 +37,7 @@ export default function SearchResults({ query, results, total, onSelect, activeI
           )}
         >
           <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-fill">
-            <img src={p.images[0]} alt="" className="size-full object-contain mix-blend-multiply" />
+            <img src={p.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
           </span>
           <span className="flex min-w-0 flex-col gap-[3px]">
             <span className={cn('truncate font-medium text-text', mobile ? 'text-[13px]' : 'text-body')}>

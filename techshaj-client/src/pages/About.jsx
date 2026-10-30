@@ -5,11 +5,13 @@ import Logo from '../components/Logo.jsx'
 import { getPage } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const ICONS = { 'shield-check': ShieldCheck, truck: Truck, 'credit-card': CreditCard, wrench: Wrench }
 
 // Figma "About Us" desktop (42:6334) and mobile (43:7125).
 export default function About() {
+  usePageTitle('About Us')
   const page = useAsync(() => getPage('about'))
   if (!page) return <div className="min-h-[60vh]" />
   const { hero, story, values, numbers } = page

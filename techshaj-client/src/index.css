@@ -91,6 +91,13 @@
   /* FAQ open item (Figma 42:6870) */
   --color-faq-open: #f7fbff;
 
+  /* Loading skeleton and toasts (Figma 86:15964, 86:16071) */
+  --color-skeleton: #eceef2;
+  --color-toast-copy: #aeb4c0;
+  --color-toast-action: #ff7ab8;
+  --color-toast-action-error: #ff8fa6;
+  --shadow-toast: 0 12px 32px rgb(18 18 26 / 0.16);
+
   --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
 
   @keyframes pulse-ring {
@@ -101,6 +108,17 @@
     to {
       transform: scale(1.4);
       opacity: 0;
+    }
+  }
+
+  --animate-shimmer: shimmer 1.4s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
     }
   }
 
@@ -153,6 +171,19 @@
   padding-inline: 16px;
 }
 
+/* One shared light band sweeps across every block, as in the Figma loading frame. */
+@utility skeleton {
+  background-color: var(--color-skeleton);
+  background-image: linear-gradient(102deg, transparent 40%, color-mix(in srgb, var(--color-white) 55%, transparent) 50%, transparent 60%);
+  background-size: 200% 100%;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  animation: var(--animate-shimmer);
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {
@@ -187,6 +218,11 @@
 }
 
 @layer base {
+  /* Figma text uses auto ("normal") line height throughout. */
+  html {
+    line-height: normal;
+  }
+
   body {
     @apply bg-white font-body text-body text-text antialiased;
   }

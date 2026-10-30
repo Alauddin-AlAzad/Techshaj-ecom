@@ -11,15 +11,17 @@ import RadioCard from '../components/checkout/RadioCard.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { useOrderStore } from '../context/useOrderStore.js'
-import { getOffers } from '../data/api.js'
+import { getCoupons } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { useCart } from '../hooks/useCart.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { applyCoupon, variantLabel } from '../lib/cart.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice, toBanglaDigits, toLatinDigits } from '../lib/format.js'
+import { notify } from '../lib/notify.jsx'
 import { buildOrder, newOrderId } from '../lib/order.js'
 import { zodResolver } from '../lib/zodResolver.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const PAYMENTS = [
   { id: 'cod', label: 'COD' },
@@ -53,7 +55,7 @@ function OrderItems({ lines }) {
       {lines.map(({ key, product, qty, variant }) => (
         <li key={key} className="flex items-center gap-3 lg:border-b lg:border-border lg:pb-3.5">
           <span className="size-[52px] shrink-0 overflow-hidden rounded-lg bg-fill lg:size-14">
-            <img src={product.images[0]} alt="" className="size-full object-contain mix-blend-multiply" />
+            <img src={product.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-[3px] lg:gap-1">
             <span className="truncate text-[13px] font-semibold text-text lg:text-label">{product.name}</span>
@@ -149,6 +151,7 @@ function CheckoutForm({ cart, coupons }) {
     const result = applyCoupon(code, coupons, subtotal)
     setCouponCode(result.error ? null : code)
     setCouponError(result.error ?? null)
+    if (!result.error) notify.info('Coupon applied', { description: `${code} · You saved ${formatPrice(result.discount)}` })
   }
 
   const onSubmit = (form) => {
@@ -318,10 +321,11 @@ function CheckoutForm({ cart, coupons }) {
 
 // Figma checkout: desktop modal (31:3530), mobile page (33:3561), error state (86:15837).
 export default function Checkout() {
+  usePageTitle('Checkout')
   const cart = useCart()
-  const offers = useAsync(getOffers)
+  const coupons = useAsync(getCoupons)
 
-  if (!cart.ready || !offers) return <div className="min-h-[60vh]" />
+  if (!cart.ready || !coupons) return <div className="min-h-[60vh]" />
   if (cart.lines.length === 0) {
     return (
       <div className="pt-10 lg:py-16">
@@ -329,5 +333,5 @@ export default function Checkout() {
       </div>
     )
   }
-  return <CheckoutForm cart={cart} coupons={offers.coupons} />
+  return <CheckoutForm cart={cart} coupons={coupons} />
 }

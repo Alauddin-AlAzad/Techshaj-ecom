@@ -37,7 +37,7 @@ export function ProductSwiper({ products, swiperProps, gap = 16, inset = true })
       slidesOffsetBefore={inset ? 16 : 0}
       slidesOffsetAfter={inset ? 16 : 0}
       breakpoints={{ 1024: { slidesPerView: 5, spaceBetween: gap, slidesOffsetBefore: 0, slidesOffsetAfter: 0 } }}
-      className={inset ? 'mt-3.5 -mx-4 lg:mx-0 lg:mt-5' : undefined}
+      className={inset ? 'mt-3.5 max-lg:-mx-4! lg:mt-5' : undefined}
     >
       {products.map((p) => (
         <SwiperSlide key={p.id} className="max-lg:!w-[162px]">

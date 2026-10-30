@@ -4,9 +4,11 @@ import EmptyCart from '../components/cart/EmptyCart.jsx'
 import FreeShippingBar from '../components/cart/FreeShippingBar.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import { useCart } from '../hooks/useCart.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 // Figma "Cart – Mobile 390" (33:3413). Desktop uses the drawer; this page lays the same parts out side by side.
 export default function Cart() {
+  usePageTitle('Your Cart')
   const cart = useCart()
   const empty = cart.ready && cart.lines.length === 0
 

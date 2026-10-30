@@ -3,12 +3,14 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import { ShopSkeleton } from '../components/Skeleton.jsx'
 import FilterPanel from '../components/shop/FilterPanel.jsx'
 import FilterSheet from '../components/shop/FilterSheet.jsx'
 import Pagination from '../components/shop/Pagination.jsx'
 import SortSelect from '../components/shop/SortSelect.jsx'
 import { getCategories, getProducts, getShopMeta } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 import { cn } from '../lib/cn.js'
 import {
   activeFilterCount,
@@ -99,7 +101,9 @@ export default function Shop() {
     return { results, facets, ctx }
   }, [data, params, scopeCats]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!data) return <div className="min-h-[60vh]" />
+  usePageTitle(data && (category?.name ?? (slug ? 'Page not found' : raw.q ? `Search: ${raw.q}` : 'Shop')))
+
+  if (!data) return <ShopSkeleton />
   if (slug && !category) return <NotFound />
 
   const write = (next, { keepCats } = {}) => {

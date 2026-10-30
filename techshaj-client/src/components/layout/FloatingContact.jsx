@@ -2,6 +2,7 @@ import { MessagesSquare, X } from 'lucide-react'
 import { useState } from 'react'
 import { FaFacebookMessenger, FaWhatsapp } from 'react-icons/fa'
 import { useLocation } from 'react-router-dom'
+import { useCartStore } from '../../context/useCartStore.js'
 import { cn } from '../../lib/cn.js'
 
 // Figma "Floating Contact" (92:17074). Sits above the mobile bottom nav.
@@ -10,7 +11,8 @@ export default function FloatingContact({ store }) {
   const { pathname } = useLocation()
   // Product pages have a 69px sticky order bar above the mobile bottom nav, the cart a 138px summary.
   const raised = pathname.startsWith('/product/')
-  const aboveCart = pathname === '/cart'
+  const hasItems = useCartStore((s) => s.items.length > 0)
+  const aboveCart = pathname === '/cart' && hasItems
   if (!store || pathname === '/checkout') return null
 
   const links = [

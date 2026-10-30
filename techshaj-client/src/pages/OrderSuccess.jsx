@@ -6,9 +6,11 @@ import { useAsync } from '../hooks/useAsync.js'
 import { copyText } from '../lib/clipboard.js'
 import { formatPrice } from '../lib/format.js'
 import { itemCount, PAYMENT_LABELS } from '../lib/order.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 // Figma "Order Success" desktop (34:3320) and mobile (34:3718).
 export default function OrderSuccess() {
+  usePageTitle('Order Placed')
   const order = useOrderStore((s) => s.orders.find((o) => o.id === s.lastOrderId))
   const store = useAsync(getStore)
 

@@ -1,6 +1,6 @@
 import { Heart, Star, Truck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useFavoriteStore } from '../context/useFavoriteStore.js'
+import { useFavoriteToggle } from '../hooks/useFavoriteToggle.js'
 import { useOrderNow } from '../hooks/useOrderNow.js'
 import { cn } from '../lib/cn.js'
 import { discountPercent, formatPrice, formatSold, shouldShowRating } from '../lib/format.js'
@@ -9,8 +9,7 @@ import { discountPercent, formatPrice, formatSold, shouldShowRating } from '../l
 // The whole card links to the product; favorite and Order Now sit above the link.
 // orderOnHover adds the desktop hover state from the Shop grid (27:3482).
 export default function ProductCard({ product, className, orderOnHover = false }) {
-  const isFavorite = useFavoriteStore((s) => s.ids.includes(product.id))
-  const toggleFavorite = useFavoriteStore((s) => s.toggle)
+  const [isFavorite, toggleFavorite] = useFavoriteToggle(product)
   const orderNow = useOrderNow()
   const discount = discountPercent(product.price, product.oldPrice)
   const href = `/product/${product.slug}`
@@ -25,13 +24,13 @@ export default function ProductCard({ product, className, orderOnHover = false }
         />
       )}
       <div className="relative h-[140px] overflow-hidden rounded-[10px] bg-fill lg:h-[215px]">
-        <img src={product.images[0]} alt="" loading="lazy" className="size-full object-contain mix-blend-multiply" />
+        <img src={product.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
         {discount > 0 && (
           <span className="absolute top-2 right-2 rounded bg-secondary px-[7px] py-[3px] text-[11px] font-bold text-white">{discount}% OFF</span>
         )}
         <button
           type="button"
-          onClick={() => toggleFavorite(product.id)}
+          onClick={toggleFavorite}
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           aria-pressed={isFavorite}
           className={cn(

@@ -1,19 +1,22 @@
 import { Heart, ShoppingCart } from 'lucide-react'
-import { toast } from 'sonner'
 import EmptyState from '../components/EmptyState.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { useFavoriteStore } from '../context/useFavoriteStore.js'
 import { getProductsByIds } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
+import { notify } from '../lib/notify.jsx'
 import { defaultVariant } from '../lib/product.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const itemsLabel = (n) => `${n} ${n === 1 ? 'item' : 'items'}`
 
 // Figma "Wishlist" desktop (40:5570) and "Favorite" mobile (40:6126).
 export default function Favorite() {
+  usePageTitle('My Favorites')
   const ids = useFavoriteStore((s) => s.ids)
   // Newest favorite first.
   const products = useAsync(() => getProductsByIds([...ids].reverse()), [ids.join(',')])
@@ -25,7 +28,10 @@ export default function Favorite() {
 
   const addAll = () => {
     inStock.forEach((p) => addItem(p.id, 1, defaultVariant(p)))
-    toast.success(`${itemsLabel(inStock.length)} added to cart`)
+    const soldOut = list.length - inStock.length
+    notify.success(`${itemsLabel(inStock.length)} added to cart`, {
+      description: soldOut > 0 ? `${itemsLabel(soldOut)} sold out and skipped` : undefined,
+    })
     if (isDesktop) openCart()
   }
 
@@ -55,9 +61,12 @@ export default function Favorite() {
         </p>
 
         {!products ? (
-          <div className="min-h-[50vh]" />
+          <ProductGridSkeleton
+            count={ids.length || 4}
+            className="grid grid-cols-2 gap-x-2.5 gap-y-4 pt-3.5 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-[22px] lg:pt-5 xl:grid-cols-5"
+          />
         ) : list.length === 0 ? (
-          <div className="pt-16 lg:pt-10">
+          <div className="pt-20 lg:pt-10">
             <EmptyState Icon={Heart} title="No favorites yet" text="Tap the heart on any product to save it here for later." />
           </div>
         ) : (
