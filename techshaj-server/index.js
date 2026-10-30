@@ -78,6 +78,7 @@ async function run() {
       return { valid: true, discount, message: "Coupon applied", code: coupon.code };
     };
     const lowStockLimit = 5;
+    const ratingModes = ["manual", "auto"];
     const orderStatuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
     const nextStatuses = { pending: ["confirmed", "cancelled"], confirmed: ["shipped", "cancelled"], shipped: ["delivered"], delivered: [], cancelled: [] };
     const timeZone = "Asia/Dhaka";
@@ -179,6 +180,25 @@ async function run() {
         const stock = toNumber(body.stock);
         if (!Number.isInteger(stock) || stock < 0) return { error: "stock must be a whole number of 0 or more" };
         data.stock = stock;
+      }
+      for (const key of ["reviewCount", "soldCount"]) {
+        if (body[key] === undefined) continue;
+        const value = toNumber(body[key]);
+        if (!Number.isInteger(value) || value < 0) return { error: `${key} must be a whole number of 0 or more` };
+        data[key] = value;
+      }
+      if (body.rating !== undefined) {
+        const rating = toNumber(body.rating);
+        if (!Number.isFinite(rating) || rating < 0 || rating > 5) return { error: "rating must be between 0 and 5" };
+        data.rating = Math.round(rating * 10) / 10;
+      }
+      if (body.ratingMode !== undefined) {
+        if (!ratingModes.includes(body.ratingMode)) return { error: "ratingMode must be manual or auto" };
+        data.ratingMode = body.ratingMode;
+      }
+      if ((data.ratingMode ?? current?.ratingMode) === "auto") {
+        delete data.rating;
+        delete data.reviewCount;
       }
       if (body.categoryId !== undefined) {
         category = await categoriesCollection.findOne({ id: toNumber(body.categoryId) });
@@ -374,7 +394,7 @@ async function run() {
         ])
         .toArray();
       const rating = stats?.rating ? Math.round(stats.rating * 10) / 10 : 0;
-      await productsCollection.updateOne({ id: productId }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
+      await productsCollection.updateOne({ id: productId, ratingMode: "auto" }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
     };
 
     // middlewares
@@ -506,17 +526,19 @@ async function run() {
           isNew: true,
           collections: [],
           published: true,
-          ...data,
-          slug: data.slug || (await uniqueSlug(productsCollection, data.name)),
-          code: data.code || (await uniqueCode(category, id)),
           rating: 0,
           reviewCount: 0,
           soldCount: 0,
+          ratingMode: "manual",
+          ...data,
+          slug: data.slug || (await uniqueSlug(productsCollection, data.name)),
+          code: data.code || (await uniqueCode(category, id)),
           createdAt: now,
           updatedAt: now,
         };
         await productsCollection.insertOne(product);
-        res.send(product);
+        if (product.ratingMode === "auto") await refreshProductRating(id);
+        res.send(await productsCollection.findOne({ id }));
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -533,11 +555,15 @@ async function run() {
         if (data.code && (await productsCollection.findOne({ code: data.code, id: { $ne: current.id } }))) {
           return res.status(400).send({ message: "This product code is already used" });
         }
-        const product = await productsCollection.findOneAndUpdate(
+        let product = await productsCollection.findOneAndUpdate(
           { _id: current._id },
           { $set: { ...data, updatedAt: new Date() } },
           { returnDocument: "after" }
         );
+        if (data.ratingMode === "auto" && current.ratingMode !== "auto") {
+          await refreshProductRating(current.id);
+          product = await productsCollection.findOne({ _id: current._id });
+        }
         res.send(product);
       } catch (error) {
         res.status(500).send({ message: error.message });

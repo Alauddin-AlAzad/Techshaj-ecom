@@ -52,6 +52,10 @@ const schema = z
     stock: z.string().trim().regex(/^\d+$/, 'Stock must be a whole number of 0 or more'),
     freeDelivery: z.boolean(),
     isNew: z.boolean(),
+    rating: z.string().trim(),
+    reviewCount: z.string().trim(),
+    soldCount: z.string().trim().regex(/^\d+$/, 'Enter a whole number of 0 or more'),
+    autoRating: z.boolean(),
     published: z.boolean(),
     collections: z.array(z.string()),
     images: z.array(z.string()).min(1, 'Add at least 1 image'),
@@ -59,6 +63,11 @@ const schema = z
     specs: z.array(z.object({ label: z.string(), value: z.string() })),
   })
   .superRefine((v, ctx) => {
+    // Read-only while real review numbers are used.
+    if (!v.autoRating && !(/^\d(\.\d)?$/.test(v.rating) && Number(v.rating) <= 5)) {
+      ctx.addIssue({ code: 'custom', path: ['rating'], message: 'Enter 0 to 5 with up to one decimal, e.g. 4.6' })
+    }
+    if (!v.autoRating && !/^\d+$/.test(v.reviewCount)) ctx.addIssue({ code: 'custom', path: ['reviewCount'], message: 'Enter a whole number of 0 or more' })
     if (v.oldPrice && !(Number(v.oldPrice) > Number(v.price))) {
       ctx.addIssue({ code: 'custom', path: ['oldPrice'], message: 'Old price must be empty or more than the price' })
     }
@@ -86,6 +95,10 @@ const blank = {
   stock: '0',
   freeDelivery: false,
   isNew: true,
+  rating: '0',
+  reviewCount: '0',
+  soldCount: '0',
+  autoRating: false,
   published: true,
   collections: [],
   images: [],
@@ -106,6 +119,10 @@ const toFormValues = (p) => ({
   stock: String(p.stock ?? 0),
   freeDelivery: Boolean(p.freeDelivery),
   isNew: Boolean(p.isNew),
+  rating: String(p.rating ?? 0),
+  reviewCount: String(p.reviewCount ?? 0),
+  soldCount: String(p.soldCount ?? 0),
+  autoRating: p.ratingMode === 'auto',
   published: p.published !== false,
   collections: p.collections ?? [],
   images: p.images ?? [],
@@ -127,6 +144,10 @@ const toPayload = (v) => ({
   stock: Number(v.stock),
   freeDelivery: v.freeDelivery,
   isNew: v.isNew,
+  // With real review numbers the server keeps rating and reviewCount up to date.
+  ...(!v.autoRating && { rating: Number(v.rating), reviewCount: Number(v.reviewCount) }),
+  soldCount: Number(v.soldCount),
+  ratingMode: v.autoRating ? 'auto' : 'manual',
   published: v.published,
   collections: v.collections,
   images: v.images,
@@ -406,6 +427,7 @@ function ProductEditor({ product }) {
   const saving = create.isPending || update.isPending
   const guard = useLeaveGuard(isDirty && !saving)
   const stock = useWatch({ control, name: 'stock' })
+  const autoRating = useWatch({ control, name: 'autoRating' })
 
   // ?focus=stock (from the dashboard low stock list) jumps straight to the stock field.
   const [searchParams] = useSearchParams()
@@ -625,6 +647,22 @@ function ProductEditor({ product }) {
             <FlagRow label="New arrival" hint="Shows the New badge and sorts it first">
               {flag('isNew', 'New arrival')}
             </FlagRow>
+          </Card>
+
+          <Card title="Social proof">
+            <p className="-mt-2 text-body-sm text-text-muted">These are shown on the storefront as you enter them. A later version will use real review and order numbers.</p>
+            <FlagRow label="Use real review numbers" hint="Rating and review count follow approved reviews.">
+              {flag('autoRating', 'Use real review numbers')}
+            </FlagRow>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Rating (0 to 5)" htmlFor="rating" error={errors.rating?.message}>
+                <input id="rating" type="number" inputMode="decimal" min="0" max="5" step="0.1" readOnly={autoRating} aria-invalid={Boolean(errors.rating)} className={cn(inputClass(errors.rating), autoRating && 'bg-fill-soft text-text-muted')} {...register('rating')} />
+              </FormField>
+              <FormField label="Review count" htmlFor="reviewCount" error={errors.reviewCount?.message}>
+                <input id="reviewCount" type="number" inputMode="numeric" min="0" step="1" readOnly={autoRating} aria-invalid={Boolean(errors.reviewCount)} className={cn(inputClass(errors.reviewCount), autoRating && 'bg-fill-soft text-text-muted')} {...register('reviewCount')} />
+              </FormField>
+            </div>
+            {number('soldCount', 'Sold count', { hint: 'Shown as "120+ sold". The rating shows once there are 3 or more reviews.' })}
           </Card>
 
           <Card title="Collections">

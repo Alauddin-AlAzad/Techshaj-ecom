@@ -51,11 +51,14 @@ export default function ProductCard({ product, className, orderOnHover = false }
       <div className="relative flex flex-col items-start gap-2 px-1 pt-2.5">
         <h3 className="line-clamp-2 h-9 font-body text-[13px] leading-[18px] font-semibold text-text group-hover/card:text-primary lg:h-10 lg:text-[14px] lg:leading-5">{product.name}</h3>
         <div className="h-4">
-          {shouldShowRating(product) && (
+          {shouldShowRating(product) ? (
             <p className="flex items-center gap-1 text-body-sm whitespace-pre text-text-muted">
               <Star size={13} className="fill-highlight text-highlight" />
-              {product.rating}  ·  {formatSold(product.soldCount)} sold
+              {product.rating}
+              {product.soldCount > 0 && `  ·  ${formatSold(product.soldCount)} sold`}
             </p>
+          ) : (
+            product.soldCount > 0 && <p className="text-body-sm text-text-muted">{formatSold(product.soldCount)} sold</p>
           )}
         </div>
         <p className="flex items-baseline gap-2 whitespace-nowrap">
