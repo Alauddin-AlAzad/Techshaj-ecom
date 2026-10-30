@@ -7,7 +7,7 @@ export default function PromoBanners({ promos }) {
   return (
     <section className="site-container hidden gap-4 pt-12 lg:flex">
       {promos.map((p) => (
-        <BannerImage key={p.id ?? p._id} banner={p} className="aspect-[4/1] min-w-0 flex-1 rounded-[14px]" />
+        <BannerImage key={p.id ?? p._id} banner={p} zoom className="aspect-[4/1] min-w-0 flex-1 rounded-[14px]" />
       ))}
     </section>
   )

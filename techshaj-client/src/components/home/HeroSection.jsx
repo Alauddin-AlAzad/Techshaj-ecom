@@ -91,7 +91,7 @@ export default function HeroSection({ banners, loading = false }) {
       {side.length > 0 && (
         <div className={cn('grid grid-cols-2 gap-2.5 lg:flex lg:flex-col lg:gap-4', slides.length ? 'lg:flex-1' : 'lg:flex-row')}>
           {side.map((b) => (
-            <BannerImage key={b.id ?? b._id} banner={b} className="aspect-[1.35/1] rounded-xl lg:flex-1 lg:rounded-[14px]" />
+            <BannerImage key={b.id ?? b._id} banner={b} zoom className="aspect-[1.35/1] rounded-xl lg:flex-1 lg:rounded-[14px]" />
           ))}
         </div>
       )}
