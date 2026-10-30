@@ -4,6 +4,8 @@ const express = require('express')
 const app=express()
 const cors= require('cors')
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 const port=process.env.PORT || 5000;
 // middle ware
 app.use(cors());
@@ -45,6 +47,7 @@ async function run() {
     const reviewsCollection = client.db("techshajDB").collection("reviews");
     const ordersCollection = client.db("techshajDB").collection("orders");
     const countersCollection = client.db("techshajDB").collection("counters");
+    const adminsCollection = client.db("techshajDB").collection("admins");
 
     const productProjection = { costPrice: 0, buyingPrice: 0, purchasePrice: 0, supplier: 0, adminNote: 0 };
     const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -72,6 +75,71 @@ async function run() {
       const discount = Math.min(amount, subtotal);
       return { valid: true, discount, message: "Coupon applied", code: coupon.code };
     };
+
+    // middlewares
+    const verifyToken = (req, res, next) => {
+      const authorization = req.headers.authorization;
+      if (!authorization?.startsWith("Bearer ")) return res.status(401).send({ message: "unauthorized access" });
+      const token = authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+        if (error || !decoded?.email) return res.status(401).send({ message: "unauthorized access" });
+        req.decoded = { email: decoded.email };
+        next();
+      });
+    };
+
+    const verifyAdmin = async (req, res, next) => {
+      try {
+        const admin = await adminsCollection.findOne({ email: req.decoded?.email }, { projection: { password: 0 } });
+        if (!admin) return res.status(403).send({ message: "forbidden access" });
+        req.admin = admin;
+        next();
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    };
+
+    // jwt related api
+    app.post("/jwt", async (req, res) => {
+      try {
+        const { email, password } = req.body ?? {};
+        if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password) {
+          return res.status(401).send({ message: "Invalid email or password" });
+        }
+        const admin = await adminsCollection.findOne({ email: { $regex: `^${escapeRegex(email.trim())}$`, $options: "i" } });
+        const match = admin?.password ? await bcrypt.compare(password, admin.password) : false;
+        if (!match) return res.status(401).send({ message: "Invalid email or password" });
+        const token = jwt.sign({ email: admin.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
+        res.send({ token });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin related api
+    app.get("/admin/me", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        res.send({ name: req.admin.name ?? null, email: req.admin.email });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/change-password", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { currentPassword, newPassword } = req.body ?? {};
+        if (typeof currentPassword !== "string" || !currentPassword) return res.status(400).send({ message: "Current password is required" });
+        if (typeof newPassword !== "string" || newPassword.length < 8) return res.status(400).send({ message: "New password must be at least 8 characters" });
+        const admin = await adminsCollection.findOne({ _id: req.admin._id });
+        const match = admin?.password ? await bcrypt.compare(currentPassword, admin.password) : false;
+        if (!match) return res.status(400).send({ message: "Current password is incorrect" });
+        const hash = await bcrypt.hash(newPassword, 10);
+        await adminsCollection.updateOne({ _id: admin._id }, { $set: { password: hash, passwordChangedAt: new Date() } });
+        res.send({ message: "Password changed successfully" });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
 
     // products related api
     app.get("/products", async (req, res) => {
