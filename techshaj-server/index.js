@@ -10,16 +10,28 @@ const rateLimit = require('express-rate-limit')
 const port=process.env.PORT || 5000;
 // middle ware
 const clientUrls = (process.env.CLIENT_URLS || "http://localhost:5173").split(",").map((url) => url.trim()).filter(Boolean);
+app.set('trust proxy', 1)
 app.use(cors({ origin: clientUrls }));
 app.use(express.json())
+// routes are added after the database connects, so every request waits for that first
+app.use(async (req, res, next) => {
+    try {
+        await ready
+        next()
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
+})
 
 app.get('/', (req,res)=>{
     res.send("TechShaj server is running")
 })
 
-app.listen( port, ()=>{
-    console.log(`TechShaj server is running on port ${port}`)
-})
+if (!process.env.VERCEL) {
+    app.listen( port, ()=>{
+        console.log(`TechShaj server is running on port ${port}`)
+    })
+}
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -1303,4 +1315,7 @@ async function run() {
   }
 }
 
-run().catch(console.dir);
+const ready = run();
+ready.catch(console.dir);
+
+module.exports = app;
