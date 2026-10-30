@@ -6,6 +6,7 @@ import CategoryIcon from '../components/CategoryIcon.jsx'
 import { getCategories } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 function Group({ department, children }) {
   const count = children.length
@@ -52,6 +53,7 @@ function Group({ department, children }) {
 }
 
 export default function Categories() {
+  usePageTitle('All Categories')
   const tree = useAsync(getCategories)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState('all')

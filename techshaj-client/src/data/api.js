@@ -4,6 +4,10 @@ import pages from './pages.json'
 // Async so pages won't need to change when this switches to a real backend.
 const resolve = (value) => Promise.resolve(structuredClone(value ?? null))
 
+// Fake network latency for product lists and details so loading skeletons show.
+export const LOADING_DELAY = 600
+const delayed = (value) => new Promise((done) => setTimeout(() => done(structuredClone(value ?? null)), LOADING_DELAY))
+
 const childIdsOf = (categoryId) => data.categories.filter((c) => c.parentId === categoryId).map((c) => c.id)
 
 const productCount = (category) => {
@@ -17,12 +21,12 @@ export function getStore() {
   return resolve({ ...data.store, shipping: data.shipping })
 }
 
-export function getProducts({ category, collection, search, isNew, limit } = {}) {
+function filterProducts({ category, collection, search, isNew, limit } = {}) {
   let list = data.products
 
   if (category) {
     const cat = data.categories.find((c) => c.slug === category)
-    if (!cat) return resolve([])
+    if (!cat) return []
     const ids = cat.parentId ? [cat.id] : childIdsOf(cat.id)
     list = list.filter((p) => ids.includes(p.categoryId))
   }
@@ -31,7 +35,11 @@ export function getProducts({ category, collection, search, isNew, limit } = {})
   if (search) list = list.filter((p) => matchesSearch(p, search))
   if (limit) list = list.slice(0, limit)
 
-  return resolve(list)
+  return list
+}
+
+export function getProducts(options) {
+  return delayed(filterProducts(options))
 }
 
 // Search matches product name and code only.
@@ -53,18 +61,30 @@ export function getShopMeta() {
   return resolve({ collections: data.collections, colors: data.colors })
 }
 
-// Keeps the order of the given ids.
-export function getProductsByIds(ids = []) {
-  return resolve(ids.map((id) => data.products.find((p) => p.id === id)).filter(Boolean))
+const productsByIds = (ids) => ids.map((id) => data.products.find((p) => p.id === id)).filter(Boolean)
+
+// Keeps the order of the given ids. The cart passes { instant: true } so totals don't flash.
+export function getProductsByIds(ids = [], { instant = false } = {}) {
+  return (instant ? resolve : delayed)(productsByIds(ids))
 }
 
-export function getProductBySlug(slug) {
+// Product page payload: the product with its category, reviews and up to 10 related products.
+export function getProductDetails(slug) {
   const product = data.products.find((p) => p.slug === slug)
-  if (!product) return resolve(null)
+  if (!product) return delayed(null)
 
   const category = data.categories.find((c) => c.id === product.categoryId)
-  const parent = data.categories.find((c) => c.id === category?.parentId)
-  return resolve({ ...product, category, parentCategory: parent ?? null })
+  const parent = data.categories.find((c) => c.id === category?.parentId) ?? null
+  // Same category first, then the rest of the department.
+  const related = [...filterProducts({ category: category.slug }), ...(parent ? filterProducts({ category: parent.slug }) : [])]
+    .filter((p, i, all) => p.id !== product.id && all.findIndex((x) => x.id === p.id) === i)
+    .slice(0, 10)
+
+  return delayed({
+    product: { ...product, category, parentCategory: parent },
+    reviews: data.reviews.filter((r) => r.productId === product.id),
+    related,
+  })
 }
 
 // Returns parent categories with their children nested.
@@ -110,14 +130,16 @@ export function getPopularLinks() {
 
 // Most sold product in a category, for the desktop category dropdown.
 export function getBestSeller(categorySlug) {
-  return getProducts({ category: categorySlug }).then(
-    (list) => list.reduce((best, p) => (!best || p.soldCount > best.soldCount ? p : best), null),
-  )
+  return resolve(filterProducts({ category: categorySlug }).reduce((best, p) => (!best || p.soldCount > best.soldCount ? p : best), null))
+}
+
+export function getCoupons() {
+  return resolve(data.offers.coupons)
 }
 
 export function getOffers() {
   const { flashSale, coupons } = data.offers
-  return resolve({
+  return delayed({
     coupons,
     flashSale: {
       ...flashSale,

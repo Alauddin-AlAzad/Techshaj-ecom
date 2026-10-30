@@ -1,11 +1,11 @@
 import { Heart } from 'lucide-react'
 import { useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { useFavoriteStore } from '../../context/useFavoriteStore.js'
+import { useFavoriteToggle } from '../../hooks/useFavoriteToggle.js'
 import { cn } from '../../lib/cn.js'
 
 // Desktop: zooms 2x under the cursor while hovering.
-function ZoomImage({ src, alt }) {
+function ZoomImage({ src, alt, lazy }) {
   const [origin, setOrigin] = useState('50% 50%')
   return (
     <div
@@ -18,6 +18,8 @@ function ZoomImage({ src, alt }) {
       <img
         src={src}
         alt={alt}
+        loading={lazy ? 'lazy' : undefined}
+        decoding="async"
         style={{ transformOrigin: origin }}
         className="size-full object-contain mix-blend-multiply transition-transform duration-200 lg:group-hover:scale-200"
       />
@@ -34,7 +36,7 @@ function Thumb({ src, active, onClick, index }) {
       aria-current={active}
       className={cn('size-16 shrink-0 overflow-hidden rounded-lg bg-fill lg:size-[72px]', active ? 'border-2 border-primary' : 'border-2 border-transparent hover:border-primary-soft')}
     >
-      <img src={src} alt="" className="size-full object-contain mix-blend-multiply" />
+      <img src={src} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
     </button>
   )
 }
@@ -43,8 +45,7 @@ function Thumb({ src, active, onClick, index }) {
 export default function Gallery({ product, discount }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
-  const isFavorite = useFavoriteStore((s) => s.ids.includes(product.id))
-  const toggleFavorite = useFavoriteStore((s) => s.toggle)
+  const [isFavorite, toggleFavorite] = useFavoriteToggle(product)
   const images = product.images
   const thumbs = images.map((src, i) => <Thumb key={i} src={src} index={i} active={i === active} onClick={() => swiper?.slideTo(i)} />)
 
@@ -56,7 +57,7 @@ export default function Gallery({ product, discount }) {
         <Swiper onSwiper={setSwiper} onSlideChange={(s) => setActive(s.activeIndex)} className="size-full">
           {images.map((src, i) => (
             <SwiperSlide key={i}>
-              <ZoomImage src={src} alt={`${product.name}, image ${i + 1} of ${images.length}`} />
+              <ZoomImage src={src} alt={`${product.name}, image ${i + 1} of ${images.length}`} lazy={i > 0} />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -66,7 +67,7 @@ export default function Gallery({ product, discount }) {
         )}
         <button
           type="button"
-          onClick={() => toggleFavorite(product.id)}
+          onClick={toggleFavorite}
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           aria-pressed={isFavorite}
           className="absolute top-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white text-text lg:top-4 lg:right-4 lg:size-10"

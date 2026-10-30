@@ -9,7 +9,7 @@ export function useCart() {
   const items = useCartStore((s) => s.items)
   const idKey = [...new Set(items.map((i) => i.productId))].join(',')
   const data = useAsync(
-    () => Promise.all([getProductsByIds(idKey ? idKey.split(',').map(Number) : []), getStore()]),
+    () => Promise.all([getProductsByIds(idKey ? idKey.split(',').map(Number) : [], { instant: true }), getStore()]),
     [idKey],
   )
 

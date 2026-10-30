@@ -2,12 +2,14 @@ import { BadgePercent, ChevronDown, Zap } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard.jsx'
+import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import { getOffers, getProducts } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
 import { useCountdown } from '../hooks/useCountdown.js'
 import { copyText } from '../lib/clipboard.js'
 import { cn } from '../lib/cn.js'
 import { discountPercent, formatPrice } from '../lib/format.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const TABS = [
   { value: 'all', label: 'All' },
@@ -94,6 +96,7 @@ function FlashSaleBar({ title, endsAt }) {
 
 // Figma "Offers – Mobile 390" (95:18258). Desktop reuses the sections with the 5-column Shop grid.
 export default function Offers() {
+  usePageTitle('Offers & Deals')
   const data = useAsync(loadOffers)
   const [params, setParams] = useSearchParams()
   const tab = TABS.some((t) => t.value === params.get('tab')) ? params.get('tab') : 'all'
@@ -173,7 +176,7 @@ export default function Offers() {
         </div>
 
         {!data ? (
-          <div className="min-h-[40vh]" />
+          <ProductGridSkeleton count={10} className="grid grid-cols-2 gap-x-3 gap-y-4 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-[22px] xl:grid-cols-5" />
         ) : results.length === 0 ? (
           <p className="py-16 text-center text-body text-text-muted">No offers in this category right now. Check back soon.</p>
         ) : (

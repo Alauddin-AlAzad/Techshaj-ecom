@@ -6,6 +6,7 @@ import { useAsync } from '../hooks/useAsync.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice } from '../lib/format.js'
 import NotFound from './NotFound.jsx'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 async function loadPolicies() {
   const [policies, store] = await Promise.all([getPage('policies'), getStore()])
@@ -37,6 +38,7 @@ function Charges({ store }) {
 export default function Policy() {
   const { type } = useParams()
   const data = useAsync(loadPolicies)
+  usePageTitle(data?.policies[type]?.title)
 
   if (!data) return <div className="min-h-[60vh]" />
   const { policies, store } = data

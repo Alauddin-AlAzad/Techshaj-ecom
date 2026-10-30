@@ -94,7 +94,7 @@ function CategoryDropdown({ category, left, onClose }) {
           <div className="flex w-[240px] shrink-0 flex-col items-start gap-2.5 self-stretch rounded-xl bg-primary-wash p-4">
             <p className="text-[10.5px] font-bold text-secondary">BEST SELLER</p>
             <Link to={`/product/${bestSeller.slug}`} onClick={onClose} className="relative h-[140px] w-full overflow-hidden rounded-[10px] bg-white">
-              <img src={bestSeller.images[0]} alt="" className="size-full object-contain" />
+              <img src={bestSeller.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain" />
               {discount > 0 && (
                 <span className="absolute top-2 left-2 rounded-md bg-secondary px-[7px] py-[3px] text-[10.5px] font-bold text-white">{discount}% OFF</span>
               )}

@@ -1,23 +1,44 @@
+import { WifiOff } from 'lucide-react'
+import { lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import { Toaster } from 'sonner'
+import AppToaster from './components/AppToaster.jsx'
+import EmptyState from './components/EmptyState.jsx'
 import Layout from './components/layout/Layout.jsx'
-import About from './pages/About.jsx'
-import Blog from './pages/Blog.jsx'
-import Cart from './pages/Cart.jsx'
-import Categories from './pages/Categories.jsx'
-import Category from './pages/Category.jsx'
-import Checkout from './pages/Checkout.jsx'
-import Contact from './pages/Contact.jsx'
-import Faq from './pages/Faq.jsx'
-import Favorite from './pages/Favorite.jsx'
-import Home from './pages/Home.jsx'
-import NotFound from './pages/NotFound.jsx'
-import Offers from './pages/Offers.jsx'
-import OrderSuccess from './pages/OrderSuccess.jsx'
-import Policy from './pages/Policy.jsx'
-import Product from './pages/Product.jsx'
-import Shop from './pages/Shop.jsx'
-import TrackOrder from './pages/TrackOrder.jsx'
+import { notify } from './lib/notify.jsx'
+
+function PageLoadFailed() {
+  return <EmptyState Icon={WifiOff} title="Could not load this page" text="Check your connection and try again." cta="Go to Home" to="/" />
+}
+
+// Each route is its own chunk. A failed chunk download shows an error toast with Retry instead of a blank page.
+const page = (load) =>
+  lazy(() =>
+    load().catch(() => {
+      notify.error('Could not load this page', {
+        description: 'Check your connection and try again',
+        action: { label: 'Retry', onClick: () => window.location.reload() },
+        duration: Infinity,
+      })
+      return { default: PageLoadFailed }
+    }),
+  )
+
+const Home = page(() => import('./pages/Home.jsx'))
+const Shop = page(() => import('./pages/Shop.jsx'))
+const Categories = page(() => import('./pages/Categories.jsx'))
+const Product = page(() => import('./pages/Product.jsx'))
+const Cart = page(() => import('./pages/Cart.jsx'))
+const Checkout = page(() => import('./pages/Checkout.jsx'))
+const OrderSuccess = page(() => import('./pages/OrderSuccess.jsx'))
+const TrackOrder = page(() => import('./pages/TrackOrder.jsx'))
+const Favorite = page(() => import('./pages/Favorite.jsx'))
+const Offers = page(() => import('./pages/Offers.jsx'))
+const About = page(() => import('./pages/About.jsx'))
+const Contact = page(() => import('./pages/Contact.jsx'))
+const Faq = page(() => import('./pages/Faq.jsx'))
+const Policy = page(() => import('./pages/Policy.jsx'))
+const Blog = page(() => import('./pages/Blog.jsx'))
+const NotFound = page(() => import('./pages/NotFound.jsx'))
 
 export default function App() {
   return (
@@ -27,7 +48,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/category/:slug" element={<Category />} />
+          {/* Same element as /shop so moving between listings keeps the loaded data. */}
+          <Route path="/category/:slug" element={<Shop />} />
           <Route path="/product/:slug" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -43,7 +65,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
-      <Toaster position="top-center" richColors />
+      <AppToaster />
     </>
   )
 }

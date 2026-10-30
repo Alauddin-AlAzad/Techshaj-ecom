@@ -6,8 +6,10 @@ import HeroSection from '../components/home/HeroSection.jsx'
 import ProductRow from '../components/home/ProductRow.jsx'
 import PromoBanners from '../components/home/PromoBanners.jsx'
 import TrustBadges from '../components/home/TrustBadges.jsx'
+import { HomeSkeleton } from '../components/Skeleton.jsx'
 import { getBanners, getCategories, getFeaturedCategories, getOffers, getProducts } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 
 async function loadCategoryRows() {
   const parents = await getCategories()
@@ -15,13 +17,24 @@ async function loadCategoryRows() {
   return parents.map((c, i) => ({ category: c, products: rows[i] }))
 }
 
+// Everything loads together so the page swaps from the skeleton in one step.
+async function loadHome() {
+  const [banners, featured, offers, bestDeals, bestSellers, categoryRows] = await Promise.all([
+    getBanners(),
+    getFeaturedCategories(),
+    getOffers(),
+    getProducts({ collection: 'best-deal' }),
+    getProducts({ collection: 'best-seller' }),
+    loadCategoryRows(),
+  ])
+  return { banners, featured, offers, bestDeals, bestSellers, categoryRows }
+}
+
 export default function Home() {
-  const banners = useAsync(getBanners)
-  const featured = useAsync(getFeaturedCategories)
-  const offers = useAsync(getOffers)
-  const bestDeals = useAsync(() => getProducts({ collection: 'best-deal' }))
-  const bestSellers = useAsync(() => getProducts({ collection: 'best-seller' }))
-  const categoryRows = useAsync(loadCategoryRows) ?? []
+  usePageTitle()
+  const data = useAsync(loadHome)
+  if (!data) return <HomeSkeleton />
+  const { banners, featured, offers, bestDeals, bestSellers, categoryRows } = data
 
   const categoryRow = ({ category, products }) => (
     <ProductRow key={category.id} title={category.name} products={products} seeAllTo={`/category/${category.slug}`} />

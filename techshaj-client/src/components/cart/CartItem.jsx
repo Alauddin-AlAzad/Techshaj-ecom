@@ -15,7 +15,7 @@ export default function CartItem({ line, onNavigate }) {
   return (
     <li className="flex items-start gap-3 border-b border-border px-4 py-3.5 lg:gap-3.5 lg:px-5 lg:py-4">
       <Link to={`/product/${product.slug}`} onClick={onNavigate} className="size-[72px] shrink-0 overflow-hidden rounded-lg bg-fill lg:size-[76px]">
-        <img src={product.images[0]} alt="" className="size-full object-contain mix-blend-multiply" />
+        <img src={product.images[0]} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col items-start gap-[5px] lg:gap-1.5">
         <Link to={`/product/${product.slug}`} onClick={onNavigate} className="text-[13px] leading-[18px] font-semibold text-text hover:text-primary lg:text-label lg:leading-normal">

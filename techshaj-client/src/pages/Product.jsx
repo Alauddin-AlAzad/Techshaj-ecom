@@ -2,32 +2,25 @@ import 'swiper/css'
 import { ShoppingCart } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import ProductRow from '../components/home/ProductRow.jsx'
 import BuyBox from '../components/product/BuyBox.jsx'
 import DetailsTabs from '../components/product/DetailsTabs.jsx'
 import Gallery from '../components/product/Gallery.jsx'
 import { useCartStore } from '../context/useCartStore.js'
-import { getProductBySlug, getProducts, getReviews, getStore } from '../data/api.js'
+import { ProductDetailsSkeleton } from '../components/Skeleton.jsx'
+import { getProductDetails, getStore } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
+import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
-import { discountPercent } from '../lib/format.js'
+import { discountPercent, formatPrice } from '../lib/format.js'
+import { notify } from '../lib/notify.jsx'
 import { defaultVariant } from '../lib/product.js'
 import NotFound from './NotFound.jsx'
 
 async function loadProduct(slug) {
-  const product = await getProductBySlug(slug)
-  if (!product) return { product: null }
-  const [store, reviews, sameCategory, sameParent] = await Promise.all([
-    getStore(),
-    getReviews(product.id),
-    getProducts({ category: product.category.slug }),
-    product.parentCategory ? getProducts({ category: product.parentCategory.slug }) : [],
-  ])
-  // Same category first, then the rest of the department, up to 10.
-  const related = [...sameCategory, ...sameParent].filter((p, i, all) => p.id !== product.id && all.findIndex((x) => x.id === p.id) === i).slice(0, 10)
-  return { product, store, reviews, related }
+  const [details, store] = await Promise.all([getProductDetails(slug), getStore()])
+  return { slug, store, product: null, ...details }
 }
 
 // Keyed by slug from the route so state resets when moving between products.
@@ -43,10 +36,15 @@ function ProductDetails({ product, store, reviews, related }) {
   const category = product.category
 
   const addToCart = () => {
+    const inCart = useCartStore.getState().items.reduce((sum, i) => (i.productId === product.id ? sum + i.qty : sum), 0)
+    if (inCart + qty > product.stock) {
+      notify.error('Not enough stock', { description: `Only ${product.stock} left and ${inCart} already in your cart` })
+      return
+    }
     addItem(product.id, qty, variant)
-    toast.success('Added to cart', {
-      description: `${qty} × ${product.name}`,
-      action: { label: 'View cart', onClick: () => (isDesktop ? openCart() : navigate('/cart')) },
+    notify.success('Added to cart', {
+      description: `${qty > 1 ? `${qty} × ` : ''}${product.name} · ${formatPrice(product.price * qty)}`,
+      action: isDesktop ? { label: 'View cart', onClick: openCart } : { label: 'View', onClick: () => navigate('/cart') },
     })
   }
   const orderNow = () => {
@@ -111,8 +109,11 @@ function ProductDetails({ product, store, reviews, related }) {
 export default function Product() {
   const { slug } = useParams()
   const data = useAsync(() => loadProduct(slug), [slug])
+  const current = data?.slug === slug ? data : null
+  usePageTitle(current ? (current.product?.name ?? 'Page not found') : null)
 
-  if (!data) return <div className="min-h-[60vh]" />
-  if (!data.product || data.product.slug !== slug) return data.product ? <div className="min-h-[60vh]" /> : <NotFound />
-  return <ProductDetails key={slug} {...data} />
+  // Keeps the skeleton up while moving between products, too.
+  if (!current) return <ProductDetailsSkeleton />
+  if (!current.product) return <NotFound />
+  return <ProductDetails key={slug} {...current} />
 }

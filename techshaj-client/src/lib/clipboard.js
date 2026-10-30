@@ -1,10 +1,10 @@
-import { toast } from 'sonner'
+import { notify } from './notify.jsx'
 
 export async function copyText(text, message = 'Copied') {
   try {
     await navigator.clipboard.writeText(text)
-    toast.success(message, { description: text })
+    notify.success(message, { description: text })
   } catch {
-    toast.error('Could not copy. Please copy it manually.')
+    notify.error('Could not copy', { description: 'Please copy it manually' })
   }
 }
