@@ -222,7 +222,7 @@ export default function CategoryNav({ categories = [] }) {
             </li>
           ))}
         </ul>
-        <ul ref={rowRef} className="flex h-[60px] items-center gap-6">
+        <ul ref={rowRef} className="flex h-[54px] items-center gap-6">
           <li onMouseEnter={() => setHover(null)}>
             <button
               type="button"
