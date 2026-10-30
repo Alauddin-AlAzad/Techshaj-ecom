@@ -289,6 +289,16 @@ async function run() {
       }
       return { zones: result };
     };
+    const refreshProductRating = async (productId) => {
+      const [stats] = await reviewsCollection
+        .aggregate([
+          { $match: { productId, status: { $nin: ["pending", "rejected"] } } },
+          { $group: { _id: null, rating: { $avg: "$rating" }, count: { $sum: 1 } } },
+        ])
+        .toArray();
+      const rating = stats?.rating ? Math.round(stats.rating * 10) / 10 : 0;
+      await productsCollection.updateOne({ id: productId }, { $set: { rating, reviewCount: stats?.count ?? 0 } });
+    };
 
     // middlewares
     const verifyToken = (req, res, next) => {
@@ -732,6 +742,7 @@ async function run() {
           { returnDocument: "after" }
         );
         if (!review) return res.status(404).send({ message: "Review not found" });
+        await refreshProductRating(review.productId);
         res.send(review);
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -744,7 +755,7 @@ async function run() {
         const { category, collection, minPrice, maxPrice, inStock, freeDelivery, search, sort } = req.query;
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
-        const query = {};
+        const query = { published: { $ne: false } };
 
         if (category) {
           const cat = await categoriesCollection.findOne({ slug: category });
@@ -780,7 +791,7 @@ async function run() {
 
     app.get("/products/:slug", async (req, res) => {
       try {
-        const product = await productsCollection.findOne({ slug: req.params.slug }, { projection: productProjection });
+        const product = await productsCollection.findOne({ slug: req.params.slug, published: { $ne: false } }, { projection: productProjection });
         if (!product) return res.status(404).send({ message: "Product not found" });
         const category = await categoriesCollection.findOne({ id: product.categoryId });
         const parentCategory = category?.parentId ? await categoriesCollection.findOne({ id: category.parentId }) : null;
@@ -792,10 +803,10 @@ async function run() {
 
     app.get("/products/:slug/related", async (req, res) => {
       try {
-        const product = await productsCollection.findOne({ slug: req.params.slug });
+        const product = await productsCollection.findOne({ slug: req.params.slug, published: { $ne: false } });
         if (!product) return res.status(404).send({ message: "Product not found" });
         const related = await productsCollection
-          .find({ categoryId: product.categoryId, id: { $ne: product.id } })
+          .find({ categoryId: product.categoryId, id: { $ne: product.id }, published: { $ne: false } })
           .project(productProjection)
           .sort({ soldCount: -1, id: 1 })
           .limit(10)
@@ -810,7 +821,9 @@ async function run() {
     app.get("/categories", async (req, res) => {
       try {
         const categories = await categoriesCollection.find().sort({ id: 1 }).toArray();
-        const counts = await productsCollection.aggregate([{ $group: { _id: "$categoryId", count: { $sum: 1 } } }]).toArray();
+        const counts = await productsCollection
+          .aggregate([{ $match: { published: { $ne: false } } }, { $group: { _id: "$categoryId", count: { $sum: 1 } } }])
+          .toArray();
         const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
         res.send(
           categories.map((c) => ({
@@ -828,7 +841,14 @@ async function run() {
     // banners, offers and settings related api
     app.get("/banners", async (req, res) => {
       try {
-        const banners = await bannersCollection.find({ active: true }).sort({ id: 1 }).toArray();
+        const now = new Date();
+        const banners = await bannersCollection
+          .find({
+            active: true,
+            $and: [{ $or: [{ startAt: null }, { startAt: { $lte: now } }] }, { $or: [{ endAt: null }, { endAt: { $gt: now } }] }],
+          })
+          .sort({ order: 1, id: 1 })
+          .toArray();
         const ofType = (type) => banners.filter((b) => b.type === type).map(({ type, ...b }) => b);
         res.send({ hero: ofType("hero"), side: ofType("side"), promo: ofType("promo"), menu: ofType("menu")[0] ?? null });
       } catch (error) {
@@ -845,7 +865,7 @@ async function run() {
           .project({ usedCount: 0, usageLimit: 0, usedBy: 0 })
           .toArray();
         const flashSale = sale
-          ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds } }).project(productProjection).toArray() }
+          ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }
           : null;
         res.send({ coupons, flashSale });
       } catch (error) {
@@ -920,7 +940,7 @@ async function run() {
         if (!zone) return res.status(400).send({ message: "Please select a valid delivery zone" });
 
         const productIds = [...new Set(items.map((item) => Number(item.productId)))];
-        const products = await productsCollection.find({ id: { $in: productIds } }).toArray();
+        const products = await productsCollection.find({ id: { $in: productIds }, published: { $ne: false } }).toArray();
         const quantities = {};
         const lines = [];
         for (const item of items) {
