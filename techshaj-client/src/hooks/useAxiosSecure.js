@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const axiosSecure = axios.create({ baseURL: import.meta.env.VITE_API_URL })
+const axiosSecure = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000' })
 
 // For admin routes: sends the stored token and signs out on 401/403.
 export function useAxiosSecure() {
