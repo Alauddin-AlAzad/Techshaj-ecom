@@ -23,6 +23,67 @@
   --color-error: #e11d48;
   --color-error-tint: #fff1f3;
 
+  /* Used in header/footer frames but not defined as Figma variables */
+  --color-dark-field: #22252d;
+  --color-dark-line: #23262f;
+  --color-on-dark: #b8beca;
+  --color-nav-line: #e8eaee;
+  --color-facebook: #1877f2;
+  --color-instagram: #e1306c;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-light: #22c55e;
+  --color-whatsapp-deep: #0f9d58;
+
+  /* Home banners, cards and flash sale (Figma frame 20:2) */
+  --color-fill: #f3f4f6;
+  --color-fill-line: #e5e7eb;
+  --color-info: #007acc;
+  --color-info-tint: #eaf6ff;
+  --color-violet: #6b21c8;
+  --color-violet-tint: #f1e9ff;
+  --color-primary-deep: #d1006a;
+  --color-hero-ink: #0b1b2b;
+  --color-hero-copy: #4b5263;
+  --color-flash: #1b1430;
+  --color-flash-muted: #c7bfe0;
+
+  /* Shop, filters and search (Figma 27:3219, 39:5294, 39:5531) */
+  --color-highlight-soft: #fff6db;
+  --color-highlight-ink: #7a5a00;
+  --color-match: #ffe58a;
+  --color-check-line: #c9ced8;
+  --color-swatch-line: #d5d9e0;
+  --color-sky: #00a3ff;
+  --color-fill-soft: #f9fafb;
+  --color-row-line: #f1f2f4;
+
+  /* Product details (Figma 28:3219, 30:3579) */
+  --color-stock: #10b981;
+  --color-stock-ink: #059669;
+  --color-highlight-line: #ffe19a;
+  --color-whatsapp-ink: #16a34a;
+
+  --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
+
+  @keyframes pulse-ring {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  --animate-marquee: marquee 30s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   --font-heading: 'Montserrat', 'Hind Siliguri', sans-serif;
   --font-body: 'Inter', 'Hind Siliguri', sans-serif;
   --font-bangla: 'Hind Siliguri', sans-serif;
@@ -50,6 +111,47 @@
 
 @utility bg-brand-gradient {
   background-image: linear-gradient(to right, #00a3ff 0%, #8a2be2 55%, #ff1b8d 100%);
+}
+
+/* 1240px content width from the 1440px frames, 16px gutter below that */
+@utility site-container {
+  width: 100%;
+  max-width: 1272px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Two stacked range inputs form the dual price slider; only the thumbs take pointer events. */
+@utility range-thumb {
+  pointer-events: none;
+  appearance: none;
+  background: transparent;
+  &::-webkit-slider-thumb {
+    pointer-events: auto;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-white);
+    border: 2px solid var(--color-primary);
+    cursor: pointer;
+  }
+  &::-moz-range-thumb {
+    pointer-events: auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-white);
+    border: 2px solid var(--color-primary);
+    cursor: pointer;
+  }
 }
 
 @layer base {

@@ -1,6 +1,2 @@
-import { useParams } from 'react-router-dom'
-
-export default function Category() {
-  const { slug } = useParams()
-  return <h1 className="text-h2">Category: {slug}</h1>
-}
+// /category/:slug uses the Shop listing scoped to that category.
+export { default } from './Shop.jsx'

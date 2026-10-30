@@ -1,7 +1,3763 @@
 {
-  "categories": [],
-  "products": [],
-  "offers": [],
-  "blogs": [],
-  "faqs": []
+  "store": {
+    "name": "TechShaj",
+    "hotline": "+880 1XXX-XXXXXX",
+    "whatsapp": "8801700000000",
+    "messengerUsername": "techshaj",
+    "email": "support@techshaj.com",
+    "address": "House XX, Road XX, Dhaka",
+    "social": {
+      "facebook": "https://facebook.com/techshaj",
+      "instagram": "https://instagram.com/techshaj",
+      "whatsapp": "https://wa.me/8801700000000"
+    },
+    "announcements": [
+      "Free Shipping on Orders Over ৳3,000",
+      "Cash on Delivery All Over Bangladesh"
+    ],
+    "freeShippingThreshold": 3000,
+    "footerProducts": {
+      "bestSelling": [
+        1,
+        35,
+        29,
+        40
+      ],
+      "bestDeals": [
+        33,
+        27,
+        28,
+        21
+      ]
+    }
+  },
+  "shipping": {
+    "zones": [
+      {
+        "id": "inside-dhaka",
+        "name": "Inside Dhaka",
+        "charge": 70,
+        "days": "1-2 days"
+      },
+      {
+        "id": "dhaka-suburbs",
+        "name": "Dhaka suburbs",
+        "charge": 100,
+        "days": "2-3 days"
+      },
+      {
+        "id": "outside-dhaka",
+        "name": "Outside Dhaka",
+        "charge": 130,
+        "days": "2-4 days"
+      }
+    ]
+  },
+  "categories": [
+    {
+      "id": 1,
+      "name": "Computer & Laptop Accessories",
+      "slug": "computer-laptop-accessories",
+      "icon": "Keyboard",
+      "parentId": null,
+      "shortName": "Computer"
+    },
+    {
+      "id": 101,
+      "name": "Keyboard",
+      "slug": "keyboard",
+      "icon": "Keyboard",
+      "parentId": 1
+    },
+    {
+      "id": 102,
+      "name": "Mouse",
+      "slug": "mouse",
+      "icon": "Mouse",
+      "parentId": 1
+    },
+    {
+      "id": 103,
+      "name": "Pen Drive",
+      "slug": "pen-drive",
+      "icon": "Package",
+      "parentId": 1
+    },
+    {
+      "id": 104,
+      "name": "Webcam",
+      "slug": "webcam",
+      "icon": "Package",
+      "parentId": 1
+    },
+    {
+      "id": 105,
+      "name": "Hubs & Docks",
+      "slug": "hubs-docks",
+      "icon": "Cable",
+      "parentId": 1
+    },
+    {
+      "id": 106,
+      "name": "Storage / Hard Drive",
+      "slug": "storage-hard-drive",
+      "icon": "Boxes",
+      "parentId": 1
+    },
+    {
+      "id": 107,
+      "name": "Desk Accessories",
+      "slug": "desk-accessories",
+      "icon": "Lamp",
+      "parentId": 1
+    },
+    {
+      "id": 2,
+      "name": "Audio",
+      "slug": "audio",
+      "icon": "Headphones",
+      "parentId": null,
+      "shortName": "Audio"
+    },
+    {
+      "id": 108,
+      "name": "Earbuds",
+      "slug": "earbuds",
+      "icon": "Headphones",
+      "parentId": 2
+    },
+    {
+      "id": 109,
+      "name": "Neckband",
+      "slug": "neckband",
+      "icon": "AudioLines",
+      "parentId": 2
+    },
+    {
+      "id": 110,
+      "name": "Overhead Headphones",
+      "slug": "overhead-headphones",
+      "icon": "Headphones",
+      "parentId": 2
+    },
+    {
+      "id": 111,
+      "name": "Wired Earphones",
+      "slug": "wired-earphones",
+      "icon": "AudioLines",
+      "parentId": 2
+    },
+    {
+      "id": 3,
+      "name": "Speaker",
+      "slug": "speaker",
+      "icon": "Speaker",
+      "parentId": null,
+      "shortName": "Speaker"
+    },
+    {
+      "id": 112,
+      "name": "Bluetooth Speaker",
+      "slug": "bluetooth-speaker",
+      "icon": "Bluetooth",
+      "parentId": 3
+    },
+    {
+      "id": 113,
+      "name": "Smart Speaker",
+      "slug": "smart-speaker",
+      "icon": "Speaker",
+      "parentId": 3
+    },
+    {
+      "id": 114,
+      "name": "Sound Bar",
+      "slug": "sound-bar",
+      "icon": "Speaker",
+      "parentId": 3
+    },
+    {
+      "id": 4,
+      "name": "Charging Accessories",
+      "slug": "charging-accessories",
+      "icon": "BatteryCharging",
+      "parentId": null,
+      "shortName": "Charging"
+    },
+    {
+      "id": 115,
+      "name": "Power Bank",
+      "slug": "power-bank",
+      "icon": "BatteryCharging",
+      "parentId": 4
+    },
+    {
+      "id": 116,
+      "name": "Charger & Adapter",
+      "slug": "charger-adapter",
+      "icon": "Plug",
+      "parentId": 4
+    },
+    {
+      "id": 117,
+      "name": "Cables",
+      "slug": "cables",
+      "icon": "Cable",
+      "parentId": 4
+    },
+    {
+      "id": 118,
+      "name": "Wireless Charger",
+      "slug": "wireless-charger",
+      "icon": "Zap",
+      "parentId": 4
+    },
+    {
+      "id": 119,
+      "name": "Converter / Dongle",
+      "slug": "converter-dongle",
+      "icon": "Cable",
+      "parentId": 4
+    },
+    {
+      "id": 5,
+      "name": "Fancy & Decorative Lights",
+      "slug": "fancy-decorative-lights",
+      "icon": "Lamp",
+      "parentId": null,
+      "shortName": "Lights"
+    },
+    {
+      "id": 120,
+      "name": "Home Decor Lights",
+      "slug": "home-decor-lights",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 121,
+      "name": "Fairy Light",
+      "slug": "fairy-light",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 122,
+      "name": "Wall Lamps",
+      "slug": "wall-lamps",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 123,
+      "name": "Mirror Light",
+      "slug": "mirror-light",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 124,
+      "name": "Cabinet Lamps",
+      "slug": "cabinet-lamps",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 125,
+      "name": "Jhar Bati",
+      "slug": "jhar-bati",
+      "icon": "Lamp",
+      "parentId": 5
+    },
+    {
+      "id": 6,
+      "name": "Home Appliances",
+      "slug": "home-appliances",
+      "icon": "Zap",
+      "parentId": null,
+      "shortName": "Home Appliances"
+    },
+    {
+      "id": 126,
+      "name": "Rechargeable Fan",
+      "slug": "rechargeable-fan",
+      "icon": "Snowflake",
+      "parentId": 6
+    },
+    {
+      "id": 127,
+      "name": "Room Heater",
+      "slug": "room-heater",
+      "icon": "Zap",
+      "parentId": 6
+    },
+    {
+      "id": 128,
+      "name": "Iron",
+      "slug": "iron",
+      "icon": "Zap",
+      "parentId": 6
+    },
+    {
+      "id": 129,
+      "name": "Kitchen Appliances",
+      "slug": "kitchen-appliances",
+      "icon": "Package",
+      "parentId": 6
+    },
+    {
+      "id": 130,
+      "name": "Clock",
+      "slug": "clock",
+      "icon": "Clock",
+      "parentId": 6
+    },
+    {
+      "id": 131,
+      "name": "Solar Panel",
+      "slug": "solar-panel",
+      "icon": "Zap",
+      "parentId": 6
+    },
+    {
+      "id": 132,
+      "name": "Power Station",
+      "slug": "power-station",
+      "icon": "BatteryCharging",
+      "parentId": 6
+    },
+    {
+      "id": 7,
+      "name": "Gadgets & Accessories",
+      "slug": "gadgets-accessories",
+      "icon": "Watch",
+      "parentId": null,
+      "shortName": "Gadgets"
+    },
+    {
+      "id": 133,
+      "name": "Smart Watches",
+      "slug": "smart-watches",
+      "icon": "Watch",
+      "parentId": 7
+    },
+    {
+      "id": 134,
+      "name": "Mobile Cooler",
+      "slug": "mobile-cooler",
+      "icon": "Snowflake",
+      "parentId": 7
+    },
+    {
+      "id": 135,
+      "name": "Phone Accessories",
+      "slug": "phone-accessories",
+      "icon": "Package",
+      "parentId": 7
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "code": "TS-DA-001",
+      "slug": "budget-friendly-argb-monitor-lightbar",
+      "name": "Budget-Friendly ARGB Monitor LightBar",
+      "brand": "TechShaj",
+      "categoryId": 107,
+      "price": 1290,
+      "oldPrice": 1690,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Length",
+          "value": "40 cm"
+        },
+        {
+          "label": "Power",
+          "value": "USB 5V"
+        },
+        {
+          "label": "Lighting",
+          "value": "ARGB, 16 modes"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Screen-mounted light bar that cuts glare and adds ARGB ambience to your desk.",
+      "description": "Screen-mounted light bar that cuts glare and adds ARGB ambience to your desk. Every Budget-Friendly ARGB Monitor LightBar sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 42,
+      "rating": 4.6,
+      "reviewCount": 128,
+      "soldCount": 540,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal",
+        "best-seller"
+      ]
+    },
+    {
+      "id": 2,
+      "code": "TS-KB-002",
+      "slug": "fantech-k613l-fighter-ii-gaming-keyboard",
+      "name": "Fantech K613L Fighter II Gaming Keyboard",
+      "brand": "Fantech",
+      "categoryId": 101,
+      "price": 1450,
+      "oldPrice": 1650,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Fantech"
+        },
+        {
+          "label": "Switch",
+          "value": "Membrane"
+        },
+        {
+          "label": "Backlight",
+          "value": "Rainbow LED"
+        },
+        {
+          "label": "Connection",
+          "value": "USB wired"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Full-size gaming keyboard with rainbow backlight and anti-ghosting keys.",
+      "description": "Full-size gaming keyboard with rainbow backlight and anti-ghosting keys. Every Fantech K613L Fighter II Gaming Keyboard sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 25,
+      "rating": 4.4,
+      "reviewCount": 37,
+      "soldCount": 160,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 3,
+      "code": "TS-MS-003",
+      "slug": "logitech-m171-wireless-mouse",
+      "name": "Logitech M171 Wireless Mouse",
+      "brand": "Logitech",
+      "categoryId": 102,
+      "price": 990,
+      "oldPrice": 1150,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Grey",
+            "Blue"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Logitech"
+        },
+        {
+          "label": "DPI",
+          "value": "1000"
+        },
+        {
+          "label": "Connection",
+          "value": "2.4 GHz USB receiver"
+        },
+        {
+          "label": "Battery",
+          "value": "1 x AA, up to 12 months"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Compact ambidextrous wireless mouse with plug-and-play receiver.",
+      "description": "Compact ambidextrous wireless mouse with plug-and-play receiver. Every Logitech M171 Wireless Mouse sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 60,
+      "rating": 4.7,
+      "reviewCount": 212,
+      "soldCount": 890,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 4,
+      "code": "TS-PD-004",
+      "slug": "sandisk-ultra-flair-64gb-usb-3-0-pen-drive",
+      "name": "SanDisk Ultra Flair 64GB USB 3.0 Pen Drive",
+      "brand": "SanDisk",
+      "categoryId": 103,
+      "price": 750,
+      "oldPrice": 900,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Capacity",
+          "options": [
+            "32GB",
+            "64GB",
+            "128GB"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "SanDisk"
+        },
+        {
+          "label": "Interface",
+          "value": "USB 3.0"
+        },
+        {
+          "label": "Read speed",
+          "value": "Up to 150 MB/s"
+        },
+        {
+          "label": "Body",
+          "value": "Metal"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Durable metal pen drive with fast USB 3.0 transfers.",
+      "description": "Durable metal pen drive with fast USB 3.0 transfers. Every SanDisk Ultra Flair 64GB USB 3.0 Pen Drive sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 80,
+      "rating": 4.8,
+      "reviewCount": 156,
+      "soldCount": 1020,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 5,
+      "code": "TS-WC-005",
+      "slug": "a4tech-pk-910p-1080p-webcam",
+      "name": "A4Tech PK-910P 1080p Webcam",
+      "brand": "A4Tech",
+      "categoryId": 104,
+      "price": 2350,
+      "oldPrice": 2800,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "A4Tech"
+        },
+        {
+          "label": "Resolution",
+          "value": "1920 x 1080"
+        },
+        {
+          "label": "Microphone",
+          "value": "Built-in"
+        },
+        {
+          "label": "Mount",
+          "value": "Clip and tripod"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Full HD webcam with built-in mic for meetings and online classes.",
+      "description": "Full HD webcam with built-in mic for meetings and online classes. Every A4Tech PK-910P 1080p Webcam sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 14,
+      "rating": 4.3,
+      "reviewCount": 22,
+      "soldCount": 74,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 6,
+      "code": "TS-HD-006",
+      "slug": "ugreen-5-in-1-usb-c-hub",
+      "name": "UGREEN 5-in-1 USB-C Hub",
+      "brand": "UGREEN",
+      "categoryId": 105,
+      "price": 2490,
+      "oldPrice": 2990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Space Grey"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "UGREEN"
+        },
+        {
+          "label": "Ports",
+          "value": "HDMI 4K, 3 x USB-A, USB-C PD"
+        },
+        {
+          "label": "Power delivery",
+          "value": "100W"
+        },
+        {
+          "label": "Body",
+          "value": "Aluminium"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Adds 4K HDMI, USB-A and 100W pass-through charging to any USB-C laptop.",
+      "description": "Adds 4K HDMI, USB-A and 100W pass-through charging to any USB-C laptop. Every UGREEN 5-in-1 USB-C Hub sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 30,
+      "rating": 4.7,
+      "reviewCount": 64,
+      "soldCount": 210,
+      "freeDelivery": true,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 7,
+      "code": "TS-ST-007",
+      "slug": "transcend-storejet-25m3-1tb-portable-hdd",
+      "name": "Transcend StoreJet 25M3 1TB Portable HDD",
+      "brand": "Transcend",
+      "categoryId": 106,
+      "price": 6450,
+      "oldPrice": 6990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Iron Grey"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Transcend"
+        },
+        {
+          "label": "Capacity",
+          "value": "1TB"
+        },
+        {
+          "label": "Interface",
+          "value": "USB 3.1 Gen 1"
+        },
+        {
+          "label": "Protection",
+          "value": "Military-grade shockproof"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Rugged portable hard drive with shock protection and one-touch backup.",
+      "description": "Rugged portable hard drive with shock protection and one-touch backup. Every Transcend StoreJet 25M3 1TB Portable HDD sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 9,
+      "rating": 4.6,
+      "reviewCount": 41,
+      "soldCount": 96,
+      "freeDelivery": true,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 8,
+      "code": "TS-KB-008",
+      "slug": "rapoo-e9050g-wireless-slim-keyboard",
+      "name": "Rapoo E9050G Wireless Slim Keyboard",
+      "brand": "Rapoo",
+      "categoryId": 101,
+      "price": 2190,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Rapoo"
+        },
+        {
+          "label": "Connection",
+          "value": "Bluetooth + 2.4 GHz"
+        },
+        {
+          "label": "Devices",
+          "value": "Up to 4"
+        },
+        {
+          "label": "Battery",
+          "value": "Rechargeable"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Ultra-slim multi-device keyboard for laptop, tablet and phone.",
+      "description": "Ultra-slim multi-device keyboard for laptop, tablet and phone. Every Rapoo E9050G Wireless Slim Keyboard sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 18,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": false,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 9,
+      "code": "TS-EB-009",
+      "slug": "qcy-t13-anc-true-wireless-earbuds",
+      "name": "QCY T13 ANC True Wireless Earbuds",
+      "brand": "QCY",
+      "categoryId": 108,
+      "price": 2190,
+      "oldPrice": 2690,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "QCY"
+        },
+        {
+          "label": "ANC",
+          "value": "Up to 30 dB"
+        },
+        {
+          "label": "Playtime",
+          "value": "30 hours with case"
+        },
+        {
+          "label": "Bluetooth",
+          "value": "5.3"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Budget ANC earbuds with long battery life and low-latency game mode.",
+      "description": "Budget ANC earbuds with long battery life and low-latency game mode. Every QCY T13 ANC True Wireless Earbuds sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 50,
+      "rating": 4.5,
+      "reviewCount": 318,
+      "soldCount": 1450,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 10,
+      "code": "TS-EB-010",
+      "slug": "lenovo-lp40-pro-tws-earbuds",
+      "name": "Lenovo LP40 Pro TWS Earbuds",
+      "brand": "Lenovo",
+      "categoryId": 108,
+      "price": 1150,
+      "oldPrice": 1490,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Lenovo"
+        },
+        {
+          "label": "Driver",
+          "value": "10 mm"
+        },
+        {
+          "label": "Playtime",
+          "value": "24 hours with case"
+        },
+        {
+          "label": "Bluetooth",
+          "value": "5.1"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Lightweight everyday earbuds with touch controls.",
+      "description": "Lightweight everyday earbuds with touch controls. Every Lenovo LP40 Pro TWS Earbuds sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 70,
+      "rating": 4.2,
+      "reviewCount": 189,
+      "soldCount": 980,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 11,
+      "code": "TS-EB-011",
+      "slug": "soundcore-r50i-nc-earbuds",
+      "name": "Soundcore R50i NC Earbuds",
+      "brand": "Anker",
+      "categoryId": 108,
+      "price": 2650,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Blue"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Anker"
+        },
+        {
+          "label": "ANC",
+          "value": "Hybrid"
+        },
+        {
+          "label": "Playtime",
+          "value": "45 hours with case"
+        },
+        {
+          "label": "Water resistance",
+          "value": "IPX5"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Noise-cancelling earbuds with 22 EQ presets in the Soundcore app.",
+      "description": "Noise-cancelling earbuds with 22 EQ presets in the Soundcore app. Every Soundcore R50i NC Earbuds sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 35,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": false,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 12,
+      "code": "TS-NB-012",
+      "slug": "oraimo-necklace-3-neckband",
+      "name": "Oraimo Necklace 3 Neckband",
+      "brand": "Oraimo",
+      "categoryId": 109,
+      "price": 1350,
+      "oldPrice": 1550,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Blue"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Oraimo"
+        },
+        {
+          "label": "Playtime",
+          "value": "20 hours"
+        },
+        {
+          "label": "Charging",
+          "value": "USB-C, fast charge"
+        },
+        {
+          "label": "Water resistance",
+          "value": "IPX5"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Magnetic neckband earphones with 20-hour battery.",
+      "description": "Magnetic neckband earphones with 20-hour battery. Every Oraimo Necklace 3 Neckband sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 40,
+      "rating": 4.4,
+      "reviewCount": 97,
+      "soldCount": 610,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 13,
+      "code": "TS-RH-013",
+      "slug": "miyako-2000w-room-heater",
+      "name": "Miyako 2000W Room Heater",
+      "brand": "Miyako",
+      "categoryId": 127,
+      "price": 2890,
+      "oldPrice": 3290,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Miyako"
+        },
+        {
+          "label": "Power",
+          "value": "2000W"
+        },
+        {
+          "label": "Heat settings",
+          "value": "2"
+        },
+        {
+          "label": "Safety",
+          "value": "Tip-over cut-off"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Fan heater with two heat settings and tip-over safety switch.",
+      "description": "Fan heater with two heat settings and tip-over safety switch. Every Miyako 2000W Room Heater sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 11,
+      "rating": 4.1,
+      "reviewCount": 19,
+      "soldCount": 64,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 14,
+      "code": "TS-WE-014",
+      "slug": "jbl-tune-310c-usb-c-earphones",
+      "name": "JBL Tune 310C USB-C Earphones",
+      "brand": "JBL",
+      "categoryId": 111,
+      "price": 1490,
+      "oldPrice": 1790,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "JBL"
+        },
+        {
+          "label": "Connector",
+          "value": "USB-C"
+        },
+        {
+          "label": "Driver",
+          "value": "9 mm"
+        },
+        {
+          "label": "Microphone",
+          "value": "3-button remote"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Hi-res wired earphones with a USB-C plug for modern phones.",
+      "description": "Hi-res wired earphones with a USB-C plug for modern phones. Every JBL Tune 310C USB-C Earphones sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 28,
+      "rating": 4.6,
+      "reviewCount": 54,
+      "soldCount": 230,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 15,
+      "code": "TS-BS-015",
+      "slug": "tronsmart-t7-lite-bluetooth-speaker",
+      "name": "Tronsmart T7 Lite Bluetooth Speaker",
+      "brand": "Tronsmart",
+      "categoryId": 112,
+      "price": 2990,
+      "oldPrice": 3490,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Tronsmart"
+        },
+        {
+          "label": "Output",
+          "value": "24W"
+        },
+        {
+          "label": "Playtime",
+          "value": "24 hours"
+        },
+        {
+          "label": "Water resistance",
+          "value": "IPX7"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Portable 24W speaker with deep bass and IPX7 waterproofing.",
+      "description": "Portable 24W speaker with deep bass and IPX7 waterproofing. Every Tronsmart T7 Lite Bluetooth Speaker sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 22,
+      "rating": 4.5,
+      "reviewCount": 76,
+      "soldCount": 260,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 16,
+      "code": "TS-SP-016",
+      "slug": "sunmax-100w-mono-solar-panel",
+      "name": "Sunmax 100W Mono Solar Panel",
+      "brand": "Sunmax",
+      "categoryId": 131,
+      "price": 6900,
+      "oldPrice": 7600,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Sunmax"
+        },
+        {
+          "label": "Power",
+          "value": "100W"
+        },
+        {
+          "label": "Cell type",
+          "value": "Monocrystalline"
+        },
+        {
+          "label": "Size",
+          "value": "100 x 67 cm"
+        },
+        {
+          "label": "Warranty",
+          "value": "No warranty"
+        }
+      ],
+      "shortDescription": "Monocrystalline panel for IPS, power stations and rooftop backup.",
+      "description": "Monocrystalline panel for IPS, power stations and rooftop backup. Every Sunmax 100W Mono Solar Panel sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 0,
+      "rating": 4.4,
+      "reviewCount": 9,
+      "soldCount": 30,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 17,
+      "code": "TS-SS-017",
+      "slug": "amazon-echo-pop-smart-speaker",
+      "name": "Amazon Echo Pop Smart Speaker",
+      "brand": "Amazon",
+      "categoryId": 113,
+      "price": 6490,
+      "oldPrice": 6990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Charcoal",
+            "Glacier White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Amazon"
+        },
+        {
+          "label": "Assistant",
+          "value": "Alexa"
+        },
+        {
+          "label": "Connectivity",
+          "value": "Wi-Fi, Bluetooth"
+        },
+        {
+          "label": "Size",
+          "value": "Compact"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Compact smart speaker with Alexa for music and smart home control.",
+      "description": "Compact smart speaker with Alexa for music and smart home control. Every Amazon Echo Pop Smart Speaker sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 6,
+      "rating": 4.3,
+      "reviewCount": 2,
+      "soldCount": 11,
+      "freeDelivery": true,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 18,
+      "code": "TS-SB-018",
+      "slug": "redmi-tv-soundbar-30w",
+      "name": "Redmi TV Soundbar 30W",
+      "brand": "Xiaomi",
+      "categoryId": 114,
+      "price": 5490,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Xiaomi"
+        },
+        {
+          "label": "Output",
+          "value": "30W"
+        },
+        {
+          "label": "Inputs",
+          "value": "Bluetooth, Optical, AUX"
+        },
+        {
+          "label": "Length",
+          "value": "78 cm"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Slim 30W soundbar that upgrades your TV audio in minutes.",
+      "description": "Slim 30W soundbar that upgrades your TV audio in minutes. Every Redmi TV Soundbar 30W sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 12,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": false,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 19,
+      "code": "TS-PB-019",
+      "slug": "anker-powercore-10000mah-power-bank",
+      "name": "Anker PowerCore 10000mAh Power Bank",
+      "brand": "Anker",
+      "categoryId": 115,
+      "price": 2390,
+      "oldPrice": 2790,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Anker"
+        },
+        {
+          "label": "Capacity",
+          "value": "10000mAh"
+        },
+        {
+          "label": "Output",
+          "value": "12W"
+        },
+        {
+          "label": "Weight",
+          "value": "180 g"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Pocket-size power bank that charges a phone more than twice.",
+      "description": "Pocket-size power bank that charges a phone more than twice. Every Anker PowerCore 10000mAh Power Bank sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 45,
+      "rating": 4.8,
+      "reviewCount": 402,
+      "soldCount": 1680,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 20,
+      "code": "TS-PB-020",
+      "slug": "baseus-bipow-20000mah-20w-power-bank",
+      "name": "Baseus Bipow 20000mAh 20W Power Bank",
+      "brand": "Baseus",
+      "categoryId": 115,
+      "price": 2650,
+      "oldPrice": 3200,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Blue"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Baseus"
+        },
+        {
+          "label": "Capacity",
+          "value": "20000mAh"
+        },
+        {
+          "label": "Output",
+          "value": "20W PD"
+        },
+        {
+          "label": "Ports",
+          "value": "USB-C, 2 x USB-A"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "High-capacity power bank with 20W fast charging and digital display.",
+      "description": "High-capacity power bank with 20W fast charging and digital display. Every Baseus Bipow 20000mAh 20W Power Bank sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 33,
+      "rating": 4.6,
+      "reviewCount": 145,
+      "soldCount": 720,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 21,
+      "code": "TS-CH-021",
+      "slug": "anker-511-charger-nano-3-30w",
+      "name": "Anker 511 Charger Nano 3 30W",
+      "brand": "Anker",
+      "categoryId": 116,
+      "price": 2150,
+      "oldPrice": 2490,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "White",
+            "Black",
+            "Purple"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Anker"
+        },
+        {
+          "label": "Output",
+          "value": "30W PD"
+        },
+        {
+          "label": "Technology",
+          "value": "GaN"
+        },
+        {
+          "label": "Port",
+          "value": "USB-C"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Tiny 30W GaN charger that fast-charges phones and tablets.",
+      "description": "Tiny 30W GaN charger that fast-charges phones and tablets. Every Anker 511 Charger Nano 3 30W sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 38,
+      "rating": 4.7,
+      "reviewCount": 88,
+      "soldCount": 340,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 22,
+      "code": "TS-PS-022",
+      "slug": "anker-solix-c300-dc-power-station",
+      "name": "Anker SOLIX C300 DC Power Station",
+      "brand": "Anker",
+      "categoryId": 132,
+      "price": 18990,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Anker"
+        },
+        {
+          "label": "Capacity",
+          "value": "288Wh"
+        },
+        {
+          "label": "Output",
+          "value": "300W"
+        },
+        {
+          "label": "Ports",
+          "value": "3 x USB-C, 1 x USB-A, car outlet"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Portable 288Wh power station that runs a router, fan and laptop through outages.",
+      "description": "Portable 288Wh power station that runs a router, fan and laptop through outages. Every Anker SOLIX C300 DC Power Station sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 5,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": true,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 23,
+      "code": "TS-CB-023",
+      "slug": "ugreen-usb-c-to-lightning-cable-1m",
+      "name": "UGREEN USB-C to Lightning Cable 1m",
+      "brand": "UGREEN",
+      "categoryId": 117,
+      "price": 690,
+      "oldPrice": 850,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Length",
+          "options": [
+            "1m",
+            "2m"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "UGREEN"
+        },
+        {
+          "label": "Certification",
+          "value": "Apple MFi"
+        },
+        {
+          "label": "Power",
+          "value": "20W PD"
+        },
+        {
+          "label": "Jacket",
+          "value": "Braided nylon"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "MFi-certified braided cable for 20W iPhone fast charging.",
+      "description": "MFi-certified braided cable for 20W iPhone fast charging. Every UGREEN USB-C to Lightning Cable 1m sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 90,
+      "rating": 4.6,
+      "reviewCount": 66,
+      "soldCount": 520,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 24,
+      "code": "TS-PA-024",
+      "slug": "baseus-magnetic-car-phone-holder",
+      "name": "Baseus Magnetic Car Phone Holder",
+      "brand": "Baseus",
+      "categoryId": 135,
+      "price": 790,
+      "oldPrice": 990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Silver"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Baseus"
+        },
+        {
+          "label": "Mount",
+          "value": "Air vent"
+        },
+        {
+          "label": "Compatibility",
+          "value": "4.7\"-6.7\" phones"
+        },
+        {
+          "label": "Rotation",
+          "value": "360 degrees"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Strong magnetic vent holder for one-hand phone mounting.",
+      "description": "Strong magnetic vent holder for one-hand phone mounting. Every Baseus Magnetic Car Phone Holder sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 48,
+      "rating": 4.3,
+      "reviewCount": 2,
+      "soldCount": 40,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 25,
+      "code": "TS-WL-025",
+      "slug": "joyroom-15w-magnetic-wireless-charger",
+      "name": "Joyroom 15W Magnetic Wireless Charger",
+      "brand": "Joyroom",
+      "categoryId": 118,
+      "price": 1450,
+      "oldPrice": 1750,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Joyroom"
+        },
+        {
+          "label": "Output",
+          "value": "15W"
+        },
+        {
+          "label": "Compatibility",
+          "value": "MagSafe iPhones"
+        },
+        {
+          "label": "Input",
+          "value": "USB-C"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Snap-on magnetic charging pad for iPhone 12 and newer.",
+      "description": "Snap-on magnetic charging pad for iPhone 12 and newer. Every Joyroom 15W Magnetic Wireless Charger sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 26,
+      "rating": 4.2,
+      "reviewCount": 18,
+      "soldCount": 90,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 26,
+      "code": "TS-CV-026",
+      "slug": "ugreen-usb-c-to-hdmi-4k-adapter",
+      "name": "UGREEN USB-C to HDMI 4K Adapter",
+      "brand": "UGREEN",
+      "categoryId": 119,
+      "price": 1290,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "UGREEN"
+        },
+        {
+          "label": "Resolution",
+          "value": "4K 60Hz"
+        },
+        {
+          "label": "Input",
+          "value": "USB-C (DP Alt Mode)"
+        },
+        {
+          "label": "Body",
+          "value": "Aluminium"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Mirror your laptop or phone to a 4K TV or monitor.",
+      "description": "Mirror your laptop or phone to a 4K TV or monitor. Every UGREEN USB-C to HDMI 4K Adapter sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 24,
+      "rating": 4.6,
+      "reviewCount": 29,
+      "soldCount": 110,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 27,
+      "code": "TS-DL-027",
+      "slug": "16-color-moon-lamp-with-remote-control",
+      "name": "16 Color Moon Lamp with Remote Control",
+      "brand": "TechShaj",
+      "categoryId": 120,
+      "price": 1190,
+      "oldPrice": 1590,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Size",
+          "options": [
+            "12 cm",
+            "15 cm",
+            "18 cm"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Colors",
+          "value": "16 + 4 modes"
+        },
+        {
+          "label": "Battery",
+          "value": "Rechargeable"
+        },
+        {
+          "label": "Control",
+          "value": "Remote and touch"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "3D-printed moon lamp with 16 colors and a wooden stand.",
+      "description": "3D-printed moon lamp with 16 colors and a wooden stand. Every 16 Color Moon Lamp with Remote Control sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 37,
+      "rating": 4.5,
+      "reviewCount": 74,
+      "soldCount": 430,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 28,
+      "code": "TS-DL-028",
+      "slug": "2-in-1-galaxy-projector-night-light",
+      "name": "2-in-1 Galaxy Projector Night Light",
+      "brand": "TechShaj",
+      "categoryId": 120,
+      "price": 2490,
+      "oldPrice": 2990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Modes",
+          "value": "Galaxy, starry sky"
+        },
+        {
+          "label": "Speaker",
+          "value": "Bluetooth"
+        },
+        {
+          "label": "Timer",
+          "value": "1/2 hours"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Projects a moving galaxy on your ceiling with built-in Bluetooth speaker.",
+      "description": "Projects a moving galaxy on your ceiling with built-in Bluetooth speaker. Every 2-in-1 Galaxy Projector Night Light sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 15,
+      "rating": 4.3,
+      "reviewCount": 39,
+      "soldCount": 190,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 29,
+      "code": "TS-FL-029",
+      "slug": "rgbic-neon-led-strip-light-3m",
+      "name": "RGBIC Neon LED Strip Light 3M",
+      "brand": "TechShaj",
+      "categoryId": 121,
+      "price": 1650,
+      "oldPrice": 1990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Length",
+          "options": [
+            "3M",
+            "5M"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Length",
+          "value": "3 m"
+        },
+        {
+          "label": "Control",
+          "value": "App and remote"
+        },
+        {
+          "label": "Music sync",
+          "value": "Yes"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Flexible neon strip with app control and music sync.",
+      "description": "Flexible neon strip with app control and music sync. Every RGBIC Neon LED Strip Light 3M sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 52,
+      "rating": 4.4,
+      "reviewCount": 61,
+      "soldCount": 380,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 30,
+      "code": "TS-CK-030",
+      "slug": "digital-led-wall-clock-with-temperature",
+      "name": "Digital LED Wall Clock with Temperature",
+      "brand": "TechShaj",
+      "categoryId": 130,
+      "price": 1450,
+      "oldPrice": 1750,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "White",
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Display",
+          "value": "LED, adjustable brightness"
+        },
+        {
+          "label": "Extras",
+          "value": "Date and temperature"
+        },
+        {
+          "label": "Power",
+          "value": "Adapter or USB"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Large LED wall clock showing time, date and room temperature.",
+      "description": "Large LED wall clock showing time, date and room temperature. Every Digital LED Wall Clock with Temperature sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 30,
+      "rating": 4.2,
+      "reviewCount": 26,
+      "soldCount": 150,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal"
+      ]
+    },
+    {
+      "id": 31,
+      "code": "TS-WA-031",
+      "slug": "modern-up-down-led-wall-lamp",
+      "name": "Modern Up-Down LED Wall Lamp",
+      "brand": "TechShaj",
+      "categoryId": 122,
+      "price": 1890,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Power",
+          "value": "12W"
+        },
+        {
+          "label": "Light",
+          "value": "Warm white"
+        },
+        {
+          "label": "Body",
+          "value": "Aluminium"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Minimal up-and-down wall light for living rooms and corridors.",
+      "description": "Minimal up-and-down wall light for living rooms and corridors. Every Modern Up-Down LED Wall Lamp sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 10,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": false,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 32,
+      "code": "TS-ML-032",
+      "slug": "hollywood-vanity-mirror-light-10-bulbs",
+      "name": "Hollywood Vanity Mirror Light 10 Bulbs",
+      "brand": "TechShaj",
+      "categoryId": 123,
+      "price": 1750,
+      "oldPrice": 2190,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Bulbs",
+          "value": "10 dimmable"
+        },
+        {
+          "label": "Color modes",
+          "value": "3"
+        },
+        {
+          "label": "Power",
+          "value": "USB"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Stick-on vanity bulbs with three color modes for makeup mirrors.",
+      "description": "Stick-on vanity bulbs with three color modes for makeup mirrors. Every Hollywood Vanity Mirror Light 10 Bulbs sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 19,
+      "rating": 4.2,
+      "reviewCount": 14,
+      "soldCount": 60,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 33,
+      "code": "TS-CL-033",
+      "slug": "rechargeable-indoor-motion-sensor-night-light",
+      "name": "Rechargeable Indoor Motion Sensor Night Light",
+      "brand": "TechShaj",
+      "categoryId": 124,
+      "price": 650,
+      "oldPrice": 850,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Pack",
+          "options": [
+            "1 piece",
+            "3 pieces"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Sensor",
+          "value": "PIR motion"
+        },
+        {
+          "label": "Battery",
+          "value": "Rechargeable"
+        },
+        {
+          "label": "Mount",
+          "value": "Magnetic strip"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Magnetic motion-sensor light for cabinets, stairs and wardrobes.",
+      "description": "Magnetic motion-sensor light for cabinets, stairs and wardrobes. Every Rechargeable Indoor Motion Sensor Night Light sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 75,
+      "rating": 4.5,
+      "reviewCount": 93,
+      "soldCount": 610,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 34,
+      "code": "TS-JB-034",
+      "slug": "crystal-jhar-bati-pendant-light",
+      "name": "Crystal Jhar Bati Pendant Light",
+      "brand": "TechShaj",
+      "categoryId": 125,
+      "price": 4990,
+      "oldPrice": 5990,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "TechShaj"
+        },
+        {
+          "label": "Diameter",
+          "value": "40 cm"
+        },
+        {
+          "label": "Bulb",
+          "value": "E27 x 3"
+        },
+        {
+          "label": "Material",
+          "value": "Crystal and metal"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Classic crystal chandelier for living and dining rooms.",
+      "description": "Classic crystal chandelier for living and dining rooms. Every Crystal Jhar Bati Pendant Light sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 4,
+      "rating": 4.6,
+      "reviewCount": 8,
+      "soldCount": 21,
+      "freeDelivery": true,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 35,
+      "code": "TS-HP-035",
+      "slug": "hoco-w35-pro-max-wireless-headphones",
+      "name": "Hoco W35 Pro Max Wireless Headphones",
+      "brand": "Hoco",
+      "categoryId": 110,
+      "price": 2350,
+      "oldPrice": 2790,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Blue",
+            "Red"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Hoco"
+        },
+        {
+          "label": "Playtime",
+          "value": "45 hours"
+        },
+        {
+          "label": "Driver",
+          "value": "40 mm"
+        },
+        {
+          "label": "Modes",
+          "value": "Bluetooth, AUX, TF card"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Foldable over-ear headphones with 45-hour battery.",
+      "description": "Foldable over-ear headphones with 45-hour battery. Every Hoco W35 Pro Max Wireless Headphones sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 27,
+      "rating": 4.4,
+      "reviewCount": 58,
+      "soldCount": 290,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    },
+    {
+      "id": 36,
+      "code": "TS-FN-036",
+      "slug": "kaiyu-ky-2918-rechargeable-table-fan",
+      "name": "Kaiyu KY-2918 Rechargeable Table Fan",
+      "brand": "Kaiyu",
+      "categoryId": 126,
+      "price": 3250,
+      "oldPrice": 3690,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Kaiyu"
+        },
+        {
+          "label": "Size",
+          "value": "14 inch"
+        },
+        {
+          "label": "Backup",
+          "value": "Up to 8 hours"
+        },
+        {
+          "label": "Extras",
+          "value": "LED light"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Rechargeable fan with LED light for load-shedding hours.",
+      "description": "Rechargeable fan with LED light for load-shedding hours. Every Kaiyu KY-2918 Rechargeable Table Fan sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 16,
+      "rating": 4.3,
+      "reviewCount": 47,
+      "soldCount": 220,
+      "freeDelivery": true,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 37,
+      "code": "TS-IR-037",
+      "slug": "miyako-dry-iron-1000w",
+      "name": "Miyako Dry Iron 1000W",
+      "brand": "Miyako",
+      "categoryId": 128,
+      "price": 1350,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Miyako"
+        },
+        {
+          "label": "Power",
+          "value": "1000W"
+        },
+        {
+          "label": "Soleplate",
+          "value": "Non-stick"
+        },
+        {
+          "label": "Control",
+          "value": "Adjustable thermostat"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "Lightweight dry iron with non-stick soleplate.",
+      "description": "Lightweight dry iron with non-stick soleplate. Every Miyako Dry Iron 1000W sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 21,
+      "rating": 4,
+      "reviewCount": 1,
+      "soldCount": 18,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": []
+    },
+    {
+      "id": 38,
+      "code": "TS-KA-038",
+      "slug": "xiaomi-mi-smart-kettle-pro-1-5l",
+      "name": "Xiaomi Mi Smart Kettle Pro 1.5L",
+      "brand": "Xiaomi",
+      "categoryId": 129,
+      "price": 4290,
+      "oldPrice": null,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Xiaomi"
+        },
+        {
+          "label": "Capacity",
+          "value": "1.5 L"
+        },
+        {
+          "label": "Control",
+          "value": "App, keep-warm"
+        },
+        {
+          "label": "Body",
+          "value": "Stainless steel"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "App-controlled kettle with temperature display and keep-warm.",
+      "description": "App-controlled kettle with temperature display and keep-warm. Every Xiaomi Mi Smart Kettle Pro 1.5L sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 8,
+      "rating": 0,
+      "reviewCount": 0,
+      "soldCount": 0,
+      "freeDelivery": false,
+      "isNew": true,
+      "collections": [
+        "new-arrival"
+      ]
+    },
+    {
+      "id": 39,
+      "code": "TS-SW-039",
+      "slug": "kolorfit-pro-4-max-smart-watch",
+      "name": "Kolorfit Pro 4 Max Smart Watch",
+      "brand": "Noise",
+      "categoryId": 133,
+      "price": 3990,
+      "oldPrice": 4590,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [
+        {
+          "name": "Color",
+          "options": [
+            "Black",
+            "Silver",
+            "Rose Pink"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "Noise"
+        },
+        {
+          "label": "Display",
+          "value": "1.96\" AMOLED"
+        },
+        {
+          "label": "Calling",
+          "value": "Bluetooth"
+        },
+        {
+          "label": "Battery",
+          "value": "Up to 7 days"
+        },
+        {
+          "label": "Warranty",
+          "value": "7 days replacement"
+        }
+      ],
+      "shortDescription": "AMOLED smartwatch with Bluetooth calling and health tracking.",
+      "description": "AMOLED smartwatch with Bluetooth calling and health tracking. Every Kolorfit Pro 4 Max Smart Watch sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 23,
+      "rating": 4.3,
+      "reviewCount": 71,
+      "soldCount": 300,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-deal",
+        "flash-sale"
+      ]
+    },
+    {
+      "id": 40,
+      "code": "TS-MC-040",
+      "slug": "memo-cx16-digital-display-mobile-cooler",
+      "name": "MEMO CX16 Digital Display Mobile Cooler",
+      "brand": "MEMO",
+      "categoryId": 134,
+      "price": 1590,
+      "oldPrice": 1890,
+      "images": [
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product",
+        "https://placehold.co/600x600/F6F7F9/8A93A3?text=Product"
+      ],
+      "variants": [],
+      "specs": [
+        {
+          "label": "Brand",
+          "value": "MEMO"
+        },
+        {
+          "label": "Cooling",
+          "value": "Semiconductor"
+        },
+        {
+          "label": "Display",
+          "value": "Temperature readout"
+        },
+        {
+          "label": "Power",
+          "value": "USB-C"
+        },
+        {
+          "label": "Warranty",
+          "value": "No warranty"
+        }
+      ],
+      "shortDescription": "Clip-on phone cooler with live temperature display for gaming.",
+      "description": "Clip-on phone cooler with live temperature display for gaming. Every MEMO CX16 Digital Display Mobile Cooler sold by TechShaj is checked before dispatch and comes with Cash on Delivery all over Bangladesh. Inside Dhaka delivery takes 1-2 days, outside Dhaka 2-4 days.",
+      "stock": 0,
+      "rating": 4.4,
+      "reviewCount": 52,
+      "soldCount": 270,
+      "freeDelivery": false,
+      "isNew": false,
+      "collections": [
+        "best-seller"
+      ]
+    }
+  ],
+  "banners": {
+    "hero": [
+      {
+        "id": 1,
+        "eyebrow": "MEGA POWER WEEK",
+        "title": "Power Banks\nup to 25% OFF",
+        "subtitle": "Awei, Anker & Baseus fast-charging power banks with official warranty.",
+        "link": "/category/power-bank",
+        "icon": "BatteryCharging",
+        "theme": "blue",
+        "image": "https://placehold.co/1200x500/EAF6FF/007ACC?text=Power+Banks",
+        "active": true
+      },
+      {
+        "id": 2,
+        "eyebrow": "TRUE WIRELESS",
+        "title": "Earbuds\nfrom ৳1,150",
+        "subtitle": "ANC, long battery life and low-latency game mode from QCY, Lenovo and Soundcore.",
+        "link": "/category/earbuds",
+        "icon": "Headphones",
+        "theme": "purple",
+        "image": "https://placehold.co/1200x500/F1E9FF/6B21C8?text=Earbuds",
+        "active": true
+      },
+      {
+        "id": 3,
+        "eyebrow": "LIGHT UP YOUR ROOM",
+        "title": "Decor Lights\nup to 25% OFF",
+        "subtitle": "Moon lamps, neon strips and galaxy projectors for every room.",
+        "link": "/category/fancy-decorative-lights",
+        "icon": "Lamp",
+        "theme": "pink",
+        "image": "https://placehold.co/1200x500/FFEAF4/D1006A?text=Decor+Lights",
+        "active": true
+      },
+      {
+        "id": 4,
+        "eyebrow": "EID MEGA SALE",
+        "title": "Season ended",
+        "subtitle": "",
+        "link": "/offers",
+        "icon": "BadgePercent",
+        "theme": "pink",
+        "image": "https://placehold.co/1200x500/F6F7F9/8A93A3?text=Eid+Sale",
+        "active": false
+      }
+    ],
+    "side": [
+      {
+        "id": 1,
+        "eyebrow": "NEW ARRIVAL",
+        "title": "Moon Lamps &\nGalaxy Projectors",
+        "shortTitle": "Moon Lamps &\nProjectors",
+        "link": "/category/home-decor-lights",
+        "icon": "Lamp",
+        "theme": "pink",
+        "image": "https://placehold.co/600x400/FFEAF4/D1006A?text=Moon+Lamps",
+        "active": true
+      },
+      {
+        "id": 2,
+        "eyebrow": "PRICE DROP",
+        "title": "Earbuds from\n৳990",
+        "shortTitle": "Earbuds\nfrom ৳990",
+        "link": "/category/earbuds",
+        "icon": "Headphones",
+        "theme": "purple",
+        "image": "https://placehold.co/600x400/F1E9FF/6B21C8?text=Earbuds",
+        "active": true
+      }
+    ],
+    "promo": [
+      {
+        "id": 1,
+        "eyebrow": "GAMING SETUP",
+        "title": "Mobile Coolers from ৳950",
+        "link": "/category/mobile-cooler",
+        "icon": "Snowflake",
+        "theme": "blue",
+        "active": true
+      },
+      {
+        "id": 2,
+        "eyebrow": "SMART LIVING",
+        "title": "Calling Smart Watches",
+        "link": "/category/smart-watches",
+        "icon": "Watch",
+        "theme": "purple",
+        "active": true
+      }
+    ]
+  },
+  "offers": {
+    "flashSale": {
+      "title": "Flash Sale",
+      "endsAt": "2026-11-15T23:59:59+06:00",
+      "productIds": [
+        9,
+        10,
+        15,
+        19,
+        25,
+        27,
+        33,
+        39
+      ]
+    },
+    "coupons": [
+      {
+        "code": "TECH100",
+        "type": "fixed",
+        "value": 100,
+        "minOrder": 1500
+      }
+    ]
+  },
+  "orders": [
+    {
+      "id": "TS10231",
+      "phone": "01712345678",
+      "status": "delivered",
+      "placedAt": "2026-10-20T10:15:00+06:00",
+      "shippingZoneId": "inside-dhaka",
+      "paymentMethod": "cod",
+      "items": [
+        {
+          "productId": 9,
+          "name": "QCY T13 ANC True Wireless Earbuds",
+          "price": 2190,
+          "qty": 1,
+          "variant": {
+            "Color": "Black"
+          }
+        },
+        {
+          "productId": 23,
+          "name": "UGREEN USB-C to Lightning Cable 1m",
+          "price": 690,
+          "qty": 2,
+          "variant": {
+            "Length": "1m"
+          }
+        }
+      ],
+      "subtotal": 3570,
+      "shipping": 0,
+      "discount": 0,
+      "total": 3570,
+      "steps": [
+        {
+          "key": "order-placed",
+          "label": "Order placed",
+          "done": true,
+          "date": "2026-10-20T10:15:00+06:00"
+        },
+        {
+          "key": "confirmed",
+          "label": "Confirmed",
+          "done": true,
+          "date": "2026-10-20T12:40:00+06:00"
+        },
+        {
+          "key": "shipped",
+          "label": "Shipped",
+          "done": true,
+          "date": "2026-10-21T09:05:00+06:00"
+        },
+        {
+          "key": "out-for-delivery",
+          "label": "Out for delivery",
+          "done": true,
+          "date": "2026-10-21T14:30:00+06:00"
+        },
+        {
+          "key": "delivered",
+          "label": "Delivered",
+          "done": true,
+          "date": "2026-10-21T18:10:00+06:00"
+        }
+      ],
+      "courier": {
+        "name": "Pathao",
+        "trackingId": "PTH-88213490",
+        "trackingUrl": "https://merchant.pathao.com/tracking?consignment_id=PTH-88213490"
+      }
+    },
+    {
+      "id": "TS10245",
+      "phone": "01898765432",
+      "status": "shipped",
+      "placedAt": "2026-10-27T19:22:00+06:00",
+      "shippingZoneId": "outside-dhaka",
+      "paymentMethod": "cod",
+      "items": [
+        {
+          "productId": 27,
+          "name": "16 Color Moon Lamp with Remote Control",
+          "price": 1190,
+          "qty": 1,
+          "variant": {
+            "Size": "15 cm"
+          }
+        }
+      ],
+      "subtotal": 1190,
+      "shipping": 130,
+      "discount": 0,
+      "total": 1320,
+      "steps": [
+        {
+          "key": "order-placed",
+          "label": "Order placed",
+          "done": true,
+          "date": "2026-10-27T19:22:00+06:00"
+        },
+        {
+          "key": "confirmed",
+          "label": "Confirmed",
+          "done": true,
+          "date": "2026-10-28T11:00:00+06:00"
+        },
+        {
+          "key": "shipped",
+          "label": "Shipped",
+          "done": true,
+          "date": "2026-10-29T16:45:00+06:00"
+        },
+        {
+          "key": "out-for-delivery",
+          "label": "Out for delivery",
+          "done": false,
+          "date": null
+        },
+        {
+          "key": "delivered",
+          "label": "Delivered",
+          "done": false,
+          "date": null
+        }
+      ],
+      "courier": {
+        "name": "Steadfast",
+        "trackingId": "SF-5521873",
+        "trackingUrl": "https://steadfast.com.bd/t/SF-5521873"
+      }
+    },
+    {
+      "id": "TS10252",
+      "phone": "01556677889",
+      "status": "placed",
+      "placedAt": "2026-10-30T09:48:00+06:00",
+      "shippingZoneId": "dhaka-suburbs",
+      "paymentMethod": "cod",
+      "items": [
+        {
+          "productId": 19,
+          "name": "Anker PowerCore 10000mAh Power Bank",
+          "price": 2390,
+          "qty": 1,
+          "variant": {
+            "Color": "Black"
+          }
+        },
+        {
+          "productId": 21,
+          "name": "Anker 511 Charger Nano 3 30W",
+          "price": 2150,
+          "qty": 1,
+          "variant": {
+            "Color": "White"
+          }
+        }
+      ],
+      "subtotal": 4540,
+      "shipping": 0,
+      "discount": 0,
+      "total": 4540,
+      "steps": [
+        {
+          "key": "order-placed",
+          "label": "Order placed",
+          "done": true,
+          "date": "2026-10-30T09:48:00+06:00"
+        },
+        {
+          "key": "confirmed",
+          "label": "Confirmed",
+          "done": false,
+          "date": null
+        },
+        {
+          "key": "shipped",
+          "label": "Shipped",
+          "done": false,
+          "date": null
+        },
+        {
+          "key": "out-for-delivery",
+          "label": "Out for delivery",
+          "done": false,
+          "date": null
+        },
+        {
+          "key": "delivered",
+          "label": "Delivered",
+          "done": false,
+          "date": null
+        }
+      ],
+      "courier": null
+    }
+  ],
+  "home": {
+    "featuredCategorySlugs": [
+      "power-bank",
+      "cables",
+      "charger-adapter",
+      "keyboard",
+      "mouse",
+      "fancy-decorative-lights",
+      "speaker",
+      "smart-watches",
+      "neckband",
+      "overhead-headphones",
+      "earbuds",
+      "mobile-cooler"
+    ]
+  },
+  "collections": [
+    {
+      "slug": "flash-sale",
+      "name": "Flash Sale"
+    },
+    {
+      "slug": "new-arrival",
+      "name": "New Arrival"
+    },
+    {
+      "slug": "best-seller",
+      "name": "Best Seller"
+    },
+    {
+      "slug": "best-deal",
+      "name": "Best Deal"
+    }
+  ],
+  "colors": [
+    {
+      "name": "Black",
+      "hex": "#111318",
+      "aliases": [
+        "Charcoal"
+      ]
+    },
+    {
+      "name": "White",
+      "hex": "#ffffff",
+      "aliases": [
+        "Glacier White"
+      ]
+    },
+    {
+      "name": "Silver",
+      "hex": "#c0c6cf",
+      "aliases": []
+    },
+    {
+      "name": "Grey",
+      "hex": "#8a93a3",
+      "aliases": [
+        "Space Grey",
+        "Iron Grey"
+      ]
+    },
+    {
+      "name": "Blue",
+      "hex": "#2563eb",
+      "aliases": []
+    },
+    {
+      "name": "Red",
+      "hex": "#e11d48",
+      "aliases": []
+    },
+    {
+      "name": "Green",
+      "hex": "#16a34a",
+      "aliases": []
+    },
+    {
+      "name": "Purple",
+      "hex": "#8a2be2",
+      "aliases": []
+    },
+    {
+      "name": "Pink",
+      "hex": "#ff1b8d",
+      "aliases": [
+        "Rose Pink"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "productId": 1,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-24"
+    },
+    {
+      "id": 2,
+      "productId": 1,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-17"
+    },
+    {
+      "id": 3,
+      "productId": 1,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-10"
+    },
+    {
+      "id": 4,
+      "productId": 2,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-23"
+    },
+    {
+      "id": 5,
+      "productId": 2,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-16"
+    },
+    {
+      "id": 6,
+      "productId": 2,
+      "name": "Rafi A.",
+      "rating": 4,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-09"
+    },
+    {
+      "id": 7,
+      "productId": 3,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-22"
+    },
+    {
+      "id": 8,
+      "productId": 3,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-15"
+    },
+    {
+      "id": 9,
+      "productId": 3,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-08"
+    },
+    {
+      "id": 10,
+      "productId": 4,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-21"
+    },
+    {
+      "id": 11,
+      "productId": 4,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-14"
+    },
+    {
+      "id": 12,
+      "productId": 4,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-07"
+    },
+    {
+      "id": 13,
+      "productId": 5,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-20"
+    },
+    {
+      "id": 14,
+      "productId": 5,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-13"
+    },
+    {
+      "id": 15,
+      "productId": 5,
+      "name": "Nusrat J.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-06"
+    },
+    {
+      "id": 16,
+      "productId": 6,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-19"
+    },
+    {
+      "id": 17,
+      "productId": 6,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-12"
+    },
+    {
+      "id": 18,
+      "productId": 6,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-05"
+    },
+    {
+      "id": 19,
+      "productId": 7,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-18"
+    },
+    {
+      "id": 20,
+      "productId": 7,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-11"
+    },
+    {
+      "id": 21,
+      "productId": 7,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-04"
+    },
+    {
+      "id": 22,
+      "productId": 9,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-16"
+    },
+    {
+      "id": 23,
+      "productId": 9,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-09"
+    },
+    {
+      "id": 24,
+      "productId": 9,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-02"
+    },
+    {
+      "id": 25,
+      "productId": 10,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-15"
+    },
+    {
+      "id": 26,
+      "productId": 10,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-08"
+    },
+    {
+      "id": 27,
+      "productId": 10,
+      "name": "Rafi A.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-01"
+    },
+    {
+      "id": 28,
+      "productId": 12,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-13"
+    },
+    {
+      "id": 29,
+      "productId": 12,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-06"
+    },
+    {
+      "id": 30,
+      "productId": 12,
+      "name": "Mehedi S.",
+      "rating": 4,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-29"
+    },
+    {
+      "id": 31,
+      "productId": 13,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-12"
+    },
+    {
+      "id": 32,
+      "productId": 13,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-05"
+    },
+    {
+      "id": 33,
+      "productId": 13,
+      "name": "Nusrat J.",
+      "rating": 4,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-28"
+    },
+    {
+      "id": 34,
+      "productId": 14,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-11"
+    },
+    {
+      "id": 35,
+      "productId": 14,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-04"
+    },
+    {
+      "id": 36,
+      "productId": 14,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-27"
+    },
+    {
+      "id": 37,
+      "productId": 15,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-10"
+    },
+    {
+      "id": 38,
+      "productId": 15,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-03"
+    },
+    {
+      "id": 39,
+      "productId": 15,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-26"
+    },
+    {
+      "id": 40,
+      "productId": 16,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-09"
+    },
+    {
+      "id": 41,
+      "productId": 16,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-02"
+    },
+    {
+      "id": 42,
+      "productId": 16,
+      "name": "Tanvir H.",
+      "rating": 4,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-25"
+    },
+    {
+      "id": 43,
+      "productId": 19,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-06"
+    },
+    {
+      "id": 44,
+      "productId": 19,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-29"
+    },
+    {
+      "id": 45,
+      "productId": 19,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-22"
+    },
+    {
+      "id": 46,
+      "productId": 20,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-05"
+    },
+    {
+      "id": 47,
+      "productId": 20,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-28"
+    },
+    {
+      "id": 48,
+      "productId": 20,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-21"
+    },
+    {
+      "id": 49,
+      "productId": 21,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-04"
+    },
+    {
+      "id": 50,
+      "productId": 21,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-27"
+    },
+    {
+      "id": 51,
+      "productId": 21,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-20"
+    },
+    {
+      "id": 52,
+      "productId": 23,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-02"
+    },
+    {
+      "id": 53,
+      "productId": 23,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-25"
+    },
+    {
+      "id": 54,
+      "productId": 23,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-18"
+    },
+    {
+      "id": 55,
+      "productId": 25,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-30"
+    },
+    {
+      "id": 56,
+      "productId": 25,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-23"
+    },
+    {
+      "id": 57,
+      "productId": 25,
+      "name": "Farhana K.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-16"
+    },
+    {
+      "id": 58,
+      "productId": 26,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-29"
+    },
+    {
+      "id": 59,
+      "productId": 26,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-22"
+    },
+    {
+      "id": 60,
+      "productId": 26,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-25"
+    },
+    {
+      "id": 61,
+      "productId": 27,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-28"
+    },
+    {
+      "id": 62,
+      "productId": 27,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-21"
+    },
+    {
+      "id": 63,
+      "productId": 27,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-24"
+    },
+    {
+      "id": 64,
+      "productId": 28,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-27"
+    },
+    {
+      "id": 65,
+      "productId": 28,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-20"
+    },
+    {
+      "id": 66,
+      "productId": 28,
+      "name": "Mehedi S.",
+      "rating": 4,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-23"
+    },
+    {
+      "id": 67,
+      "productId": 29,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-26"
+    },
+    {
+      "id": 68,
+      "productId": 29,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-19"
+    },
+    {
+      "id": 69,
+      "productId": 29,
+      "name": "Nusrat J.",
+      "rating": 4,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-22"
+    },
+    {
+      "id": 70,
+      "productId": 30,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-25"
+    },
+    {
+      "id": 71,
+      "productId": 30,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-18"
+    },
+    {
+      "id": 72,
+      "productId": 30,
+      "name": "Arif M.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-21"
+    },
+    {
+      "id": 73,
+      "productId": 32,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-09-23"
+    },
+    {
+      "id": 74,
+      "productId": 32,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-16"
+    },
+    {
+      "id": 75,
+      "productId": 32,
+      "name": "Tanvir H.",
+      "rating": 4,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-19"
+    },
+    {
+      "id": 76,
+      "productId": 33,
+      "name": "Sadia R.",
+      "rating": 5,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-09-22"
+    },
+    {
+      "id": 77,
+      "productId": 33,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-10-25"
+    },
+    {
+      "id": 78,
+      "productId": 33,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-18"
+    },
+    {
+      "id": 79,
+      "productId": 34,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-21"
+    },
+    {
+      "id": 80,
+      "productId": 34,
+      "name": "Tasnim B.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-24"
+    },
+    {
+      "id": 81,
+      "productId": 34,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-17"
+    },
+    {
+      "id": 82,
+      "productId": 35,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-09-20"
+    },
+    {
+      "id": 83,
+      "productId": 35,
+      "name": "Tanvir H.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-23"
+    },
+    {
+      "id": 84,
+      "productId": 35,
+      "name": "Sadia R.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-16"
+    },
+    {
+      "id": 85,
+      "productId": 36,
+      "name": "Arif M.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-09-19"
+    },
+    {
+      "id": 86,
+      "productId": 36,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-22"
+    },
+    {
+      "id": 87,
+      "productId": 36,
+      "name": "Mehedi S.",
+      "rating": 4,
+      "title": "Happy with it",
+      "text": "Build quality feels solid. Would buy from TechShaj again.",
+      "date": "2026-10-15"
+    },
+    {
+      "id": 88,
+      "productId": 39,
+      "name": "Farhana K.",
+      "rating": 5,
+      "title": "Decent",
+      "text": "Does the job. Packaging could be a little better.",
+      "date": "2026-09-16"
+    },
+    {
+      "id": 89,
+      "productId": 39,
+      "name": "Mehedi S.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-19"
+    },
+    {
+      "id": 90,
+      "productId": 39,
+      "name": "Tasnim B.",
+      "rating": 4,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-12"
+    },
+    {
+      "id": 91,
+      "productId": 40,
+      "name": "Rafi A.",
+      "rating": 5,
+      "title": "Exactly as described",
+      "text": "Genuine product and well packed. Delivery inside Dhaka took one day.",
+      "date": "2026-10-25"
+    },
+    {
+      "id": 92,
+      "productId": 40,
+      "name": "Nusrat J.",
+      "rating": 5,
+      "title": "Good value for money",
+      "text": "Works well for daily use. Battery life is close to what the listing says.",
+      "date": "2026-10-18"
+    },
+    {
+      "id": 93,
+      "productId": 40,
+      "name": "Tanvir H.",
+      "rating": 4,
+      "title": "Fast delivery",
+      "text": "Cash on delivery was smooth and the rider called before coming.",
+      "date": "2026-10-11"
+    }
+  ]
 }

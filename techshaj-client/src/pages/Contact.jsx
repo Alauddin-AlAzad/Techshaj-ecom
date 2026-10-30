@@ -1,3 +1,3 @@
 export default function Contact() {
-  return <h1 className="text-h2">Contact</h1>
+  return <h1 className="site-container py-8 text-h2">Contact</h1>
 }
