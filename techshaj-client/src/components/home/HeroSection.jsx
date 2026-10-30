@@ -2,10 +2,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Autoplay } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { useSliderAutoplay } from '../../hooks/useSliderAutoplay.js'
 import { cn } from '../../lib/cn.js'
 import { Skeleton } from '../Skeleton.jsx'
 import BannerImage from './BannerImage.jsx'
+
+const AUTOPLAY = { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }
+const MODULES = [Autoplay]
 
 const arrow = 'absolute top-1/2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-text shadow-md transition-transform hover:scale-105 lg:flex'
 
@@ -30,15 +32,15 @@ function Dots({ count, active, onSelect }) {
 function HeroSlider({ slides }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
-  const autoplay = useSliderAutoplay(4000)
   const many = slides.length > 1
 
   return (
     <div className="relative aspect-[2/1] min-w-0 overflow-hidden rounded-[14px] lg:flex-[3]">
       <Swiper
-        modules={[Autoplay]}
+        modules={MODULES}
         loop={many}
-        {...(many ? autoplay : { autoplay: false })}
+        autoplay={many ? AUTOPLAY : false}
+        speed={600}
         onSwiper={setSwiper}
         onSlideChange={(s) => setActive(s.realIndex)}
         className="size-full"

@@ -1,9 +1,10 @@
 import { formatPrice } from './format.js'
 
+// Seconds for one full loop of the marquee.
 export const TOP_BAR_SPEEDS = [
-  { value: 'slow', label: 'Slow', seconds: 12 },
-  { value: 'normal', label: 'Normal', seconds: 8 },
-  { value: 'fast', label: 'Fast', seconds: 5 },
+  { value: 'slow', label: 'Slow', seconds: 40 },
+  { value: 'normal', label: 'Normal', seconds: 25 },
+  { value: 'fast', label: 'Fast', seconds: 15 },
 ]
 
 const legacyFreeShipping = /free (shipping|delivery)/i

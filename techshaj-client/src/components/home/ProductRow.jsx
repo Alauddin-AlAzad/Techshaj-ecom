@@ -1,7 +1,6 @@
-import { Autoplay } from 'swiper/modules'
+import { Autoplay, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useMediaQuery } from '../../hooks/useMediaQuery.js'
-import { useSliderAutoplay } from '../../hooks/useSliderAutoplay.js'
 import { useSwiperNav } from '../../hooks/useSwiperNav.js'
 import ProductCard from '../ProductCard.jsx'
 import { ProductRowSkeleton } from '../Skeleton.jsx'
@@ -29,25 +28,30 @@ export default function ProductRow({ title, tag, products, loading = false, seeA
   )
 }
 
-// Autoplays every 3s and loops once there are more cards than fit.
+// Defined once so Swiper gets the same params on every render.
+const AUTOPLAY = { delay: 2000, disableOnInteraction: false, pauseOnMouseEnter: true }
+const MODULES = [Autoplay, Navigation]
+const breakpoints = {}
+const breakpointsFor = (gap) => (breakpoints[gap] ??= { 768: { slidesPerView: 3, spaceBetween: 14 }, 1024: { slidesPerView: 5, spaceBetween: gap } })
+// Loop needs more slides than the widest view (5) plus a spare; shorter lists rewind instead.
+const LOOP_MIN = 7
+
+// Moves by itself every 2s. The loop/rewind choice depends only on the product count, so the slider is never re-created.
 export function ProductSwiper({ products, swiperProps, gap = 16, className }) {
-  const visible = useVisibleCards()
-  const autoplay = useSliderAutoplay(3000)
-  const loop = products.length >= Math.ceil(visible) + 1
-  const moving = products.length > visible
+  const loop = products.length >= LOOP_MIN
 
   return (
     <Swiper
-      // Swiper reads loop only on init.
-      key={loop ? 'loop' : 'static'}
-      modules={[Autoplay]}
+      modules={MODULES}
       {...swiperProps}
-      {...(moving ? autoplay : { autoplay: false })}
+      autoplay={AUTOPLAY}
+      speed={600}
       loop={loop}
+      rewind={!loop}
       grabCursor
       slidesPerView={2.2}
       spaceBetween={10}
-      breakpoints={{ 768: { slidesPerView: 3, spaceBetween: 14 }, 1024: { slidesPerView: 5, spaceBetween: gap } }}
+      breakpoints={breakpointsFor(gap)}
       className={className}
     >
       {products.map((p) => (

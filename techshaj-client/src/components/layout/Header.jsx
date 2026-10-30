@@ -60,18 +60,19 @@ function DesktopHeader({ cartCount, favoriteCount }) {
 
   return (
     <div className="relative z-40 hidden bg-dark lg:block">
-      <div className="site-container flex h-20 items-center gap-10">
+      <div className="site-container flex h-[92px] items-center gap-10">
         <Link to="/" aria-label={`${name} home`} className="shrink-0">
-          <Logo />
+          <Logo size="nav" />
         </Link>
         <SearchBar
           placeholder="Search for power bank, earbuds, smart watch…"
-          className="h-[46px] flex-1 gap-2.5 rounded-3xl px-5"
-          iconClassName="size-[18px]"
+          className="h-12 flex-1 gap-3 rounded-3xl px-5"
+          iconClassName="size-5"
+          inputClassName="text-[16px]"
         />
         <div className="flex shrink-0 items-center gap-[22px] text-white">
-          <Link to="/track-order" className="flex items-center gap-1.5 text-label whitespace-nowrap">
-            <PackageSearch size={18} />
+          <Link to="/track-order" className="flex items-center gap-1.5 text-[15px] font-semibold whitespace-nowrap">
+            <PackageSearch size={20} />
             Track Order
           </Link>
           <Link to="/favorite" aria-label={`Favorites, ${favoriteCount} items`} className="relative">
