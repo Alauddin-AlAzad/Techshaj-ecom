@@ -78,6 +78,12 @@ async function run() {
       return { valid: true, discount, message: "Coupon applied", code: coupon.code };
     };
     const lowStockLimit = 5;
+    const orderStatuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+    const nextStatuses = { pending: ["confirmed", "cancelled"], confirmed: ["shipped", "cancelled"], shipped: ["delivered"], delivered: [], cancelled: [] };
+    const timeZone = "Asia/Dhaka";
+    const dhakaDay = (date) => new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+    const dhakaStart = (day) => new Date(`${day}T00:00:00+06:00`);
+    const dayPattern = /^\d{4}-\d{2}-\d{2}$/;
     const bannerTypes = ["hero", "side", "promo", "menu"];
     const cloudinaryUrl = /^https:\/\/res\.cloudinary\.com\/\S+$/;
     const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -754,6 +760,181 @@ async function run() {
         if (!review) return res.status(404).send({ message: "Review not found" });
         await refreshProductRating(review.productId);
         res.send(review);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin orders related api
+    app.get("/admin/orders", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { status, paymentMethod, zone, search, from, to } = req.query;
+        const { page, limit, skip } = pageOf(req.query);
+        const query = {};
+        if (paymentMethod) {
+          if (!paymentMethods.includes(paymentMethod)) return res.status(400).send({ message: "paymentMethod must be cod, bkash or nagad" });
+          query.paymentMethod = paymentMethod;
+        }
+        if (typeof zone === "string" && zone.trim()) query.shippingZoneId = zone.trim();
+        if (typeof search === "string" && search.trim()) {
+          const regex = { $regex: escapeRegex(search.trim()), $options: "i" };
+          query.$or = [{ orderId: regex }, { "customer.name": regex }, { phone: regex }, { "customer.phone": regex }];
+        }
+        if (from || to) {
+          query.createdAt = {};
+          if (from) {
+            const start = typeof from === "string" && dayPattern.test(from) ? dhakaStart(from) : new Date(from);
+            if (isNaN(start.getTime())) return res.status(400).send({ message: "from must be a valid date" });
+            query.createdAt.$gte = start;
+          }
+          if (to) {
+            const end = typeof to === "string" && dayPattern.test(to) ? new Date(dhakaStart(to).getTime() + 24 * 60 * 60 * 1000) : new Date(to);
+            if (isNaN(end.getTime())) return res.status(400).send({ message: "to must be a valid date" });
+            query.createdAt[dayPattern.test(to) ? "$lt" : "$lte"] = end;
+          }
+        }
+
+        const grouped = await ordersCollection.aggregate([{ $match: query }, { $group: { _id: "$status", count: { $sum: 1 } } }]).toArray();
+        const counts = { all: 0, ...Object.fromEntries(orderStatuses.map((s) => [s, 0])) };
+        for (const g of grouped) {
+          counts[g._id] = g.count;
+          counts.all += g.count;
+        }
+
+        if (status) {
+          if (!orderStatuses.includes(status)) return res.status(400).send({ message: "status must be pending, confirmed, shipped, delivered or cancelled" });
+          query.status = status;
+        }
+        const total = await ordersCollection.countDocuments(query);
+        const orders = await ordersCollection
+          .find(query)
+          .project({ "customer.address": 0, statusHistory: 0 })
+          .sort({ createdAt: -1, _id: -1 })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+        res.send({ orders, total, counts, page, totalPages: Math.ceil(total / limit) });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.get("/admin/orders/:orderId", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const order = await ordersCollection.findOne({ orderId: req.params.orderId.trim().toUpperCase() });
+        if (!order) return res.status(404).send({ message: "Order not found" });
+        res.send(order);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/orders/:orderId/status", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { status, note } = req.body ?? {};
+        if (!orderStatuses.includes(status)) return res.status(400).send({ message: "status must be pending, confirmed, shipped, delivered or cancelled" });
+        if (note !== undefined && note !== null && typeof note !== "string") return res.status(400).send({ message: "note must be text" });
+        const current = await ordersCollection.findOne({ orderId: req.params.orderId.trim().toUpperCase() });
+        if (!current) return res.status(404).send({ message: "Order not found" });
+        if (!nextStatuses[current.status]?.includes(status)) {
+          return res.status(400).send({ message: `An order that is ${current.status} cannot be marked ${status}` });
+        }
+
+        const now = new Date();
+        const entry = { status, at: now, by: req.admin.email, ...(note?.trim() && { note: note.trim() }) };
+        const order = await ordersCollection.findOneAndUpdate(
+          { _id: current._id, status: current.status },
+          { $set: { status, updatedAt: now }, $push: { statusHistory: entry } },
+          { returnDocument: "after" }
+        );
+        if (!order) return res.status(409).send({ message: "This order was just updated by someone else. Refresh and try again." });
+
+        if (status === "cancelled") {
+          const quantities = {};
+          for (const item of current.items ?? []) quantities[item.productId] = (quantities[item.productId] ?? 0) + item.quantity;
+          for (const [id, quantity] of Object.entries(quantities)) {
+            await productsCollection.updateOne({ id: Number(id) }, { $inc: { stock: quantity } });
+          }
+        }
+        res.send(order);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/orders/:orderId/courier", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { courier, trackingNumber } = req.body ?? {};
+        const data = {};
+        for (const [key, value] of [["courier", courier], ["trackingNumber", trackingNumber]]) {
+          if (value === undefined) continue;
+          if (value !== null && typeof value !== "string") return res.status(400).send({ message: `${key} must be text` });
+          const text = value?.trim() ?? "";
+          if (text.length > 100) return res.status(400).send({ message: `${key} must be 100 characters or less` });
+          data[key] = text || null;
+        }
+        if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
+        const current = await ordersCollection.findOne({ orderId: req.params.orderId.trim().toUpperCase() });
+        if (!current) return res.status(404).send({ message: "Order not found" });
+        if (current.status === "cancelled") return res.status(400).send({ message: "A cancelled order cannot get courier details" });
+        const order = await ordersCollection.findOneAndUpdate({ _id: current._id }, { $set: { ...data, updatedAt: new Date() } }, { returnDocument: "after" });
+        res.send(order);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin dashboard related api
+    app.get("/admin/dashboard", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const today = dhakaDay(new Date());
+        const todayStart = dhakaStart(today);
+        const days = Array.from({ length: 7 }, (_, i) => dhakaDay(new Date(todayStart.getTime() - (6 - i) * 24 * 60 * 60 * 1000)));
+        const notCancelled = { status: { $ne: "cancelled" } };
+        const lowStockQuery = { stock: { $not: { $gt: lowStockLimit } } };
+
+        const [perDay, pendingCount, lowStock, lowStockCount, topProducts, latestOrders] = await Promise.all([
+          ordersCollection
+            .aggregate([
+              { $match: { ...notCancelled, createdAt: { $gte: dhakaStart(days[0]) } } },
+              { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timeZone } }, orders: { $sum: 1 }, sales: { $sum: "$total" } } },
+            ])
+            .toArray(),
+          ordersCollection.countDocuments({ status: "pending" }),
+          productsCollection.find(lowStockQuery).project({ id: 1, name: 1, code: 1, slug: 1, stock: 1, images: { $slice: 1 } }).sort({ stock: 1, id: 1 }).limit(20).toArray(),
+          productsCollection.countDocuments(lowStockQuery),
+          ordersCollection
+            .aggregate([
+              { $match: notCancelled },
+              { $unwind: "$items" },
+              { $group: { _id: "$items.productId", name: { $last: "$items.name" }, image: { $last: "$items.image" }, quantity: { $sum: "$items.quantity" }, revenue: { $sum: "$items.lineTotal" } } },
+              { $sort: { quantity: -1, revenue: -1 } },
+              { $limit: 5 },
+              { $project: { _id: 0, productId: "$_id", name: 1, image: 1, quantity: 1, revenue: 1 } },
+            ])
+            .toArray(),
+          ordersCollection
+            .find()
+            .project({ orderId: 1, "customer.name": 1, phone: 1, area: 1, total: 1, status: 1, paymentMethod: 1, createdAt: 1 })
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(5)
+            .toArray(),
+        ]);
+
+        const salesByDay = days.map((date) => {
+          const day = perDay.find((d) => d._id === date);
+          return { date, orders: day?.orders ?? 0, sales: day?.sales ?? 0 };
+        });
+        const todayStats = salesByDay.at(-1);
+        res.send({
+          today: { orders: todayStats.orders, sales: todayStats.sales },
+          pendingCount,
+          lowStock,
+          lowStockCount,
+          salesByDay,
+          topProducts,
+          latestOrders,
+        });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
