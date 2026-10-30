@@ -45,7 +45,8 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <div className={cn(bareMobile && 'max-lg:hidden')}>
+      {/* Top bar and navbar stick together; z-50 keeps the mega menu and mobile drawer above the bottom nav. */}
+      <div className={cn('sticky top-0 z-50', bareMobile && 'max-lg:hidden')}>
         <Header store={store} categories={categories} />
       </div>
       <main className="flex-1">

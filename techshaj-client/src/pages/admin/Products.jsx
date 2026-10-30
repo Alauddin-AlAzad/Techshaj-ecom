@@ -30,7 +30,7 @@ function Thumb({ src }) {
   )
 }
 
-const iconButton = 'flex size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text disabled:opacity-50'
+const iconButton = 'flex size-11 md:size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text disabled:opacity-50'
 
 // Figma "Admin – Products" (59:8184).
 export default function Products() {
@@ -92,7 +92,7 @@ export default function Products() {
       key: 'product',
       header: 'Product',
       render: (p) => (
-        <div className="flex min-w-[240px] items-center gap-3">
+        <div className="flex items-center gap-3 md:min-w-[240px]">
           <Thumb src={p.images?.[0]} />
           <div className="flex min-w-0 flex-col items-start gap-0.5">
             <span className="line-clamp-2 text-[13px] font-semibold text-text">{p.name}</span>
@@ -146,13 +146,15 @@ export default function Products() {
         action={{ label: 'New product', Icon: Plus, to: '/admin/products/new' }}
       />
 
-      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_150px_150px]">
+      <div className="flex flex-col gap-2.5 md:grid md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_150px_150px]">
         <SearchInput
           value={filters.search}
           onChange={(v) => setFilter('search', v)}
           placeholder="Search by name, code or slug"
-          className="rounded-lg border border-border-strong bg-white sm:col-span-2 lg:col-span-1"
+          className="h-11 rounded-lg border border-border-strong bg-white md:col-span-2 md:h-10 lg:col-span-1"
         />
+        {/* Below md the three filters form one scrollable chip row. */}
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 md:contents [&>div]:shrink-0 max-md:[&>div]:w-auto max-md:[&_select]:h-11 max-md:[&_select]:rounded-full">
         <Select value={filters.category} onChange={(e) => setFilter('category', e.target.value)} aria-label="Category">
           <option value="">All categories</option>
           <CategoryOptions tree={tree} />
@@ -168,6 +170,7 @@ export default function Products() {
           <option value="published">Published</option>
           <option value="draft">Draft</option>
         </Select>
+        </div>
       </div>
 
       {isError ? (

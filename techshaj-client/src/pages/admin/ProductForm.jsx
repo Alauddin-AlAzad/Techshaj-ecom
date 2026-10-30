@@ -157,10 +157,10 @@ function StockQuickAdjust({ saved, value, onChange }) {
           aria-label="Quantity to add or remove"
           className={cn(inputClass(), 'h-9 w-20 px-2.5 text-center')}
         />
-        <Button variant="secondary" Icon={Plus} disabled={!valid} onClick={() => onChange(nextStock(current, 'add', amount))} className="h-9 px-3">
+        <Button variant="secondary" Icon={Plus} disabled={!valid} onClick={() => onChange(nextStock(current, 'add', amount))} className="h-11 px-3 md:h-9">
           Add
         </Button>
-        <Button variant="secondary" Icon={Minus} disabled={!valid || current === 0} onClick={() => onChange(nextStock(current, 'remove', amount))} className="h-9 px-3">
+        <Button variant="secondary" Icon={Minus} disabled={!valid || current === 0} onClick={() => onChange(nextStock(current, 'remove', amount))} className="h-11 px-3 md:h-9">
           Remove
         </Button>
       </div>

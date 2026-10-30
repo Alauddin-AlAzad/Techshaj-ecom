@@ -1,6 +1,6 @@
 import { Calendar, Image, ImageOff, Link2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Skeleton } from '../../components/Skeleton.jsx'
@@ -10,6 +10,7 @@ import EmptyState from '../../components/admin/EmptyState.jsx'
 import ErrorState from '../../components/admin/ErrorState.jsx'
 import FormField from '../../components/admin/FormField.jsx'
 import ImageUploader from '../../components/admin/ImageUploader.jsx'
+import LinkTargetPicker from '../../components/admin/LinkTargetPicker.jsx'
 import Modal from '../../components/admin/Modal.jsx'
 import PageHeader from '../../components/admin/PageHeader.jsx'
 import Select from '../../components/admin/Select.jsx'
@@ -17,6 +18,9 @@ import Tabs from '../../components/admin/Tabs.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { useAdminBanners, useDeleteBanner, useSaveBanner } from '../../hooks/useAdminBanners.js'
+import { useAllAdminProducts } from '../../hooks/useAdminProducts.js'
+import { useCategories } from '../../hooks/useCategories.js'
+import { LINK_TARGETS, isValidCustomLink, linkFromTarget, targetFromLink } from '../../lib/bannerLink.js'
 import { formatDate, fromDhakaInput, toDhakaInput } from '../../lib/adminFormat.js'
 import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
@@ -24,14 +28,15 @@ import { errorMessage } from '../../lib/query.js'
 import { zodResolver } from '../../lib/zodResolver.js'
 
 const TYPES = [
-  { value: 'hero', label: 'Hero slider', hint: 'Big slides at the top of the homepage. 1200 × 500 px.' },
-  { value: 'side', label: 'Side banners', hint: 'Small banners next to the hero slider. 600 × 400 px.' },
-  { value: 'promo', label: 'Promo banners', hint: 'Wide banners between homepage sections.' },
-  { value: 'menu', label: 'Menu banner', hint: 'The banner inside the category menu. Only the first live one shows.' },
+  { value: 'hero', label: 'Hero slider', hint: 'Big slides at the top of the homepage.', size: '1600 × 780 px', ratio: 'aspect-[2/1]' },
+  { value: 'side', label: 'Side banners', hint: 'Two banners next to the hero slider (desktop) or under it (mobile).', size: '600 × 440 px', ratio: 'aspect-[1.35/1]' },
+  { value: 'promo', label: 'Promo banners', hint: 'Wide banners between homepage sections on desktop.', size: '1200 × 300 px', ratio: 'aspect-[4/1]' },
+  { value: 'menu', label: 'Menu banner', hint: 'The banner inside the All Categories menu. Only the first live one shows.', size: '520 × 640 px', ratio: 'aspect-[13/16]' },
 ]
 const TYPE_VALUES = TYPES.map((t) => t.value)
+const typeOf = (value) => TYPES.find((t) => t.value === value) ?? TYPES[0]
 
-const iconButton = 'flex size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text'
+const iconButton = 'flex size-11 md:size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text'
 
 // Live, Scheduled or Expired from startAt and endAt.
 function scheduleOf(banner, now = Date.now()) {
@@ -71,11 +76,8 @@ const schema = z
   .object({
     type: z.enum(TYPE_VALUES),
     image: z.array(z.string()).min(1, 'Upload the banner image'),
-    title: z.string().trim().max(120, 'Keep the title under 120 characters'),
-    link: z
-      .string()
-      .trim()
-      .refine((v) => !v || v.startsWith('/') || /^https:\/\/\S+$/.test(v), 'Use a page path like /shop or a full https:// link'),
+    name: z.string().trim().max(80, 'Keep the name under 80 characters'),
+    linkTarget: z.object({ type: z.enum(LINK_TARGETS.map((t) => t.value)), value: z.string() }),
     active: z.boolean(),
     startAt: z.string(),
     endAt: z.string(),
@@ -83,30 +85,65 @@ const schema = z
   })
   // Both are "YYYY-MM-DDTHH:mm", so text order is time order.
   .refine((v) => !v.startAt || !v.endAt || v.endAt > v.startAt, { path: ['endAt'], message: 'End must be after the start' })
+  .superRefine(({ linkTarget: t }, ctx) => {
+    const value = t.value.trim()
+    const needs = { category: 'Choose a category', product: 'Pick a product', collection: 'Choose a collection', page: 'Choose a page', custom: 'Enter a link' }
+    if (needs[t.type] && !value) ctx.addIssue({ code: 'custom', path: ['linkTarget'], message: needs[t.type] })
+    else if (t.type === 'custom' && !isValidCustomLink(value)) ctx.addIssue({ code: 'custom', path: ['linkTarget'], message: 'Use a path starting with / or a full https:// link' })
+  })
+
+const targetOf = (b) => (b?.linkTarget?.type ? { type: b.linkTarget.type, value: b.linkTarget.value ?? '' } : targetFromLink(b?.link))
 
 const toFormValues = (b, type) => ({
   type: b?.type ?? type,
   image: b?.image ? [b.image] : [],
-  title: b?.title ?? '',
-  link: b?.link ?? '',
+  name: b?.name ?? '',
+  linkTarget: targetOf(b),
   active: b ? b.active !== false : true,
   startAt: toDhakaInput(b?.startAt),
   endAt: toDhakaInput(b?.endAt),
   order: String(b?.order ?? 0),
 })
 
-const toPayload = (v) => ({
-  type: v.type,
-  image: v.image[0] ?? '',
-  title: v.title.trim(),
-  link: v.link.trim(),
-  active: v.active,
-  startAt: fromDhakaInput(v.startAt),
-  endAt: fromDhakaInput(v.endAt),
-  order: Number(v.order),
-})
+const toPayload = (v) => {
+  const linkTarget = { type: v.linkTarget.type, value: v.linkTarget.value.trim() }
+  return {
+    type: v.type,
+    image: v.image[0] ?? '',
+    name: v.name.trim(),
+    link: linkFromTarget(linkTarget),
+    linkTarget,
+    active: v.active,
+    startAt: fromDhakaInput(v.startAt),
+    endAt: fromDhakaInput(v.endAt),
+    order: Number(v.order),
+  }
+}
 
-function BannerForm({ banner, type, nextOrder, onClose }) {
+const bannerName = (b) => b.name?.trim() || `${typeOf(b.type).label.replace(/s$/, '')} #${b.id ?? ''}`.trim()
+
+// A category or product that was picked but is no longer in the catalog.
+function isTargetMissing(banner, categories, products) {
+  const t = targetOf(banner)
+  if (t.type === 'category' && categories) return !categories.some((p) => p.slug === t.value || p.children.some((c) => c.slug === t.value))
+  if (t.type === 'product' && products) return !products.some((p) => p.slug === t.value)
+  return false
+}
+
+// What customers see: the image alone, in the slot's ratio.
+function LivePreview({ type, image }) {
+  const t = typeOf(type)
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-[13px] font-semibold text-text">Live preview</p>
+      <div className={cn('w-full overflow-hidden rounded-[14px] bg-fill', t.ratio, { hero: 'max-w-[520px]', side: 'max-w-[300px]', promo: 'max-w-[520px]', menu: 'max-w-[220px]' }[type])}>
+        {image ? <img src={image} alt="Banner preview" className="size-full object-cover" /> : <span className="flex size-full items-center justify-center text-body-sm text-text-faint">Upload an image to preview</span>}
+      </div>
+    </div>
+  )
+}
+
+function BannerForm({ banner, type, nextOrder, categories, products, onClose }) {
   const isEdit = Boolean(banner)
   const initial = useMemo(() => ({ ...toFormValues(banner, type), ...(!banner && { order: String(nextOrder) }) }), [banner, type, nextOrder])
   const {
@@ -116,12 +153,13 @@ function BannerForm({ banner, type, nextOrder, onClose }) {
     setValue,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema), defaultValues: initial })
+  const [watchType, watchImage] = useWatch({ control, name: ['type', 'image'] })
   const save = useSaveBanner()
 
   const onSubmit = (values) => {
     const payload = toPayload(values)
     const before = toPayload(initial)
-    const data = isEdit ? Object.fromEntries(Object.entries(payload).filter(([k, v]) => v !== before[k])) : payload
+    const data = isEdit ? Object.fromEntries(Object.entries(payload).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(before[k]))) : payload
     if (!Object.keys(data).length) return onClose()
     save.mutate(
       { id: banner?._id, data },
@@ -168,7 +206,7 @@ function BannerForm({ banner, type, nextOrder, onClose }) {
           </FormField>
         </div>
 
-        <FormField label="Image" required error={errors.image?.message}>
+        <FormField label="Image" required error={errors.image?.message} hint={`Recommended size: ${typeOf(watchType).size}. The image is shown as is, so put any text inside the image.`}>
           <Controller
             control={control}
             name="image"
@@ -176,12 +214,16 @@ function BannerForm({ banner, type, nextOrder, onClose }) {
           />
         </FormField>
 
-        <FormField label="Title" htmlFor="banner-title" error={errors.title?.message} hint="Press Enter for a second line on the hero slider.">
-          <textarea id="banner-title" rows={2} placeholder="e.g. Power Banks up to 25% OFF" className={cn(inputClass(errors.title), 'h-auto resize-none py-3')} {...register('title')} />
-        </FormField>
+        <LivePreview type={watchType} image={watchImage?.[0]} />
 
-        <FormField label="Link" htmlFor="banner-link" error={errors.link?.message} hint="Where the banner opens, e.g. /category/power-bank or /offers.">
-          <input id="banner-link" placeholder="/shop" className={inputClass(errors.link)} {...register('link')} />
+        <Controller
+          control={control}
+          name="linkTarget"
+          render={({ field }) => <LinkTargetPicker value={field.value} onChange={field.onChange} categories={categories} products={products} error={errors.linkTarget?.message} />}
+        />
+
+        <FormField label="Internal name" htmlFor="banner-name" error={errors.name?.message} hint="Optional. Only shown in this list, never on the store.">
+          <input id="banner-name" placeholder="e.g. Eid sale – power banks" className={inputClass(errors.name)} {...register('name')} />
         </FormField>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -199,9 +241,9 @@ function BannerForm({ banner, type, nextOrder, onClose }) {
   )
 }
 
-function BannerRow({ banner, onEdit, onDelete }) {
+function BannerRow({ banner, missing, onEdit, onDelete }) {
   const save = useSaveBanner()
-  const title = banner.title?.replace(/\s*\n\s*/g, ' ') || 'Untitled banner'
+  const title = bannerName(banner)
 
   const toggle = () =>
     save.mutate(
@@ -223,6 +265,11 @@ function BannerRow({ banner, onEdit, onDelete }) {
         <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-text-secondary">
           <Link2 size={13} className="shrink-0 text-text-muted" />
           <span className="truncate">{banner.link || 'No link'}</span>
+          {missing && (
+            <span title="The category or product this banner opens no longer exists" className="shrink-0 rounded-[10px] bg-error px-2 py-[3px] text-[11px] font-bold whitespace-nowrap text-white">
+              Target missing
+            </span>
+          )}
         </span>
         <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-text-secondary">
           <Calendar size={13} className="shrink-0 text-text-muted" />
@@ -248,6 +295,8 @@ export default function Banners() {
   const [params, setParams] = useSearchParams()
   const type = TYPE_VALUES.includes(params.get('type')) ? params.get('type') : 'hero'
   const { data: banners = [], isLoading, isError, refetch } = useAdminBanners()
+  const { data: categories } = useCategories()
+  const { data: products } = useAllAdminProducts()
   const remove = useDeleteBanner()
   const [editing, setEditing] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -255,7 +304,7 @@ export default function Banners() {
   const ofType = banners.filter((b) => b.type === type)
   const counts = Object.fromEntries(TYPE_VALUES.map((t) => [t, banners.filter((b) => b.type === t).length]))
   const nextOrder = ofType.reduce((max, b) => Math.max(max, (b.order ?? 0) + 1), 0)
-  const current = TYPES.find((t) => t.value === type)
+  const current = typeOf(type)
 
   const openNew = () => setEditing({ banner: null })
   const confirmDelete = () =>
@@ -290,7 +339,9 @@ export default function Banners() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="text-body-sm text-text-muted">{current.hint}</p>
+          <p className="text-body-sm text-text-muted">
+            {current.hint} Recommended image size: {current.size}.
+          </p>
           {ofType.length === 0 ? (
             <div className="rounded-xl border border-border bg-white">
               <EmptyState Icon={Image} title={`No ${current.label.toLowerCase()} yet`} text="Add one and it shows on the store as soon as it is live." action={{ label: 'Add banner', Icon: Plus, onClick: openNew }} />
@@ -299,7 +350,7 @@ export default function Banners() {
             <>
               <ul className="flex flex-col gap-3">
                 {ofType.map((b) => (
-                  <BannerRow key={b._id} banner={b} onEdit={() => setEditing({ banner: b })} onDelete={() => setDeleting(b)} />
+                  <BannerRow key={b._id} banner={b} missing={isTargetMissing(b, categories, products)} onEdit={() => setEditing({ banner: b })} onDelete={() => setDeleting(b)} />
                 ))}
               </ul>
               <button
@@ -315,7 +366,7 @@ export default function Banners() {
         </div>
       )}
 
-      {editing && <BannerForm key={editing.banner?._id ?? 'new'} banner={editing.banner} type={type} nextOrder={nextOrder} onClose={() => setEditing(null)} />}
+      {editing && <BannerForm key={editing.banner?._id ?? 'new'} banner={editing.banner} type={type} nextOrder={nextOrder} categories={categories} products={products} onClose={() => setEditing(null)} />}
 
       <ConfirmDialog
         open={Boolean(deleting)}
@@ -324,7 +375,7 @@ export default function Banners() {
         loading={remove.isPending}
         danger
         title="Delete banner?"
-        message={deleting && `"${deleting.title?.replace(/\s*\n\s*/g, ' ') || 'This banner'}" will be removed from the store. This cannot be undone.`}
+        message={deleting && `"${bannerName(deleting)}" will be removed from the store. This cannot be undone.`}
         confirmLabel="Delete"
       />
     </div>

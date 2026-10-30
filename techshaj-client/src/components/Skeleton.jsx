@@ -45,17 +45,23 @@ function HeaderSkeleton({ titleWidth = 'w-[170px] lg:w-[260px]' }) {
   )
 }
 
-// A section header with a row of cards: 2 below lg, 5 from lg, like ProductRow.
+// A section header with a row of cards: 2.2 below md, 3 from md, 5 from lg, like ProductRow.
 export function ProductRowSkeleton({ titleWidth }) {
   return (
     <Loading className="site-container flex flex-col gap-[18px] pt-7 lg:gap-5 lg:pt-12">
       <HeaderSkeleton titleWidth={titleWidth} />
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5 lg:gap-4">
-        {Array.from({ length: 5 }, (_, i) => (
-          <ProductCardSkeleton key={i} className={cn(i > 1 && 'max-lg:hidden')} />
-        ))}
-      </div>
+      <ProductCardsSkeleton />
     </Loading>
+  )
+}
+
+export function ProductCardsSkeleton() {
+  return (
+    <div className="flex gap-2.5 overflow-hidden md:gap-3.5 lg:gap-4">
+      {Array.from({ length: 5 }, (_, i) => (
+        <ProductCardSkeleton key={i} className={cn('w-[calc((100%-20px)/2.2)] shrink-0 md:w-[calc((100%-28px)/3)] lg:w-[calc((100%-64px)/5)]', i > 2 && 'max-lg:hidden')} />
+      ))}
+    </div>
   )
 }
 

@@ -1,6 +1,8 @@
-import { Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import { Fragment } from 'react'
 import { useCountdown } from '../../hooks/useCountdown.js'
+import { useSwiperNav } from '../../hooks/useSwiperNav.js'
+import { ProductCardsSkeleton, Skeleton } from '../Skeleton.jsx'
 import { ProductSwiper } from './ProductRow.jsx'
 
 function Countdown({ endsAt }) {
@@ -27,7 +29,22 @@ function Countdown({ endsAt }) {
   )
 }
 
-export default function FlashSale({ flashSale }) {
+const arrow = 'flex size-9 items-center justify-center rounded-full border border-flash-muted/40 text-white hover:bg-white/10'
+
+export default function FlashSale({ flashSale, loading = false }) {
+  const { swiperProps, nav } = useSwiperNav()
+  if (loading) {
+    return (
+      <section role="status" aria-label="Loading" className="site-container pt-7 lg:pt-12">
+        <div className="overflow-hidden rounded-[14px] border border-nav-line">
+          <Skeleton className="h-[110px] rounded-none lg:h-[100px]" />
+          <div className="p-3 lg:p-5">
+            <ProductCardsSkeleton />
+          </div>
+        </div>
+      </section>
+    )
+  }
   if (!flashSale?.products?.length) return null
 
   return (
@@ -41,10 +58,22 @@ export default function FlashSale({ flashSale }) {
               <p className="text-[11px] text-flash-muted lg:text-[13px]">Big discounts on top products</p>
             </div>
           </div>
-          <Countdown endsAt={flashSale.endsAt} />
+          <div className="flex items-center gap-4">
+            <Countdown endsAt={flashSale.endsAt} />
+            {flashSale.products.length > 5 && (
+              <div className="hidden gap-2 lg:flex">
+                <button type="button" onClick={nav.prev} aria-label="Previous" className={arrow}>
+                  <ChevronLeft size={18} />
+                </button>
+                <button type="button" onClick={nav.next} aria-label="Next" className={arrow}>
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="p-3 lg:p-5">
-          <ProductSwiper products={flashSale.products} gap={14} inset={false} />
+          <ProductSwiper products={flashSale.products} swiperProps={swiperProps} gap={14} />
         </div>
       </div>
     </section>

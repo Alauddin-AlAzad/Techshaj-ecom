@@ -59,7 +59,7 @@ export default function AdminLayout() {
         </div>
       </div>
 
-      <div className="flex min-h-screen flex-col lg:pl-[260px] print:min-h-0 print:p-0">
+      <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip lg:pl-[260px] print:min-h-0 print:p-0">
         <Topbar title={title} admin={admin} onMenu={() => setMenuOpen(true)} onLogout={logout} />
         <main className="flex-1 px-4 pt-5 pb-10 lg:px-7 lg:pt-7 print:p-0">
           <Suspense

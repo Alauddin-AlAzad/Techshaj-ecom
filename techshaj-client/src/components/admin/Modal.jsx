@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../lib/cn.js'
 
 const sizes = { sm: 'max-w-[420px]', md: 'max-w-[560px]', lg: 'max-w-[760px]' }
+// Below sm, form modals fill the screen with the footer pinned; small confirm dialogs stay a bottom sheet.
+const mobile = { sm: 'max-h-[90vh] rounded-t-2xl', md: 'h-dvh rounded-none', lg: 'h-dvh rounded-none' }
 
 export default function Modal({ open, onClose, title, size = 'md', footer, children }) {
   const titleId = useId()
@@ -28,18 +30,18 @@ export default function Modal({ open, onClose, title, size = 'md', footer, child
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={cn('relative flex max-h-[90vh] w-full flex-col rounded-t-2xl bg-white shadow-menu sm:rounded-2xl', sizes[size])}
+        className={cn('relative flex w-full flex-col bg-white shadow-menu sm:h-auto sm:max-h-[90vh] sm:rounded-2xl', mobile[size], sizes[size])}
       >
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
           <h2 id={titleId} className="text-h4 text-text">
             {title}
           </h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center rounded-lg text-text-muted hover:bg-fill">
+          <button type="button" onClick={onClose} aria-label="Close" className="flex size-11 items-center justify-center rounded-lg text-text-muted hover:bg-fill sm:size-8">
             <X size={18} />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex flex-wrap justify-end gap-2.5 border-t border-border px-5 py-4">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {footer && <div className="flex justify-end gap-2.5 border-t border-border px-5 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] max-sm:[&>*]:flex-1 sm:flex-wrap sm:py-4">{footer}</div>}
       </div>
     </div>,
     document.body,

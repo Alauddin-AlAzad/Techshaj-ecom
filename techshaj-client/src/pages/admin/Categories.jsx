@@ -172,10 +172,10 @@ function Row({ category, count, child, onEdit, onDelete }) {
       </div>
       <span className="w-20 shrink-0 text-right text-[13px] text-text-secondary sm:w-24">{count == null ? <Skeleton className="ml-auto h-3.5 w-10" /> : plural(count, 'product')}</span>
       <div className="flex shrink-0 gap-1.5">
-        <button type="button" onClick={onEdit} aria-label={`Edit ${category.name}`} className="flex size-8 items-center justify-center rounded-lg border border-border-strong text-text hover:border-text-faint">
+        <button type="button" onClick={onEdit} aria-label={`Edit ${category.name}`} className="flex size-11 md:size-8 items-center justify-center rounded-lg border border-border-strong text-text hover:border-text-faint">
           <Pencil size={15} />
         </button>
-        <button type="button" onClick={onDelete} aria-label={`Delete ${category.name}`} className="flex size-8 items-center justify-center rounded-lg border border-border-strong text-error hover:border-error">
+        <button type="button" onClick={onDelete} aria-label={`Delete ${category.name}`} className="flex size-11 md:size-8 items-center justify-center rounded-lg border border-border-strong text-error hover:border-error">
           <Trash2 size={15} />
         </button>
       </div>

@@ -70,12 +70,12 @@ function ReviewCard({ review, busy, onApprove, onReject }) {
 
       <div className="flex flex-wrap items-center gap-2.5">
         {status !== 'approved' && (
-          <Button Icon={CircleCheck} onClick={onApprove} loading={busy === 'approved'} disabled={Boolean(busy)} className="h-9 bg-success hover:bg-success hover:opacity-90">
+          <Button Icon={CircleCheck} onClick={onApprove} loading={busy === 'approved'} disabled={Boolean(busy)} className="h-11 bg-success md:h-9 hover:bg-success hover:opacity-90">
             Approve
           </Button>
         )}
         {status !== 'rejected' && (
-          <Button variant="secondary" Icon={CircleX} onClick={onReject} disabled={Boolean(busy)} className="h-9 text-error hover:border-error">
+          <Button variant="secondary" Icon={CircleX} onClick={onReject} disabled={Boolean(busy)} className="h-11 text-error hover:border-error md:h-9">
             Reject
           </Button>
         )}

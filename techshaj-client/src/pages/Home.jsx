@@ -24,10 +24,10 @@ const ROW_LIMIT = 20
 function useCategoryRows(parents) {
   const axiosPublic = useAxiosPublic()
   const results = useQueries({ queries: (parents ?? []).map((c) => productsQuery(axiosPublic, { category: c.slug, limit: ROW_LIMIT })) })
-  const rows = parents && results.every((r) => r.data) ? parents.map((c, i) => ({ category: c, products: results[i].data.products })) : null
-  return { rows, results: results.map(pick) }
+  return { rows: (parents ?? []).map((c, i) => ({ category: c, query: results[i] })), results: results.map(pick) }
 }
 
+// Each section loads on its own and shows skeleton cards until its products arrive.
 export default function Home() {
   usePageTitle()
   const bannersQuery = useBanners()
@@ -35,36 +35,35 @@ export default function Home() {
   const categoriesQuery = useCategories()
   const bestDealsQuery = useProducts({ collection: 'best-deal', limit: ROW_LIMIT })
   const bestSellersQuery = useProducts({ collection: 'best-seller', limit: ROW_LIMIT })
+  const newArrivalsQuery = useProducts({ collection: 'new-arrival', limit: ROW_LIMIT })
   const { rows: categoryRows, results: rowResults } = useCategoryRows(categoriesQuery.data)
-  const status = combine(bannersQuery, offersQuery, categoriesQuery, bestDealsQuery, bestSellersQuery, ...rowResults)
+  const all = [bannersQuery, offersQuery, categoriesQuery, bestDealsQuery, bestSellersQuery, newArrivalsQuery, ...rowResults]
 
-  // Everything loads together so the page swaps from the skeleton in one step.
-  const ready = bannersQuery.data && offersQuery.data && bestDealsQuery.data && bestSellersQuery.data && categoryRows
-  if (!ready && status.isError) return <ErrorState onRetry={status.refetch} />
-  if (!ready) return <HomeSkeleton />
+  // Nothing could load at all: likely offline or the server is down.
+  if (all.every((q) => q.isError)) return <ErrorState onRetry={combine(...all).refetch} />
+  if (categoriesQuery.isLoading && bannersQuery.isLoading) return <HomeSkeleton />
 
-  const banners = bannersQuery.data
-  const offers = offersQuery.data
-  const bestDeals = bestDealsQuery.data.products
-  const bestSellers = bestSellersQuery.data.products
-  const flat = categoriesQuery.data.flatMap((p) => [p, ...p.children])
+  const categories = categoriesQuery.data ?? []
+  const flat = categories.flatMap((p) => [p, ...p.children])
   const featured = storefront.featuredCategorySlugs.map((slug) => flat.find((c) => c.slug === slug)).filter(Boolean)
 
-  const categoryRow = ({ category, products }) => (
-    <ProductRow key={category.id} title={category.name} products={products} seeAllTo={`/category/${category.slug}`} />
+  const row = (title, query, seeAllTo, tag) => <ProductRow title={title} tag={tag} products={query.data?.products} loading={query.isLoading} seeAllTo={seeAllTo} />
+  const categoryRow = ({ category, query }) => (
+    <ProductRow key={category.id} title={category.name} products={query?.data?.products} loading={!query || query.isLoading} seeAllTo={`/category/${category.slug}`} />
   )
 
   return (
     <div className="pb-10 lg:pb-[72px]">
-      <CategoryChips categories={categoryRows.map((r) => r.category)} />
-      <HeroSection banners={banners} />
+      <CategoryChips categories={categories} />
+      <HeroSection banners={bannersQuery.data} loading={bannersQuery.isLoading} />
       <TrustBadges />
       <FeaturedCategories categories={featured} />
-      <ProductRow title="Best Deals" products={bestDeals} seeAllTo="/shop?collection=best-deal" mobile="grid" />
-      <FlashSale flashSale={offers?.flashSale} />
+      <FlashSale flashSale={offersQuery.data?.flashSale} loading={offersQuery.isLoading} />
+      {row('Best Sellers', bestSellersQuery, '/shop?col=best-seller', 'HOT')}
+      {row('New Arrivals', newArrivalsQuery, '/shop?col=new-arrival')}
+      {row('Best Deals', bestDealsQuery, '/shop?col=best-deal')}
       {categoryRows.slice(0, 1).map(categoryRow)}
-      <ProductRow title="Best Sellers" tag="HOT" products={bestSellers} seeAllTo="/shop?collection=best-seller" mobile="grid" />
-      <PromoBanners promos={banners?.promo} />
+      <PromoBanners promos={bannersQuery.data?.promo} />
       {categoryRows.slice(1).map(categoryRow)}
     </div>
   )

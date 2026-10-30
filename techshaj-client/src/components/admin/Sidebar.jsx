@@ -14,7 +14,7 @@ export default function Sidebar({ onClose, onLogout }) {
           <span className="rounded bg-highlight px-1.5 py-0.5 text-[10px] font-bold text-text">ADMIN</span>
         </div>
         {onClose && (
-          <button type="button" onClick={onClose} aria-label="Close menu" className="flex size-[34px] items-center justify-center rounded-full bg-drawer-field text-white lg:hidden">
+          <button type="button" onClick={onClose} aria-label="Close menu" className="flex size-11 items-center justify-center rounded-full bg-drawer-field text-white lg:hidden">
             <X size={18} />
           </button>
         )}

@@ -33,6 +33,7 @@
   --color-whatsapp: #25d366;
   --color-whatsapp-light: #22c55e;
   --color-whatsapp-deep: #0f9d58;
+  --color-call: #1d4ed8;
 
   /* Home banners, cards and flash sale (Figma frame 20:2) */
   --color-fill: #f3f4f6;
@@ -98,15 +99,16 @@
   --color-toast-action-error: #ff8fa6;
   --shadow-toast: 0 12px 32px rgb(18 18 26 / 0.16);
 
-  --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
+  --animate-pulse-ring: pulse-ring 2s ease-out infinite;
 
   @keyframes pulse-ring {
     from {
       transform: scale(1);
-      opacity: 0.6;
+      opacity: 0.55;
     }
+    70%,
     to {
-      transform: scale(1.4);
+      transform: scale(1.35);
       opacity: 0;
     }
   }
