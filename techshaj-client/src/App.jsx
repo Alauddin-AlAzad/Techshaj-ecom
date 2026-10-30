@@ -5,6 +5,7 @@ import AppToaster from './components/AppToaster.jsx'
 import EmptyState from './components/EmptyState.jsx'
 import Layout from './components/layout/Layout.jsx'
 import AdminRoot from './components/admin/AdminRoot.jsx'
+import { useDocumentBranding } from './hooks/useDocumentBranding.js'
 import { notify } from './lib/notify.jsx'
 
 function PageLoadFailed() {
@@ -53,16 +54,15 @@ const AdminDashboard = page(() => import('./pages/admin/Dashboard.jsx'))
 const AdminOrders = page(() => import('./pages/admin/Orders.jsx'))
 const AdminOrderDetail = page(() => import('./pages/admin/OrderDetail.jsx'))
 
-// Admin pages not built yet: [path, title].
-const adminPlaceholders = [
-  ['banners', 'Banners'],
-  ['coupons', 'Coupons'],
-  ['flash-sale', 'Flash Sale'],
-  ['reviews', 'Reviews'],
-  ['settings', 'Settings'],
-]
+const AdminBanners = page(() => import('./pages/admin/Banners.jsx'))
+const AdminCoupons = page(() => import('./pages/admin/Coupons.jsx'))
+const AdminFlashSale = page(() => import('./pages/admin/FlashSale.jsx'))
+const AdminReviews = page(() => import('./pages/admin/Reviews.jsx'))
+const AdminSettings = page(() => import('./pages/admin/Settings.jsx'))
 
 export default function App() {
+  useDocumentBranding()
+
   return (
     <>
       <Routes>
@@ -75,9 +75,6 @@ export default function App() {
               </AdminRoute>
             }
           >
-            {adminPlaceholders.map(([path, title]) =>
-              <Route key={path} path={path} element={<AdminPlaceholder title={title} />} />,
-            )}
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:orderId" element={<AdminOrderDetail />} />
@@ -85,6 +82,11 @@ export default function App() {
             <Route path="products/new" element={<AdminProductForm />} />
             <Route path="products/:id/edit" element={<AdminProductForm />} />
             <Route path="categories" element={<AdminCategories />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="flash-sale" element={<AdminFlashSale />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="settings" element={<AdminSettings />} />
             <Route path="account" element={<AdminAccount />} />
             <Route path="*" element={<AdminPlaceholder title="Page not found" subtitle="This admin page does not exist." />} />
           </Route>

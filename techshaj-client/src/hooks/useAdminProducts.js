@@ -13,6 +13,19 @@ export function useAdminProducts(filters) {
   })
 }
 
+// Products whose name, code or slug match, for pickers. Waits until something is typed.
+export function useAdminProductSearch(search, limit = 8) {
+  const axiosSecure = useAxiosSecure()
+  const term = search.trim()
+  return useQuery({
+    queryKey: ['admin', 'products', 'list', { search: term, limit }],
+    enabled: term.length > 0,
+    queryFn: async () => (await axiosSecure.get('/admin/products', { params: { search: term, limit } })).data.products,
+    placeholderData: keepPreviousData,
+    staleTime: 30 * 1000,
+  })
+}
+
 // Every product, drafts included, fetched page by page.
 export function useAllAdminProducts({ enabled = true } = {}) {
   const axiosSecure = useAxiosSecure()

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { selectCartCount, useCartStore } from '../../context/useCartStore.js'
 import { selectFavoriteCount, useFavoriteStore } from '../../context/useFavoriteStore.js'
+import { useBranding } from '../../hooks/useSettings.js'
 import CountBadge from '../CountBadge.jsx'
 import Logo from '../Logo.jsx'
 import AnnouncementBar from './AnnouncementBar.jsx'
@@ -16,6 +17,7 @@ function MobileHeader({ cartCount, store, categories }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeSearch = useCallback(() => setSearchOpen(false), [])
   const closeMenu = useCallback(() => setMenuOpen(false), [])
+  const { name } = useBranding()
 
   return (
     <div className="flex flex-col gap-3 bg-dark px-4 pt-3 pb-3.5 lg:hidden">
@@ -24,7 +26,7 @@ function MobileHeader({ cartCount, store, categories }) {
           <button type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} className="text-white">
             <Menu size={24} />
           </button>
-          <Link to="/" aria-label="TechShaj home">
+          <Link to="/" aria-label={`${name} home`}>
             <Logo size="sm" />
           </Link>
         </div>
@@ -53,12 +55,13 @@ function MobileHeader({ cartCount, store, categories }) {
 }
 
 function DesktopHeader({ cartCount, favoriteCount }) {
+  const { name } = useBranding()
   const openCart = useCartStore((s) => s.openDrawer)
 
   return (
     <div className="relative z-40 hidden bg-dark lg:block">
       <div className="site-container flex h-20 items-center gap-10">
-        <Link to="/" aria-label="TechShaj home" className="shrink-0">
+        <Link to="/" aria-label={`${name} home`} className="shrink-0">
           <Logo />
         </Link>
         <SearchBar

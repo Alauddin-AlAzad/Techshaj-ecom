@@ -2,6 +2,7 @@ import { ArrowRight, BadgePercent, ChevronDown, ChevronRight, Truck, X } from 'l
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import storefront from '../../data/storefront.json'
+import { useBranding } from '../../hooks/useSettings.js'
 import { cn } from '../../lib/cn.js'
 import CategoryIcon from '../CategoryIcon.jsx'
 import Logo from '../Logo.jsx'
@@ -9,6 +10,7 @@ import SocialLinks from '../SocialLinks.jsx'
 
 // Figma "Menu Drawer – Mobile 390" (39:5630).
 export default function MobileMenu({ store, categories = [], onClose }) {
+  const { name } = useBranding()
   const [openId, setOpenId] = useState(null)
   const popular = storefront.popularLinks
 
@@ -28,7 +30,7 @@ export default function MobileMenu({ store, categories = [], onClose }) {
       <button type="button" aria-label="Close menu" onClick={onClose} className="absolute inset-0 size-full bg-dark/55" />
       <div role="dialog" aria-modal="true" aria-label="Menu" className="relative flex h-full w-[340px] max-w-[87%] flex-col bg-dark">
         <div className="flex items-center justify-between border-b border-drawer-line pt-4 pr-4 pb-3.5 pl-5">
-          <Link to="/" onClick={onClose} aria-label="TechShaj home">
+          <Link to="/" onClick={onClose} aria-label={`${name} home`}>
             <Logo size="xs" />
           </Link>
           <button type="button" onClick={onClose} aria-label="Close menu" className="flex size-[38px] items-center justify-center rounded-full bg-drawer-field text-white">

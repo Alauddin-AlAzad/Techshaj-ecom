@@ -1,7 +1,7 @@
-import { ChevronLeft, PackageX, Plus, Save, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
+import { ChevronLeft, Minus, PackageX, Plus, Save, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Skeleton } from '../../components/Skeleton.jsx'
 import Button from '../../components/admin/Button.jsx'
@@ -12,6 +12,7 @@ import ErrorState from '../../components/admin/ErrorState.jsx'
 import FormField from '../../components/admin/FormField.jsx'
 import ImageUploader from '../../components/admin/ImageUploader.jsx'
 import Select from '../../components/admin/Select.jsx'
+import StockBadge from '../../components/admin/StockBadge.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { toTree, useAdminCategories } from '../../hooks/useAdminCategories.js'
@@ -22,6 +23,7 @@ import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
 import { errorMessage, isNotFound } from '../../lib/query.js'
 import { labelFromSlug, slugify } from '../../lib/slug.js'
+import { nextStock } from '../../lib/stock.js'
 import { zodResolver } from '../../lib/zodResolver.js'
 
 const splitOptions = (text) =>
@@ -131,6 +133,40 @@ const toPayload = (v) => ({
 })
 
 const changedFields = (next, base) => Object.fromEntries(Object.entries(next).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(base[k])))
+
+// Quick Add / Remove under the stock field; the change is saved with the form.
+function StockQuickAdjust({ saved, value, onChange }) {
+  const [amount, setAmount] = useState('1')
+  const current = /^\d+$/.test(String(value).trim()) ? Number(value) : 0
+  const valid = /^\d+$/.test(amount.trim()) && Number(amount) > 0
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 rounded-lg bg-fill-soft p-3">
+      {saved != null && (
+        <span className="flex items-center gap-2 text-[13px] text-text-muted">
+          Current stock <StockBadge stock={saved} />
+        </span>
+      )}
+      <div className="flex items-center gap-2 sm:ml-auto">
+        <input
+          type="number"
+          inputMode="numeric"
+          min="1"
+          step="1"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          aria-label="Quantity to add or remove"
+          className={cn(inputClass(), 'h-9 w-20 px-2.5 text-center')}
+        />
+        <Button variant="secondary" Icon={Plus} disabled={!valid} onClick={() => onChange(nextStock(current, 'add', amount))} className="h-9 px-3">
+          Add
+        </Button>
+        <Button variant="secondary" Icon={Minus} disabled={!valid || current === 0} onClick={() => onChange(nextStock(current, 'remove', amount))} className="h-9 px-3">
+          Remove
+        </Button>
+      </div>
+    </div>
+  )
+}
 
 function Card({ title, aside, children, className }) {
   return (
@@ -242,6 +278,21 @@ function ProductEditor({ product }) {
   const update = useUpdateProduct()
   const saving = create.isPending || update.isPending
   const guard = useLeaveGuard(isDirty && !saving)
+  const stock = useWatch({ control, name: 'stock' })
+
+  // ?focus=stock (from the dashboard low stock list) jumps straight to the stock field.
+  const [searchParams] = useSearchParams()
+  const focusStock = searchParams.get('focus') === 'stock'
+  useEffect(() => {
+    if (!focusStock) return
+    const frame = requestAnimationFrame(() => {
+      const input = document.getElementById('stock')
+      input?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      input?.focus({ preventScroll: true })
+      input?.select()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [focusStock])
 
   // The slug follows the name until it is edited by hand; an existing product keeps its slug.
   const name = useWatch({ control, name: 'name' })
@@ -352,6 +403,7 @@ function ProductEditor({ product }) {
               {number('oldPrice', 'Old price (৳)', { hint: 'Shown crossed out' })}
               {number('stock', 'Stock', { required: true })}
             </div>
+            <StockQuickAdjust saved={isEdit ? (product.stock ?? 0) : null} value={stock} onChange={(n) => setValue('stock', String(n), { shouldDirty: true, shouldValidate: true })} />
           </Card>
 
           <Card
