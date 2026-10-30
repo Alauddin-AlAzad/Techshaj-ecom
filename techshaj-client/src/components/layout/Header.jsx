@@ -60,13 +60,13 @@ function DesktopHeader({ cartCount, favoriteCount }) {
 
   return (
     <div className="relative z-40 hidden bg-dark lg:block">
-      <div className="site-container flex h-[92px] items-center gap-10">
+      <div className="site-container flex h-[80px] items-center gap-8">
         <Link to="/" aria-label={`${name} home`} className="shrink-0">
           <Logo size="nav" />
         </Link>
         <SearchBar
           placeholder="Search for power bank, earbuds, smart watch…"
-          className="h-12 flex-1 gap-3 rounded-3xl px-5"
+          className="h-11 flex-1 gap-3 rounded-3xl px-4"
           iconClassName="size-5"
           inputClassName="text-[16px]"
         />
