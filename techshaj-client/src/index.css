@@ -79,6 +79,18 @@
   --color-primary-wash: #fff5fa;
   --shadow-menu: 0 16px 40px rgb(18 18 26 / 0.14);
 
+  /* Cart, checkout and form errors (Figma 31:3219, 31:3449, 86:15837) */
+  --color-error-line: #fecdd6;
+  --color-error-wash: #fff5f7;
+
+  /* Offers page (Figma 95:18258) */
+  --color-offers-copy: #ffe9f4;
+  --color-flash-bar: #1a1424;
+  --color-flash-sub: #aeb4c0;
+
+  /* FAQ open item (Figma 42:6870) */
+  --color-faq-open: #f7fbff;
+
   --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
 
   @keyframes pulse-ring {
@@ -127,6 +139,10 @@
 
 @utility bg-brand-gradient {
   background-image: linear-gradient(to right, #00a3ff 0%, #8a2be2 55%, #ff1b8d 100%);
+}
+
+@utility bg-offers-gradient {
+  background-image: linear-gradient(158deg, var(--color-secondary) 0%, var(--color-primary) 71.4%);
 }
 
 /* 1240px content width from the 1440px frames, 16px gutter below that */

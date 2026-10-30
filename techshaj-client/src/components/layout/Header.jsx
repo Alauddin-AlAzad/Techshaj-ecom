@@ -53,6 +53,8 @@ function MobileHeader({ cartCount, store, categories }) {
 }
 
 function DesktopHeader({ cartCount, favoriteCount }) {
+  const openCart = useCartStore((s) => s.openDrawer)
+
   return (
     <div className="relative z-40 hidden bg-dark lg:block">
       <div className="site-container flex h-20 items-center gap-10">
@@ -73,10 +75,10 @@ function DesktopHeader({ cartCount, favoriteCount }) {
             <Heart size={22} />
             <CountBadge count={favoriteCount} className="-top-2 left-3" />
           </Link>
-          <Link to="/cart" aria-label={`Cart, ${cartCount} items`} className="relative">
+          <button type="button" onClick={openCart} aria-label={`Cart, ${cartCount} items`} className="relative">
             <ShoppingCart size={22} />
             <CountBadge count={cartCount} className="-top-2 left-3" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

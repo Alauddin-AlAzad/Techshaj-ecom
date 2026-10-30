@@ -1,0 +1,206 @@
+{
+  "about": {
+    "hero": {
+      "title": "About TechShaj",
+      "subtitle": "Genuine gadgets and accessories for everyday life in Bangladesh."
+    },
+    "story": {
+      "eyebrow": "OUR STORY",
+      "title": "Smart gadgets, honest prices",
+      "body": "TechShaj started as a small Facebook shop selling RFID-blocking wallets and everyday tech accessories. Today we bring power banks, audio, lights, chargers and more to customers across Bangladesh with cash on delivery.",
+      "mobileBody": "TechShaj started as a small Facebook shop and now brings power banks, audio, lights, chargers and more to customers across Bangladesh with cash on delivery.",
+      "note": "[Add your story: when you started, who runs TechShaj, and what makes you different.]"
+    },
+    "values": [
+      { "icon": "shield-check", "tint": "primary", "title": "100% Genuine", "text": "Original brand products only" },
+      { "icon": "truck", "tint": "highlight", "title": "Nationwide Delivery", "text": "All 64 districts, 1–3 days" },
+      { "icon": "credit-card", "tint": "primary", "title": "Cash on Delivery", "text": "Pay when you receive it" },
+      { "icon": "wrench", "tint": "secondary", "title": "After-Sales Support", "text": "We help when something goes wrong" }
+    ],
+    "numbers": [
+      { "value": "[0,000+]", "label": "Happy customers" },
+      { "value": "[000+]", "label": "Products" },
+      { "value": "64", "label": "Districts served" },
+      { "value": "[4.8]", "label": "Average rating", "highlight": true }
+    ]
+  },
+  "contact": {
+    "hero": {
+      "title": "Contact Us",
+      "subtitle": "Questions about an order or a product? We are here to help."
+    },
+    "hours": "Customer support: 10:00 AM – 10:00 PM, every day",
+    "form": {
+      "title": "Send us a message",
+      "subtitle": "We reply within 24 hours.",
+      "success": "Thanks! Your message has been sent. We will get back to you soon."
+    }
+  },
+  "faq": {
+    "hero": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Quick answers about orders, delivery, payment and returns."
+    },
+    "topics": [
+      { "id": "orders", "label": "Orders" },
+      { "id": "delivery", "label": "Delivery" },
+      { "id": "payment", "label": "Payment" },
+      { "id": "returns", "label": "Returns & Warranty" }
+    ],
+    "items": [
+      {
+        "topic": "orders",
+        "question": "How do I place an order?",
+        "answer": "Tap **Order Now** on any product, fill in your phone number, name and address, then confirm. No account is needed. We call you to confirm before shipping."
+      },
+      {
+        "topic": "delivery",
+        "question": "How long does delivery take?",
+        "answer": "Inside Dhaka orders usually arrive in 1–2 days, Dhaka suburbs in 2–3 days and the rest of Bangladesh in 2–4 days. Holidays and bad weather can add a day or two."
+      },
+      {
+        "topic": "delivery",
+        "question": "What is the delivery charge?",
+        "answer": "Delivery costs **৳70** inside Dhaka, **৳100** in Dhaka suburbs and **৳130** outside Dhaka. Orders of **৳3,000** or more, and products marked Free Delivery, ship free."
+      },
+      {
+        "topic": "payment",
+        "question": "Can I pay with bKash or Nagad?",
+        "answer": "Yes. Choose bKash or Nagad at checkout, send the total to the number shown and enter the transaction ID. Cash on Delivery is available all over Bangladesh too."
+      },
+      {
+        "topic": "payment",
+        "question": "Can I check the product before paying?",
+        "answer": "Yes. With Cash on Delivery you can check the product in front of the delivery person before you pay."
+      },
+      {
+        "topic": "returns",
+        "question": "What if the product is faulty?",
+        "answer": "Contact us within **7 days** of delivery. If the product has a manufacturing fault we will replace it. Keep the box and accessories so the replacement is quick."
+      },
+      {
+        "topic": "orders",
+        "question": "How do I track my order?",
+        "answer": "Open **Track Order** from the top of the site and enter your order ID and phone number. You can also search with your phone number only to see all your orders."
+      }
+    ],
+    "help": {
+      "title": "Still have a question?",
+      "text": "Our team replies within a few minutes.",
+      "cta": "Chat on WhatsApp"
+    }
+  },
+  "policies": {
+    "shipping": {
+      "title": "Shipping & Delivery",
+      "tab": "Shipping",
+      "updated": "Last updated: [date]",
+      "showCharges": true,
+      "sections": [
+        {
+          "title": "Order confirmation",
+          "body": "After you place an order, our team calls you to confirm the product, price and address. Orders are shipped only after confirmation."
+        },
+        {
+          "title": "Delivery time",
+          "body": "Orders inside Dhaka usually arrive within 1–2 working days, and outside Dhaka within 2–4 working days. Delays can happen during holidays or bad weather."
+        },
+        {
+          "title": "Checking your parcel",
+          "body": "Please check the product in front of the delivery person. If anything is wrong, contact us right away before paying."
+        },
+        {
+          "title": "Delivery charge",
+          "body": "[Confirm your actual courier charges and free shipping rules before publishing.]",
+          "placeholder": true
+        }
+      ]
+    },
+    "return": {
+      "title": "Returns & Refund",
+      "tab": "Returns",
+      "updated": "Last updated: [date]",
+      "sections": [
+        {
+          "title": "7 days replacement",
+          "body": "If your product has a manufacturing fault, contact us within 7 days of delivery and we will replace it with the same product."
+        },
+        {
+          "title": "What can be returned",
+          "body": "Products must be unused, with the original box, accessories and invoice. Damage caused by misuse, water or a fall is not covered."
+        },
+        {
+          "title": "Refunds",
+          "body": "If a replacement is not available, we refund the product price to your bKash or Nagad number within 3–5 working days after we receive the product."
+        },
+        {
+          "title": "How to start a return",
+          "body": "[Add your return address, courier process and who pays the return delivery charge.]",
+          "placeholder": true
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "tab": "Privacy",
+      "updated": "Last updated: [date]",
+      "sections": [
+        {
+          "title": "What we collect",
+          "body": "When you order, we collect your name, phone number, delivery address and any note you add. We do not ask for an account or password."
+        },
+        {
+          "title": "How we use it",
+          "body": "We use your details only to confirm, deliver and support your order. Your phone number and address are shared with the courier for delivery."
+        },
+        {
+          "title": "Your device",
+          "body": "Your cart, favorites and order history are saved in your browser on this device. Clearing your browser data removes them."
+        },
+        {
+          "title": "Contact",
+          "body": "[Add how customers can ask you to update or delete their data.]",
+          "placeholder": true
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms & Conditions",
+      "tab": "Terms",
+      "updated": "Last updated: [date]",
+      "sections": [
+        {
+          "title": "Orders",
+          "body": "An order is confirmed only after our team calls you. We may cancel an order if the product is out of stock or the details cannot be verified."
+        },
+        {
+          "title": "Prices",
+          "body": "All prices are in BDT and include VAT where applicable. Prices and offers can change without notice, but your confirmed order price will not change."
+        },
+        {
+          "title": "Coupons",
+          "body": "Coupons work on eligible orders above their minimum amount. Only one coupon can be used per order."
+        },
+        {
+          "title": "Legal",
+          "body": "[Add your trade licence details and governing law before publishing.]",
+          "placeholder": true
+        }
+      ]
+    }
+  },
+  "blog": {
+    "hero": {
+      "title": "Blog",
+      "subtitle": "Guides and tips to help you pick the right gadget."
+    },
+    "posts": [
+      { "category": "GUIDE", "title": "How to choose the right power bank", "date": "[Date]", "readTime": "5 min read", "icon": "battery-charging", "tint": "primary" },
+      { "category": "COMPARISON", "title": "Earbuds vs neckband: which one suits you?", "date": "[Date]", "readTime": "4 min read", "icon": "headphones", "tint": "primary" },
+      { "category": "GAMING", "title": "Do mobile coolers really help while gaming?", "date": "[Date]", "readTime": "3 min read", "icon": "snowflake", "tint": "success" },
+      { "category": "HOME", "title": "5 easy ways to light up your room", "date": "[Date]", "readTime": "4 min read", "icon": "lamp", "tint": "highlight" },
+      { "category": "TIPS", "title": "Fast charging: what 20W, 30W and 65W mean", "date": "[Date]", "readTime": "6 min read", "icon": "battery-charging", "tint": "secondary" },
+      { "category": "GUIDE", "title": "How to spot a fake product before buying", "date": "[Date]", "readTime": "5 min read", "icon": "headphones", "tint": "primary" }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import data from './fakeData.json'
+import pages from './pages.json'
 
 // Async so pages won't need to change when this switches to a real backend.
 const resolve = (value) => Promise.resolve(structuredClone(value ?? null))
@@ -130,4 +131,12 @@ export function getOrderById(id, phone) {
   const order = data.orders.find((o) => o.id.toLowerCase() === String(id).trim().toLowerCase())
   if (!order || (phone && order.phone !== phone.trim())) return resolve(null)
   return resolve(order)
+}
+
+export function getOrdersByPhone(phone) {
+  return resolve(data.orders.filter((o) => o.phone === phone.trim()))
+}
+
+export function getPage(key) {
+  return resolve(pages[key])
 }

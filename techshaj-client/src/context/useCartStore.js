@@ -22,8 +22,11 @@ export const useCartStore = create(
         })),
       removeItem: (key) => set((state) => ({ items: state.items.filter((i) => i.key !== key) })),
       clear: () => set({ items: [] }),
+      drawerOpen: false,
+      openDrawer: () => set({ drawerOpen: true }),
+      closeDrawer: () => set({ drawerOpen: false }),
     }),
-    { name: 'techshaj-cart' },
+    { name: 'techshaj-cart', partialize: (state) => ({ items: state.items }) },
   ),
 )
 

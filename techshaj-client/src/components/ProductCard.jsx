@@ -34,9 +34,12 @@ export default function ProductCard({ product, className, orderOnHover = false }
           onClick={() => toggleFavorite(product.id)}
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           aria-pressed={isFavorite}
-          className="absolute top-2 left-2 z-10 flex size-[30px] items-center justify-center rounded-full border border-fill-line bg-white text-text"
+          className={cn(
+            'absolute top-2 left-2 z-10 flex size-[30px] items-center justify-center rounded-full border border-fill-line bg-white text-text',
+            isFavorite && 'border-secondary bg-secondary text-white',
+          )}
         >
-          <Heart size={15} className={cn(isFavorite && 'fill-primary text-primary')} />
+          <Heart size={15} />
         </button>
         {product.freeDelivery && (
           <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1 rounded-md bg-highlight py-1 pr-[9px] pl-2 text-[11px] font-bold text-text">
