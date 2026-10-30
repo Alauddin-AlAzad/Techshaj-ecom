@@ -46,16 +46,15 @@ const AdminLayout = page(() => import('./components/admin/AdminLayout.jsx'))
 const AdminLogin = page(() => import('./pages/admin/Login.jsx'))
 const AdminAccount = page(() => import('./pages/admin/Account.jsx'))
 const AdminPlaceholder = page(() => import('./pages/admin/Placeholder.jsx'))
+const AdminProducts = page(() => import('./pages/admin/Products.jsx'))
+const AdminProductForm = page(() => import('./pages/admin/ProductForm.jsx'))
+const AdminCategories = page(() => import('./pages/admin/Categories.jsx'))
 
 // Admin pages not built yet: [path, title].
 const adminPlaceholders = [
   ['', 'Dashboard'],
   ['orders', 'Orders'],
   ['orders/:orderId', 'Order details'],
-  ['products', 'Products'],
-  ['products/new', 'Add product'],
-  ['products/:id/edit', 'Edit product'],
-  ['categories', 'Categories'],
   ['banners', 'Banners'],
   ['coupons', 'Coupons'],
   ['flash-sale', 'Flash Sale'],
@@ -79,6 +78,10 @@ export default function App() {
             {adminPlaceholders.map(([path, title]) =>
               path ? <Route key={path} path={path} element={<AdminPlaceholder title={title} />} /> : <Route key="index" index element={<AdminPlaceholder title={title} />} />,
             )}
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="products/new" element={<AdminProductForm />} />
+            <Route path="products/:id/edit" element={<AdminProductForm />} />
+            <Route path="categories" element={<AdminCategories />} />
             <Route path="account" element={<AdminAccount />} />
             <Route path="*" element={<AdminPlaceholder title="Page not found" subtitle="This admin page does not exist." />} />
           </Route>

@@ -59,7 +59,8 @@ export default function ImageUploader({ value = [], onChange, max = 8, multiple 
     <div className="flex flex-col gap-2">
       <ul className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5">
         {value.map((url, i) => (
-          <li key={url} className={cn(tile, 'group bg-fill-soft')}>
+          // Seeded products can repeat the same placeholder url, so the index is part of the key.
+          <li key={`${i}-${url}`} className={cn(tile, 'group bg-fill-soft')}>
             <img src={url} alt={`Image ${i + 1}`} className="size-full object-cover" />
             {i === 0 && <span className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">MAIN</span>}
             <div className="absolute top-1.5 right-1.5 flex gap-1">
