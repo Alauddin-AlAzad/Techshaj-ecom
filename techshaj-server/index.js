@@ -1,5 +1,6 @@
 const dns = require('node:dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+const dnsServers = (process.env.DNS_SERVERS ?? (process.env.VERCEL ? '' : '8.8.8.8,1.1.1.1')).split(',').map((server) => server.trim()).filter(Boolean);
+if (dnsServers.length) dns.setServers(dnsServers);
 const express = require('express')
 const app=express()
 const cors= require('cors')
