@@ -1,14 +1,16 @@
 import { PackageSearch, Search } from 'lucide-react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import TrackingResult from '../components/order/TrackingResult.jsx'
-import { useOrderStore } from '../context/useOrderStore.js'
-import { getOrderById, getOrdersByPhone, getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import { useSettings } from '../hooks/useSettings.js'
+import { useTrackOrder } from '../hooks/useTrackOrder.js'
 import { cn } from '../lib/cn.js'
 import { toLatinDigits } from '../lib/format.js'
+import { normalizeOrder } from '../lib/order.js'
 import { zodResolver } from '../lib/zodResolver.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -16,33 +18,27 @@ const schema = z.object({
   id: z.string().trim().toUpperCase(),
   phone: z.preprocess(
     (v) => toLatinDigits(String(v ?? '')).replace(/\D/g, '').replace(/^880/, '0'),
-    z.string().regex(/^01\d{9}$/, 'Enter the 11-digit phone number you used at checkout'),
+    z.string().regex(/^01[3-9]\d{8}$/, 'Enter the 11-digit phone number you used at checkout'),
   ),
 })
 
 const input =
   'h-12 w-full rounded-[10px] border border-nav-line bg-surface px-3.5 text-body text-text outline-none placeholder:text-text-faint focus:border-primary lg:flex-1'
 
-// Orders saved in this browser plus the ones in fakeData; newest first.
-async function findOrders({ id, phone }, localOrders) {
-  const local = localOrders.filter((o) => o.phone === phone && (!id || o.id === id))
-  const remote = id ? [await getOrderById(id, phone)].filter(Boolean) : await getOrdersByPhone(phone)
-  const all = [...local, ...remote.filter((r) => !local.some((l) => l.id === r.id))]
-  return all.sort((a, b) => new Date(b.placedAt) - new Date(a.placedAt))
-}
-
 // Figma "Track Order" desktop (34:3456) and mobile (34:3811).
 export default function TrackOrder() {
   usePageTitle('Track Order')
   const [params, setParams] = useSearchParams()
-  const localOrders = useOrderStore((s) => s.orders)
-  const store = useAsync(getStore)
+  const { data: store } = useSettings()
   // The query lives in the URL, so links from Order Success arrive already searched.
   const parsed = schema.safeParse({ id: params.get('id') ?? '', phone: params.get('phone') ?? '' })
   const query = parsed.success ? parsed.data : null
-  const result = useAsync(
-    async () => (query ? { query, orders: await findOrders(query, localOrders) } : null),
-    [params.toString(), localOrders],
+  const tracked = useTrackOrder(query)
+  const zones = store?.shippingZones
+  const search = params.toString()
+  const result = useMemo(
+    () => (query && tracked.data ? { query, orders: tracked.data.map((o) => normalizeOrder(o, zones)) } : null),
+    [search, tracked.data, zones], // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   const {
@@ -93,6 +89,9 @@ export default function TrackOrder() {
           )}
         </form>
 
+        {query && tracked.isError && !tracked.data && (
+          <ErrorState title="Could not find your order right now" onRetry={tracked.refetch} />
+        )}
         {result && (
           <div className="flex w-full flex-col gap-3.5 pt-1 lg:gap-5">
             {result.orders.length === 0 ? (
@@ -111,7 +110,7 @@ export default function TrackOrder() {
                   </p>
                 )}
                 {result.orders.map((order) => (
-                  <TrackingResult key={order.id} order={order} zones={store?.shipping.zones ?? []} />
+                  <TrackingResult key={order.id} order={order} zones={zones ?? []} />
                 ))}
               </>
             )}

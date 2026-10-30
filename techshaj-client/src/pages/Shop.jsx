@@ -3,15 +3,18 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import { ShopSkeleton } from '../components/Skeleton.jsx'
 import FilterPanel from '../components/shop/FilterPanel.jsx'
 import FilterSheet from '../components/shop/FilterSheet.jsx'
 import Pagination from '../components/shop/Pagination.jsx'
 import SortSelect from '../components/shop/SortSelect.jsx'
-import { getCategories, getProducts, getShopMeta } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import storefront from '../data/storefront.json'
+import { useCategories } from '../hooks/useCategories.js'
+import { useAllProducts } from '../hooks/useProducts.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { cn } from '../lib/cn.js'
+import { combine } from '../lib/query.js'
 import {
   activeFilterCount,
   applyFilters,
@@ -24,9 +27,16 @@ import {
 } from '../lib/shopFilters.js'
 import NotFound from './NotFound.jsx'
 
-async function loadShop() {
-  const [products, tree, meta] = await Promise.all([getProducts(), getCategories(), getShopMeta()])
-  return { products, tree, flat: tree.flatMap((p) => [p, ...p.children]), ...meta }
+// Filters, facets and counts run on the full catalog in the browser so every filter combination works.
+function useShopData() {
+  const products = useAllProducts()
+  const categories = useCategories()
+  const data = useMemo(() => {
+    if (!products.data || !categories.data) return null
+    const tree = categories.data
+    return { products: products.data, tree, flat: tree.flatMap((p) => [p, ...p.children]), collections: storefront.collections, colors: storefront.colors }
+  }, [products.data, categories.data])
+  return { data, ...combine(products, categories) }
 }
 
 const quickCollections = [
@@ -67,7 +77,7 @@ export default function Shop() {
   const [params, setParams] = useSearchParams()
   const [sheetOpen, setSheetOpen] = useState(false)
   const closeSheet = useCallback(() => setSheetOpen(false), [])
-  const data = useAsync(loadShop)
+  const { data, isError, refetch } = useShopData()
 
   const category = slug ? data?.flat.find((c) => c.slug === slug) : null
   const parent = category?.parentId ? data.flat.find((c) => c.id === category.parentId) : null
@@ -86,7 +96,7 @@ export default function Shop() {
     const colCounts = countBy(applyFilters(data.products, filters, ctx, 'col'), (p) => p.collections)
     const colorCounts = countBy(applyFilters(data.products, filters, ctx, 'color'), (p) => colorFamilies(p, data.colors))
     const brandCounts = countBy(applyFilters(data.products, filters, ctx, 'brand'), (p) => p.brand)
-    const prices = data.products.map((p) => p.price)
+    const prices = data.products.length ? data.products.map((p) => p.price) : [0]
 
     const facets = {
       price: { min: Math.floor(Math.min(...prices) / 50) * 50, max: Math.ceil(Math.max(...prices) / 50) * 50 },
@@ -103,6 +113,7 @@ export default function Shop() {
 
   usePageTitle(data && (category?.name ?? (slug ? 'Page not found' : raw.q ? `Search: ${raw.q}` : 'Shop')))
 
+  if (!data && isError) return <ErrorState onRetry={refetch} />
   if (!data) return <ShopSkeleton />
   if (slug && !category) return <NotFound />
 

@@ -1,8 +1,7 @@
 import { ArrowRight, BadgePercent, ChevronDown, ChevronRight, Truck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getPopularLinks } from '../../data/api.js'
-import { useAsync } from '../../hooks/useAsync.js'
+import storefront from '../../data/storefront.json'
 import { cn } from '../../lib/cn.js'
 import CategoryIcon from '../CategoryIcon.jsx'
 import Logo from '../Logo.jsx'
@@ -11,7 +10,7 @@ import SocialLinks from '../SocialLinks.jsx'
 // Figma "Menu Drawer – Mobile 390" (39:5630).
 export default function MobileMenu({ store, categories = [], onClose }) {
   const [openId, setOpenId] = useState(null)
-  const popular = useAsync(getPopularLinks) ?? []
+  const popular = storefront.popularLinks
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()

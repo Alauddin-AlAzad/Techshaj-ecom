@@ -1,0 +1,124 @@
+{
+  "collections": [
+    {
+      "slug": "flash-sale",
+      "name": "Flash Sale"
+    },
+    {
+      "slug": "new-arrival",
+      "name": "New Arrival"
+    },
+    {
+      "slug": "best-seller",
+      "name": "Best Seller"
+    },
+    {
+      "slug": "best-deal",
+      "name": "Best Deal"
+    },
+    {
+      "slug": "combo",
+      "name": "Combo"
+    },
+    {
+      "slug": "clearance",
+      "name": "Clearance"
+    }
+  ],
+  "colors": [
+    {
+      "name": "Black",
+      "hex": "#111318",
+      "aliases": [
+        "Charcoal"
+      ]
+    },
+    {
+      "name": "White",
+      "hex": "#ffffff",
+      "aliases": [
+        "Glacier White"
+      ]
+    },
+    {
+      "name": "Silver",
+      "hex": "#c0c6cf",
+      "aliases": []
+    },
+    {
+      "name": "Grey",
+      "hex": "#8a93a3",
+      "aliases": [
+        "Space Grey",
+        "Iron Grey"
+      ]
+    },
+    {
+      "name": "Blue",
+      "hex": "#2563eb",
+      "aliases": []
+    },
+    {
+      "name": "Red",
+      "hex": "#e11d48",
+      "aliases": []
+    },
+    {
+      "name": "Green",
+      "hex": "#16a34a",
+      "aliases": []
+    },
+    {
+      "name": "Purple",
+      "hex": "#8a2be2",
+      "aliases": []
+    },
+    {
+      "name": "Pink",
+      "hex": "#ff1b8d",
+      "aliases": [
+        "Rose Pink"
+      ]
+    }
+  ],
+  "featuredCategorySlugs": [
+    "power-bank",
+    "cables",
+    "charger-adapter",
+    "keyboard",
+    "mouse",
+    "fancy-decorative-lights",
+    "speaker",
+    "smart-watches",
+    "neckband",
+    "overhead-headphones",
+    "earbuds",
+    "mobile-cooler"
+  ],
+  "popularLinks": [
+    {
+      "label": "Power Bank",
+      "to": "/category/power-bank"
+    },
+    {
+      "label": "Earbuds",
+      "to": "/category/earbuds"
+    },
+    {
+      "label": "Smart Watches",
+      "to": "/category/smart-watches"
+    },
+    {
+      "label": "Mobile Cooler",
+      "to": "/category/mobile-cooler"
+    },
+    {
+      "label": "Cables",
+      "to": "/category/cables"
+    },
+    {
+      "label": "Moon Lamp",
+      "to": "/shop?q=moon%20lamp"
+    }
+  ]
+}

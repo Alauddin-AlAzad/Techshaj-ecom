@@ -1,5 +1,3 @@
-import { formatPrice } from './format.js'
-
 // Joins cart items with their products and works out the totals.
 export function cartLines(items, products) {
   return items
@@ -29,11 +27,3 @@ export function cartTotals(lines, store) {
 
 export const variantLabel = (variant = {}) => Object.values(variant).join(' / ')
 
-// Returns { discount } or { error } for a code against the store coupons.
-export function applyCoupon(code, coupons, subtotal) {
-  const coupon = coupons.find((c) => c.code.toLowerCase() === code.trim().toLowerCase())
-  if (!coupon) return { error: 'Invalid coupon code' }
-  if (subtotal < (coupon.minOrder ?? 0)) return { error: `Minimum order ${formatPrice(coupon.minOrder)} for this coupon` }
-  const discount = coupon.type === 'percent' ? Math.round((subtotal * coupon.value) / 100) : coupon.value
-  return { coupon, discount: Math.min(discount, subtotal) }
-}

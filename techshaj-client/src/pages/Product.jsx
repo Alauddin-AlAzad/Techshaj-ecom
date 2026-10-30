@@ -8,20 +8,19 @@ import BuyBox from '../components/product/BuyBox.jsx'
 import DetailsTabs from '../components/product/DetailsTabs.jsx'
 import Gallery from '../components/product/Gallery.jsx'
 import { useCartStore } from '../context/useCartStore.js'
+import ErrorState from '../components/ErrorState.jsx'
 import { ProductDetailsSkeleton } from '../components/Skeleton.jsx'
-import { getProductDetails, getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import { useProduct } from '../hooks/useProduct.js'
+import { useRelatedProducts } from '../hooks/useRelatedProducts.js'
+import { useReviews } from '../hooks/useReviews.js'
+import { useSettings } from '../hooks/useSettings.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { discountPercent, formatPrice } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
 import { defaultVariant } from '../lib/product.js'
+import { combine } from '../lib/query.js'
 import NotFound from './NotFound.jsx'
-
-async function loadProduct(slug) {
-  const [details, store] = await Promise.all([getProductDetails(slug), getStore()])
-  return { slug, store, product: null, ...details }
-}
 
 // Keyed by slug from the route so state resets when moving between products.
 function ProductDetails({ product, store, reviews, related }) {
@@ -108,12 +107,18 @@ function ProductDetails({ product, store, reviews, related }) {
 
 export default function Product() {
   const { slug } = useParams()
-  const data = useAsync(() => loadProduct(slug), [slug])
-  const current = data?.slug === slug ? data : null
-  usePageTitle(current ? (current.product?.name ?? 'Page not found') : null)
+  const productQuery = useProduct(slug)
+  const settings = useSettings()
+  const related = useRelatedProducts(slug)
+  const reviews = useReviews(productQuery.data?.id)
+  const product = productQuery.data
+  const ready = product === null || (product && settings.data && reviews.data && related.data)
+  const status = combine(productQuery, settings, related, reviews)
+  usePageTitle(ready ? (product?.name ?? 'Page not found') : null)
 
-  // Keeps the skeleton up while moving between products, too.
-  if (!current) return <ProductDetailsSkeleton />
-  if (!current.product) return <NotFound />
-  return <ProductDetails key={slug} {...current} />
+  // Each slug is its own query, so the skeleton also shows while moving between products.
+  if (!ready && status.isError) return <ErrorState onRetry={status.refetch} />
+  if (!ready) return <ProductDetailsSkeleton />
+  if (!product) return <NotFound />
+  return <ProductDetails key={slug} product={product} store={settings.data} reviews={reviews.data} related={related.data} />
 }

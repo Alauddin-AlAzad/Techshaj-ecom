@@ -1,22 +1,18 @@
 import { ChevronRight } from 'lucide-react'
 import { Link, NavLink, useParams } from 'react-router-dom'
 import PageHero from '../components/info/PageHero.jsx'
-import { getPage, getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import ErrorState from '../components/ErrorState.jsx'
+import pages from '../data/pages.json'
+import { useSettings } from '../hooks/useSettings.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice } from '../lib/format.js'
 import NotFound from './NotFound.jsx'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
-async function loadPolicies() {
-  const [policies, store] = await Promise.all([getPage('policies'), getStore()])
-  return { policies, store }
-}
-
-// Delivery charges from fakeData shipping, plus the free shipping threshold.
+// Delivery charges from the store's shipping zones, plus the free shipping threshold.
 function Charges({ store }) {
   const cards = [
-    ...store.shipping.zones.map((z) => ({ label: z.name, value: formatPrice(z.charge), note: z.days, className: 'bg-primary-tint' })),
+    ...store.shippingZones.map((z) => ({ label: z.name, value: formatPrice(z.charge), note: z.days ?? '', className: 'bg-primary-tint' })),
     { label: `Orders over ${formatPrice(store.freeShippingThreshold)}`, value: 'Free', note: 'All over Bangladesh', className: 'bg-highlight-soft', heading: true },
   ]
   return (
@@ -37,11 +33,12 @@ function Charges({ store }) {
 // Figma "Policy" desktop (42:7072) and mobile (43:7518). One page for shipping, return, privacy and terms.
 export default function Policy() {
   const { type } = useParams()
-  const data = useAsync(loadPolicies)
-  usePageTitle(data?.policies[type]?.title)
+  const { data: store, isError, refetch } = useSettings()
+  const policies = pages.policies
+  usePageTitle(policies[type]?.title)
 
-  if (!data) return <div className="min-h-[60vh]" />
-  const { policies, store } = data
+  if (!store && isError) return <ErrorState onRetry={refetch} />
+  if (!store) return <div className="min-h-[60vh]" />
   const policy = policies[type]
   if (!policy) return <NotFound />
   const entries = Object.entries(policies)

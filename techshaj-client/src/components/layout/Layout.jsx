@@ -1,8 +1,8 @@
 import { Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { getCategories, getStore } from '../../data/api.js'
 import { useCartStore } from '../../context/useCartStore.js'
-import { useAsync } from '../../hooks/useAsync.js'
+import { useCategories } from '../../hooks/useCategories.js'
+import { useSettings } from '../../hooks/useSettings.js'
 import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
 import { PageSkeleton } from '../Skeleton.jsx'
@@ -13,8 +13,8 @@ import Footer from './Footer.jsx'
 import Header from './Header.jsx'
 
 export default function Layout() {
-  const store = useAsync(getStore)
-  const categories = useAsync(getCategories)
+  const { data: store = null } = useSettings()
+  const { data: categories = null } = useCategories()
   const { pathname } = useLocation()
   const closeDrawer = useCartStore((s) => s.closeDrawer)
   // These mobile frames replace the site header and footer with their own top bar; checkout also drops the bottom nav.

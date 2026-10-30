@@ -3,8 +3,9 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import PageHero from '../components/info/PageHero.jsx'
 import { TINTS } from '../components/info/tints.js'
-import { getPage, getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import ErrorState from '../components/ErrorState.jsx'
+import pages from '../data/pages.json'
+import { useSettings } from '../hooks/useSettings.js'
 import { cn } from '../lib/cn.js'
 import { toLatinDigits } from '../lib/format.js'
 import { zodResolver } from '../lib/zodResolver.js'
@@ -23,11 +24,6 @@ const schema = z.object({
 
 // 8801700000000 -> +880 1700-000000
 const formatWhatsapp = (n = '') => `+${n.slice(0, 3)} ${n.slice(3, 7)}-${n.slice(7)}`
-
-async function loadContact() {
-  const [page, store] = await Promise.all([getPage('contact'), getStore()])
-  return { page, store }
-}
 
 function Input({ label, error, multiline, className, ...props }) {
   const Tag = multiline ? 'textarea' : 'input'
@@ -55,7 +51,8 @@ function Input({ label, error, multiline, className, ...props }) {
 // Figma "Contact" desktop (42:6628) and mobile (43:7279). The form only shows a toast for now.
 export default function Contact() {
   usePageTitle('Contact Us')
-  const data = useAsync(loadContact)
+  const { data: store, isError, refetch } = useSettings()
+  const page = pages.contact
   const {
     register,
     handleSubmit,
@@ -63,8 +60,8 @@ export default function Contact() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema), defaultValues: { name: '', phone: '', orderId: '', message: '' } })
 
-  if (!data) return <div className="min-h-[60vh]" />
-  const { page, store } = data
+  if (!store && isError) return <ErrorState onRetry={refetch} />
+  if (!store) return <div className="min-h-[60vh]" />
 
   const cards = [
     { Icon: Phone, tint: 'secondary', label: 'Hotline (24/7)', value: store.hotline, href: `tel:${store.hotline}` },

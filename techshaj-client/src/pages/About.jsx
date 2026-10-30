@@ -2,8 +2,7 @@ import { CreditCard, ShieldCheck, Truck, Wrench } from 'lucide-react'
 import PageHero from '../components/info/PageHero.jsx'
 import { TINTS } from '../components/info/tints.js'
 import Logo from '../components/Logo.jsx'
-import { getPage } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import pages from '../data/pages.json'
 import { cn } from '../lib/cn.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -12,9 +11,7 @@ const ICONS = { 'shield-check': ShieldCheck, truck: Truck, 'credit-card': Credit
 // Figma "About Us" desktop (42:6334) and mobile (43:7125).
 export default function About() {
   usePageTitle('About Us')
-  const page = useAsync(() => getPage('about'))
-  if (!page) return <div className="min-h-[60vh]" />
-  const { hero, story, values, numbers } = page
+  const { hero, story, values, numbers } = pages.about
 
   return (
     <>

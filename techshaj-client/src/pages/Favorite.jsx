@@ -2,11 +2,11 @@ import { Heart, ShoppingCart } from 'lucide-react'
 import EmptyState from '../components/EmptyState.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { useFavoriteStore } from '../context/useFavoriteStore.js'
-import { getProductsByIds } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import { useAllProducts } from '../hooks/useProducts.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { notify } from '../lib/notify.jsx'
 import { defaultVariant } from '../lib/product.js'
@@ -18,12 +18,12 @@ const itemsLabel = (n) => `${n} ${n === 1 ? 'item' : 'items'}`
 export default function Favorite() {
   usePageTitle('My Favorites')
   const ids = useFavoriteStore((s) => s.ids)
-  // Newest favorite first.
-  const products = useAsync(() => getProductsByIds([...ids].reverse()), [ids.join(',')])
+  const { data: products, isError, refetch } = useAllProducts()
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openDrawer)
   const isDesktop = useIsDesktop()
-  const list = products?.filter((p) => ids.includes(p.id)) ?? []
+  // Newest favorite first.
+  const list = products ? [...ids].reverse().map((id) => products.find((p) => p.id === id)).filter(Boolean) : []
   const inStock = list.filter((p) => p.stock > 0)
 
   const addAll = () => {
@@ -60,7 +60,9 @@ export default function Favorite() {
           Saved on this device. No account needed.
         </p>
 
-        {!products ? (
+        {!products && isError ? (
+          <ErrorState title="Could not load your favorites" onRetry={refetch} />
+        ) : !products ? (
           <ProductGridSkeleton
             count={ids.length || 4}
             className="grid grid-cols-2 gap-x-2.5 gap-y-4 pt-3.5 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-[22px] lg:pt-5 xl:grid-cols-5"

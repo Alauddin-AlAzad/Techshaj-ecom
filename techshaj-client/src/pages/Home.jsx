@@ -6,35 +6,49 @@ import HeroSection from '../components/home/HeroSection.jsx'
 import ProductRow from '../components/home/ProductRow.jsx'
 import PromoBanners from '../components/home/PromoBanners.jsx'
 import TrustBadges from '../components/home/TrustBadges.jsx'
+import { useQueries } from '@tanstack/react-query'
+import ErrorState from '../components/ErrorState.jsx'
 import { HomeSkeleton } from '../components/Skeleton.jsx'
-import { getBanners, getCategories, getFeaturedCategories, getOffers, getProducts } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import storefront from '../data/storefront.json'
+import { useAxiosPublic } from '../hooks/useAxiosPublic.js'
+import { useBanners } from '../hooks/useBanners.js'
+import { useCategories } from '../hooks/useCategories.js'
+import { useOffers } from '../hooks/useOffers.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
+import { productsQuery, useProducts } from '../hooks/useProducts.js'
+import { combine, pick } from '../lib/query.js'
 
-async function loadCategoryRows() {
-  const parents = await getCategories()
-  const rows = await Promise.all(parents.map((c) => getProducts({ category: c.slug })))
-  return parents.map((c, i) => ({ category: c, products: rows[i] }))
-}
+const ROW_LIMIT = 20
 
-// Everything loads together so the page swaps from the skeleton in one step.
-async function loadHome() {
-  const [banners, featured, offers, bestDeals, bestSellers, categoryRows] = await Promise.all([
-    getBanners(),
-    getFeaturedCategories(),
-    getOffers(),
-    getProducts({ collection: 'best-deal' }),
-    getProducts({ collection: 'best-seller' }),
-    loadCategoryRows(),
-  ])
-  return { banners, featured, offers, bestDeals, bestSellers, categoryRows }
+// One product row per department, loaded in parallel.
+function useCategoryRows(parents) {
+  const axiosPublic = useAxiosPublic()
+  const results = useQueries({ queries: (parents ?? []).map((c) => productsQuery(axiosPublic, { category: c.slug, limit: ROW_LIMIT })) })
+  const rows = parents && results.every((r) => r.data) ? parents.map((c, i) => ({ category: c, products: results[i].data.products })) : null
+  return { rows, results: results.map(pick) }
 }
 
 export default function Home() {
   usePageTitle()
-  const data = useAsync(loadHome)
-  if (!data) return <HomeSkeleton />
-  const { banners, featured, offers, bestDeals, bestSellers, categoryRows } = data
+  const bannersQuery = useBanners()
+  const offersQuery = useOffers()
+  const categoriesQuery = useCategories()
+  const bestDealsQuery = useProducts({ collection: 'best-deal', limit: ROW_LIMIT })
+  const bestSellersQuery = useProducts({ collection: 'best-seller', limit: ROW_LIMIT })
+  const { rows: categoryRows, results: rowResults } = useCategoryRows(categoriesQuery.data)
+  const status = combine(bannersQuery, offersQuery, categoriesQuery, bestDealsQuery, bestSellersQuery, ...rowResults)
+
+  // Everything loads together so the page swaps from the skeleton in one step.
+  const ready = bannersQuery.data && offersQuery.data && bestDealsQuery.data && bestSellersQuery.data && categoryRows
+  if (!ready && status.isError) return <ErrorState onRetry={status.refetch} />
+  if (!ready) return <HomeSkeleton />
+
+  const banners = bannersQuery.data
+  const offers = offersQuery.data
+  const bestDeals = bestDealsQuery.data.products
+  const bestSellers = bestSellersQuery.data.products
+  const flat = categoriesQuery.data.flatMap((p) => [p, ...p.children])
+  const featured = storefront.featuredCategorySlugs.map((slug) => flat.find((c) => c.slug === slug)).filter(Boolean)
 
   const categoryRow = ({ category, products }) => (
     <ProductRow key={category.id} title={category.name} products={products} seeAllTo={`/category/${category.slug}`} />
