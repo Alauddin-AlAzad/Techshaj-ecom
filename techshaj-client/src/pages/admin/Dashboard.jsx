@@ -219,7 +219,7 @@ export default function Dashboard() {
                 <ul className="flex flex-col">
                   {data.lowStock.map((p) => (
                     <li key={p.id} className="border-b border-row-line last:border-b-0">
-                      <Link to={`/admin/products/${p.id}/edit`} state={{ code: p.code }} className="flex items-center justify-between gap-3 py-2.5 hover:bg-fill-soft">
+                      <Link to={`/admin/products/${p.id}/edit?focus=stock`} state={{ code: p.code }} className="flex items-center justify-between gap-3 py-2.5 hover:bg-fill-soft">
                         <span className="min-w-0 truncate text-[13px] font-medium text-text">{p.name}</span>
                         <span className={cn('shrink-0 rounded-[10px] px-2 py-[3px] text-[11px] font-bold', p.stock > 0 ? 'bg-highlight-soft text-highlight-ink' : 'bg-error-tint text-error')}>
                           {p.stock > 0 ? `${p.stock} left` : 'Out of stock'}

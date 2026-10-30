@@ -10,6 +10,7 @@ import FormField from '../../components/admin/FormField.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { useAxiosPublic } from '../../hooks/useAxiosPublic.js'
 import { usePageTitle } from '../../hooks/usePageTitle.js'
+import { useBranding } from '../../hooks/useSettings.js'
 import { setToken } from '../../lib/adminAuth.js'
 import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
@@ -29,6 +30,7 @@ const returnPath = (from) => (typeof from === 'string' && from.startsWith('/admi
 // Figma "Admin – Login" (54:7594).
 export default function Login() {
   usePageTitle('Admin login')
+  const { name } = useBranding()
   const axiosPublic = useAxiosPublic()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -62,7 +64,7 @@ export default function Login() {
           <p className="font-heading text-h1 text-white">Manage your store</p>
           <p className="max-w-[440px] text-body-lg text-on-dark">Products, categories, banners, orders and delivery settings, all in one place.</p>
         </div>
-        <p className="text-body-sm text-text-muted">© {YEAR} TechShaj</p>
+        <p className="text-body-sm text-text-muted">© {YEAR} {name}</p>
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-10">
@@ -72,7 +74,7 @@ export default function Login() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex w-full max-w-[400px] flex-col gap-4">
           <div className="flex flex-col gap-4">
             <h1 className="text-h2 text-text">Admin login</h1>
-            <p className="text-body text-text-muted">Sign in to the TechShaj dashboard</p>
+            <p className="text-body text-text-muted">Sign in to the {name} dashboard</p>
           </div>
 
           <FormField label="Email" htmlFor="email" error={errors.email?.message}>

@@ -9,7 +9,8 @@ import PageHeader from '../../components/admin/PageHeader.jsx'
 import Pagination from '../../components/admin/Pagination.jsx'
 import SearchInput from '../../components/admin/SearchInput.jsx'
 import Select from '../../components/admin/Select.jsx'
-import StockBadge, { FreeDeliveryBadge } from '../../components/admin/StockBadge.jsx'
+import { FreeDeliveryBadge } from '../../components/admin/StockBadge.jsx'
+import StockEditor from '../../components/admin/StockEditor.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { toTree, useAdminCategories } from '../../hooks/useAdminCategories.js'
 import { useAdminProducts, useDeleteProduct, useUpdateProduct } from '../../hooks/useAdminProducts.js'
@@ -112,7 +113,7 @@ export default function Products() {
         </div>
       ),
     },
-    { key: 'stock', header: 'Stock', render: (p) => <StockBadge stock={p.stock} /> },
+    { key: 'stock', header: 'Stock', render: (p) => <StockEditor product={p} /> },
     {
       key: 'published',
       header: 'Status',

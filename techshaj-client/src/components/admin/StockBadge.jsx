@@ -3,18 +3,19 @@ import { cn } from '../../lib/cn.js'
 
 export const LOW_STOCK = 5
 
-// Figma product table stock pill (59:8184): red when low, gray when out.
-export default function StockBadge({ stock }) {
+// Product table stock pill: red when out, yellow when 1 to 5 are left.
+export default function StockBadge({ stock, className }) {
   const out = !(stock > 0)
   const low = !out && stock <= LOW_STOCK
   return (
     <span
       className={cn(
         'inline-flex rounded-[10px] px-2 py-[3px] text-label-sm whitespace-nowrap',
-        out ? 'bg-fill text-text-muted' : low ? 'bg-error-tint text-error' : 'bg-success-tint text-success',
+        out ? 'bg-error-tint text-error' : low ? 'bg-highlight-soft text-highlight-ink' : 'bg-success-tint text-success',
+        className,
       )}
     >
-      {out ? 'Out of stock' : `${stock} in stock`}
+      {out ? 'Out of stock' : low ? `Low · ${stock} left` : `${stock} in stock`}
     </span>
   )
 }
