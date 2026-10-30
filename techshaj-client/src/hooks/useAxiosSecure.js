@@ -20,7 +20,8 @@ export function useAxiosSecure() {
         const status = error.response?.status
         if (status === 401 || status === 403) {
           localStorage.removeItem('access-token')
-          navigate('/admin/login')
+          const { pathname, search } = window.location
+          if (pathname !== '/admin/login') navigate('/admin/login', { replace: true, state: { from: pathname + search } })
         }
         return Promise.reject(error)
       },

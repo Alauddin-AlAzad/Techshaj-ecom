@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom'
 import AppToaster from './components/AppToaster.jsx'
 import EmptyState from './components/EmptyState.jsx'
 import Layout from './components/layout/Layout.jsx'
+import AdminRoot from './components/admin/AdminRoot.jsx'
 import { notify } from './lib/notify.jsx'
 
 function PageLoadFailed() {
@@ -40,10 +41,48 @@ const Policy = page(() => import('./pages/Policy.jsx'))
 const Blog = page(() => import('./pages/Blog.jsx'))
 const NotFound = page(() => import('./pages/NotFound.jsx'))
 
+const AdminRoute = page(() => import('./components/admin/AdminRoute.jsx'))
+const AdminLayout = page(() => import('./components/admin/AdminLayout.jsx'))
+const AdminLogin = page(() => import('./pages/admin/Login.jsx'))
+const AdminAccount = page(() => import('./pages/admin/Account.jsx'))
+const AdminPlaceholder = page(() => import('./pages/admin/Placeholder.jsx'))
+
+// Admin pages not built yet: [path, title].
+const adminPlaceholders = [
+  ['', 'Dashboard'],
+  ['orders', 'Orders'],
+  ['orders/:orderId', 'Order details'],
+  ['products', 'Products'],
+  ['products/new', 'Add product'],
+  ['products/:id/edit', 'Edit product'],
+  ['categories', 'Categories'],
+  ['banners', 'Banners'],
+  ['coupons', 'Coupons'],
+  ['flash-sale', 'Flash Sale'],
+  ['reviews', 'Reviews'],
+  ['settings', 'Settings'],
+]
+
 export default function App() {
   return (
     <>
       <Routes>
+        <Route path="/admin" element={<AdminRoot />}>
+          <Route path="login" element={<AdminLogin />} />
+          <Route
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            {adminPlaceholders.map(([path, title]) =>
+              path ? <Route key={path} path={path} element={<AdminPlaceholder title={title} />} /> : <Route key="index" index element={<AdminPlaceholder title={title} />} />,
+            )}
+            <Route path="account" element={<AdminAccount />} />
+            <Route path="*" element={<AdminPlaceholder title="Page not found" subtitle="This admin page does not exist." />} />
+          </Route>
+        </Route>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
