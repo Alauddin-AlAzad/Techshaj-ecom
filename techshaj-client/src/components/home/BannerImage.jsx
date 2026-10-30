@@ -4,11 +4,11 @@ import BannerLink from '../BannerLink.jsx'
 
 const bannerAlt = (banner) => banner.title?.replace(/\s*\n\s*/g, ' ').trim() || 'Promotional banner'
 
-// One clickable banner image; the box keeps its ratio and shimmers until the image arrives.
-export default function BannerImage({ banner, eager = false, className, imgClassName, onClick }) {
+// One clickable banner image (zoom adds a slow zoom on hover); the box keeps its ratio and shimmers until the image arrives.
+export default function BannerImage({ banner, eager = false, zoom = false, className, imgClassName, onClick }) {
   const [loaded, setLoaded] = useState(false)
   return (
-    <BannerLink link={banner.link} onClick={onClick} className={cn('relative block overflow-hidden', !loaded && 'skeleton', className)}>
+    <BannerLink link={banner.link} onClick={onClick} className={cn('group/banner relative block overflow-hidden', !loaded && 'skeleton', className)}>
       <img
         src={banner.image}
         alt={bannerAlt(banner)}
@@ -18,7 +18,7 @@ export default function BannerImage({ banner, eager = false, className, imgClass
         draggable={false}
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}
-        className={cn('size-full object-cover', imgClassName)}
+        className={cn('size-full object-cover', zoom && 'transition-transform duration-500 ease-out group-hover/banner:scale-105', imgClassName)}
       />
     </BannerLink>
   )
