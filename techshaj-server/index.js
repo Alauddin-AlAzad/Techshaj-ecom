@@ -43,6 +43,8 @@ async function run() {
     const couponsCollection = client.db("techshajDB").collection("coupons");
     const settingsCollection = client.db("techshajDB").collection("settings");
     const reviewsCollection = client.db("techshajDB").collection("reviews");
+    const ordersCollection = client.db("techshajDB").collection("orders");
+    const countersCollection = client.db("techshajDB").collection("counters");
 
     const productProjection = { costPrice: 0, buyingPrice: 0, purchasePrice: 0, supplier: 0, adminNote: 0 };
     const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -56,6 +58,19 @@ async function run() {
       "price-asc": { price: 1, id: 1 },
       "price-desc": { price: -1, id: 1 },
       "best-selling": { soldCount: -1, id: 1 },
+    };
+    const phonePattern = /^01[3-9]\d{8}$/;
+    const paymentMethods = ["cod", "bkash", "nagad"];
+    const checkCoupon = async (code, subtotal) => {
+      const trimmed = typeof code === "string" ? code.trim() : "";
+      if (!trimmed) return { valid: false, discount: 0, message: "Coupon code is required" };
+      const coupon = await couponsCollection.findOne({ code: { $regex: `^${escapeRegex(trimmed)}$`, $options: "i" } });
+      if (!coupon || coupon.active === false) return { valid: false, discount: 0, message: "Invalid coupon code" };
+      if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return { valid: false, discount: 0, message: "This coupon has expired" };
+      if (subtotal < (coupon.minOrder ?? 0)) return { valid: false, discount: 0, message: `Minimum order ৳${coupon.minOrder} for this coupon` };
+      const amount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
+      const discount = Math.min(amount, subtotal);
+      return { valid: true, discount, message: "Coupon applied", code: coupon.code };
     };
 
     // products related api
@@ -195,6 +210,172 @@ async function run() {
           .sort({ createdAt: -1 })
           .toArray();
         res.send(reviews);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // coupons related api
+    app.post("/coupons/validate", async (req, res) => {
+      try {
+        const { code, subtotal } = req.body ?? {};
+        const amount = Number(subtotal);
+        if (!Number.isFinite(amount) || amount < 0) return res.status(400).send({ valid: false, discount: 0, message: "subtotal must be a valid number" });
+        const { valid, discount, message } = await checkCoupon(code, amount);
+        res.send({ valid, discount, message });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // orders related api
+    app.post("/orders", async (req, res) => {
+      try {
+        const { customer, zoneId, paymentMethod, transactionId, couponCode, items } = req.body ?? {};
+        const name = typeof customer?.name === "string" ? customer.name.trim() : "";
+        const phone = typeof customer?.phone === "string" ? customer.phone.trim() : "";
+        const address = typeof customer?.address === "string" ? customer.address.trim() : "";
+        const note = typeof customer?.note === "string" ? customer.note.trim() : "";
+        const trxId = typeof transactionId === "string" ? transactionId.trim() : "";
+
+        if (!name) return res.status(400).send({ message: "Name is required" });
+        if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
+        if (!address) return res.status(400).send({ message: "Address is required" });
+        if (!paymentMethods.includes(paymentMethod)) return res.status(400).send({ message: "Payment method must be cod, bkash or nagad" });
+        if (paymentMethod !== "cod" && !trxId) return res.status(400).send({ message: "Transaction ID is required for bKash and Nagad payments" });
+        if (!Array.isArray(items) || items.length === 0) return res.status(400).send({ message: "Order must have at least one item" });
+        for (const item of items) {
+          if (!Number.isInteger(item?.quantity) || item.quantity < 1 || item.quantity > 10) {
+            return res.status(400).send({ message: "Quantity must be between 1 and 10" });
+          }
+        }
+
+        const settings = await settingsCollection.findOne({});
+        const zone = settings?.shippingZones?.find((z) => z.id === zoneId);
+        if (!zone) return res.status(400).send({ message: "Please select a valid delivery zone" });
+
+        const productIds = [...new Set(items.map((item) => Number(item.productId)))];
+        const products = await productsCollection.find({ id: { $in: productIds } }).toArray();
+        const quantities = {};
+        const lines = [];
+        for (const item of items) {
+          const product = products.find((p) => p.id === Number(item.productId));
+          if (!product) return res.status(400).send({ message: `Product ${item.productId} not found` });
+          const variant = item.variant && typeof item.variant === "object" ? item.variant : {};
+          for (const [key, value] of Object.entries(variant)) {
+            const group = product.variants?.find((v) => v.name === key);
+            if (!group || !group.options.includes(value)) return res.status(400).send({ message: `Invalid ${key} option for ${product.name}` });
+          }
+          quantities[product.id] = (quantities[product.id] ?? 0) + item.quantity;
+          if ((product.stock ?? 0) < quantities[product.id]) return res.status(400).send({ message: `${product.name} is out of stock` });
+          lines.push({
+            productId: product.id,
+            name: product.name,
+            slug: product.slug,
+            image: product.images?.[0] ?? null,
+            variant,
+            price: product.price,
+            quantity: item.quantity,
+            lineTotal: product.price * item.quantity,
+          });
+        }
+
+        const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+        const freeShipping =
+          (settings.freeShippingThreshold && subtotal >= settings.freeShippingThreshold) ||
+          lines.every((line) => products.find((p) => p.id === line.productId).freeDelivery === true);
+        const shipping = freeShipping ? 0 : zone.charge;
+
+        let discount = 0;
+        let coupon = null;
+        if (typeof couponCode === "string" && couponCode.trim()) {
+          const result = await checkCoupon(couponCode, subtotal);
+          if (!result.valid) return res.status(400).send({ message: result.message });
+          discount = result.discount;
+          coupon = result.code;
+        }
+        const total = subtotal + shipping - discount;
+
+        const reserved = [];
+        for (const [id, quantity] of Object.entries(quantities)) {
+          const result = await productsCollection.updateOne({ id: Number(id), stock: { $gte: quantity } }, { $inc: { stock: -quantity } });
+          if (result.modifiedCount === 0) {
+            for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
+            const product = products.find((p) => p.id === Number(id));
+            return res.status(400).send({ message: `${product.name} is out of stock` });
+          }
+          reserved.push({ id: Number(id), quantity });
+        }
+
+        try {
+          const now = new Date();
+          const period = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}`;
+          const counter = await countersCollection.findOneAndUpdate(
+            { _id: `order-${period}` },
+            { $inc: { seq: 1 } },
+            { upsert: true, returnDocument: "after" }
+          );
+          const orderId = `TS${period}${String(counter.seq).padStart(4, "0")}`;
+
+          await ordersCollection.insertOne({
+            orderId,
+            customer: { name, phone, address, note },
+            phone,
+            shippingZoneId: zone.id,
+            area: zone.name,
+            paymentMethod,
+            transactionId: paymentMethod === "cod" ? null : trxId,
+            coupon,
+            items: lines,
+            subtotal,
+            shipping,
+            discount,
+            total,
+            status: "pending",
+            statusHistory: [{ status: "pending", at: now }],
+            courier: null,
+            trackingNumber: null,
+            createdAt: now,
+          });
+          res.send({ orderId, total });
+        } catch (error) {
+          for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
+          throw error;
+        }
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.get("/orders/track", async (req, res) => {
+      try {
+        const phone = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
+        const orderId = typeof req.query.orderId === "string" ? req.query.orderId.trim().toUpperCase() : "";
+        if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
+
+        const query = { $or: [{ phone }, { "customer.phone": phone }] };
+        if (orderId) query.orderId = orderId;
+        const orders = await ordersCollection.find(query).sort({ createdAt: -1 }).toArray();
+        const tracked = orders.map((o) => ({
+          orderId: o.orderId,
+          status: o.status,
+          statusHistory: o.statusHistory ?? [],
+          items: o.items,
+          subtotal: o.subtotal,
+          shipping: o.shipping,
+          discount: o.discount,
+          total: o.total,
+          courier: o.courier ?? null,
+          trackingNumber: o.trackingNumber ?? o.courier?.trackingId ?? null,
+          area: o.area ?? null,
+          createdAt: o.createdAt,
+        }));
+
+        if (orderId) {
+          if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
+          return res.send(tracked[0]);
+        }
+        res.send(tracked);
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
