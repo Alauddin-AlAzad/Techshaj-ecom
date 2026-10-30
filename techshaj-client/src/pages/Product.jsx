@@ -11,6 +11,7 @@ import Gallery from '../components/product/Gallery.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { getProductBySlug, getProducts, getReviews, getStore } from '../data/api.js'
 import { useAsync } from '../hooks/useAsync.js'
+import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { discountPercent } from '../lib/format.js'
 import { defaultVariant } from '../lib/product.js'
 import NotFound from './NotFound.jsx'
@@ -34,6 +35,8 @@ function ProductDetails({ product, store, reviews, related }) {
   const [variant, setVariant] = useState(() => defaultVariant(product))
   const [qty, setQty] = useState(1)
   const addItem = useCartStore((s) => s.addItem)
+  const openCart = useCartStore((s) => s.openDrawer)
+  const isDesktop = useIsDesktop()
   const navigate = useNavigate()
   const discount = discountPercent(product.price, product.oldPrice)
   const inStock = product.stock > 0
@@ -43,7 +46,7 @@ function ProductDetails({ product, store, reviews, related }) {
     addItem(product.id, qty, variant)
     toast.success('Added to cart', {
       description: `${qty} × ${product.name}`,
-      action: { label: 'View cart', onClick: () => navigate('/cart') },
+      action: { label: 'View cart', onClick: () => (isDesktop ? openCart() : navigate('/cart')) },
     })
   }
   const orderNow = () => {

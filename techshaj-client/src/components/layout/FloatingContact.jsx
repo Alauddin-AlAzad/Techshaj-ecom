@@ -7,9 +7,11 @@ import { cn } from '../../lib/cn.js'
 // Figma "Floating Contact" (92:17074). Sits above the mobile bottom nav.
 export default function FloatingContact({ store }) {
   const [open, setOpen] = useState(false)
-  // Product pages have a 69px sticky order bar above the mobile bottom nav.
-  const raised = useLocation().pathname.startsWith('/product/')
-  if (!store) return null
+  const { pathname } = useLocation()
+  // Product pages have a 69px sticky order bar above the mobile bottom nav, the cart a 138px summary.
+  const raised = pathname.startsWith('/product/')
+  const aboveCart = pathname === '/cart'
+  if (!store || pathname === '/checkout') return null
 
   const links = [
     { href: `https://wa.me/${store.whatsapp}`, label: 'WhatsApp', Icon: FaWhatsapp, bg: 'bg-whatsapp' },
@@ -20,7 +22,11 @@ export default function FloatingContact({ store }) {
     <div
       className={cn(
         'fixed right-4 z-40 flex flex-col items-end gap-3 lg:right-6 lg:bottom-6',
-        raised ? 'bottom-[calc(153px+env(safe-area-inset-bottom))]' : 'bottom-[calc(84px+env(safe-area-inset-bottom))]',
+        raised
+          ? 'bottom-[calc(153px+env(safe-area-inset-bottom))]'
+          : aboveCart
+            ? 'bottom-[calc(222px+env(safe-area-inset-bottom))]'
+            : 'bottom-[calc(84px+env(safe-area-inset-bottom))]',
       )}
     >
       {open &&

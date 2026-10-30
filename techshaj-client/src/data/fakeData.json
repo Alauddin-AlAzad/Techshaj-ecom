@@ -64,7 +64,7 @@
         },
         {
           "label": "Returns & Refund",
-          "to": "/policy/returns"
+          "to": "/policy/return"
         },
         {
           "label": "Privacy Policy",
@@ -96,6 +96,20 @@
       {
         "name": "Mastercard"
       }
+    ],
+    "mobilePayments": [
+      {
+        "id": "bkash",
+        "name": "bKash",
+        "number": "01700000000",
+        "type": "Personal"
+      },
+      {
+        "id": "nagad",
+        "name": "Nagad",
+        "number": "01700000000",
+        "type": "Personal"
+      }
     ]
   },
   "shipping": {
@@ -103,18 +117,21 @@
       {
         "id": "inside-dhaka",
         "name": "Inside Dhaka",
+        "nameBn": "ঢাকার ভিতরে",
         "charge": 70,
         "days": "1-2 days"
       },
       {
         "id": "dhaka-suburbs",
         "name": "Dhaka suburbs",
+        "nameBn": "ঢাকার আশেপাশে",
         "charge": 100,
         "days": "2-3 days"
       },
       {
         "id": "outside-dhaka",
         "name": "Outside Dhaka",
+        "nameBn": "ঢাকার বাইরে",
         "charge": 130,
         "days": "2-4 days"
       }
@@ -593,7 +610,8 @@
       "freeDelivery": false,
       "isNew": false,
       "collections": [
-        "best-seller"
+        "best-seller",
+        "combo"
       ]
     },
     {
@@ -699,7 +717,9 @@
       "soldCount": 74,
       "freeDelivery": false,
       "isNew": false,
-      "collections": []
+      "collections": [
+        "clearance"
+      ]
     },
     {
       "id": 6,
@@ -1142,7 +1162,9 @@
       "soldCount": 64,
       "freeDelivery": false,
       "isNew": false,
-      "collections": []
+      "collections": [
+        "clearance"
+      ]
     },
     {
       "id": 14,
@@ -1579,7 +1601,8 @@
       "freeDelivery": false,
       "isNew": false,
       "collections": [
-        "best-deal"
+        "best-deal",
+        "combo"
       ]
     },
     {
@@ -1685,7 +1708,8 @@
       "freeDelivery": false,
       "isNew": false,
       "collections": [
-        "best-seller"
+        "best-seller",
+        "combo"
       ]
     },
     {
@@ -1741,7 +1765,9 @@
       "soldCount": 40,
       "freeDelivery": false,
       "isNew": false,
-      "collections": []
+      "collections": [
+        "clearance"
+      ]
     },
     {
       "id": 25,
@@ -1796,7 +1822,8 @@
       "freeDelivery": false,
       "isNew": false,
       "collections": [
-        "flash-sale"
+        "flash-sale",
+        "combo"
       ]
     },
     {
@@ -2170,7 +2197,9 @@
       "soldCount": 60,
       "freeDelivery": false,
       "isNew": false,
-      "collections": []
+      "collections": [
+        "clearance"
+      ]
     },
     {
       "id": 33,
@@ -2964,6 +2993,14 @@
     {
       "slug": "best-deal",
       "name": "Best Deal"
+    },
+    {
+      "slug": "combo",
+      "name": "Combo"
+    },
+    {
+      "slug": "clearance",
+      "name": "Clearance"
     }
   ],
   "colors": [
