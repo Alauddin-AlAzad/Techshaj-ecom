@@ -112,7 +112,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
                   key={option}
                   type="button"
                   aria-pressed={selected}
-                  onClick={() => onVariant({ ...variant, [group.name]: option })}
+                  onClick={() => onVariant({ ...variant, [group.name]: option }, group.name)}
                   className={cn(
                     'rounded-lg px-3.5 py-2 text-[13px] lg:px-4 lg:py-[9px]',
                     selected ? 'border-[1.5px] border-text font-semibold text-text' : 'border border-border-strong font-medium text-text-muted hover:border-text',

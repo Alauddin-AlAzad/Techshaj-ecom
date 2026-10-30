@@ -204,6 +204,22 @@ async function run() {
         if (!valid) return { error: "variants must be an array of { name, options }" };
         data.variants = body.variants.map((v) => ({ name: v.name.trim(), options: v.options.map((o) => o.trim()) }));
       }
+      const variants = data.variants ?? current?.variants ?? [];
+      if (body.optionImages !== undefined || (data.variants && current?.optionImages)) {
+        const source = body.optionImages !== undefined ? body.optionImages : current.optionImages;
+        if (source !== null && !isPlainObject(source)) return { error: "optionImages must be { variant: { option: url } }" };
+        const optionImages = {};
+        for (const [name, options] of Object.entries(source ?? {})) {
+          if (!isPlainObject(options)) return { error: "optionImages must be { variant: { option: url } }" };
+          const group = variants.find((v) => v.name === name);
+          for (const [option, url] of Object.entries(options)) {
+            if (url === "" || url === null) continue;
+            if (typeof url !== "string" || !/^https:\/\/\S+$/.test(url)) return { error: `Picture for ${name}: ${option} must be an https URL` };
+            if (group?.options.includes(option)) optionImages[name] = { ...optionImages[name], [option]: url };
+          }
+        }
+        data.optionImages = optionImages;
+      }
       if (body.specs !== undefined) {
         const valid = Array.isArray(body.specs) && body.specs.every((s) => typeof s?.label === "string" && s.label.trim() && typeof s.value === "string");
         if (!valid) return { error: "specs must be an array of { label, value }" };
@@ -481,6 +497,7 @@ async function run() {
           brand: "",
           oldPrice: null,
           variants: [],
+          optionImages: {},
           specs: [],
           shortDescription: "",
           description: "",
@@ -1227,6 +1244,7 @@ async function run() {
             const group = product.variants?.find((v) => v.name === key);
             if (!group || !group.options.includes(value)) return res.status(400).send({ message: `Invalid ${key} option for ${product.name}` });
           }
+          const optionImage = Object.entries(variant).map(([key, value]) => product.optionImages?.[key]?.[value]).find(Boolean) ?? null;
           quantities[product.id] = (quantities[product.id] ?? 0) + item.quantity;
           if ((product.stock ?? 0) < quantities[product.id]) return res.status(400).send({ message: `${product.name} is out of stock` });
           lines.push({
@@ -1234,6 +1252,7 @@ async function run() {
             name: product.name,
             slug: product.slug,
             image: product.images?.[0] ?? null,
+            optionImage,
             variant,
             price: product.price,
             quantity: item.quantity,

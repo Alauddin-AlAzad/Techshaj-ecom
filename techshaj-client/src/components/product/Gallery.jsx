@@ -1,5 +1,5 @@
 import { Heart } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useFavoriteToggle } from '../../hooks/useFavoriteToggle.js'
 import { cn } from '../../lib/cn.js'
@@ -42,12 +42,31 @@ function Thumb({ src, active, onClick, index }) {
 }
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
-export default function Gallery({ product, discount }) {
+// focus: { src } of an option picture to show; onThumb(src) runs when a thumb is clicked.
+export default function Gallery({ product, discount, focus, onThumb }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
   const [isFavorite, toggleFavorite] = useFavoriteToggle(product)
-  const images = product.images
-  const thumbs = images.map((src, i) => <Thumb key={i} src={src} index={i} active={i === active} onClick={() => swiper?.slideTo(i)} />)
+  // Option pictures that are not in the gallery are added after it.
+  const optionSrcs = Object.values(product.optionImages ?? {}).flatMap((options) => Object.values(options))
+  const images = [...new Set([...product.images, ...optionSrcs])]
+  const thumbs = images.map((src, i) => (
+    <Thumb
+      key={i}
+      src={src}
+      index={i}
+      active={i === active}
+      onClick={() => {
+        swiper?.slideTo(i)
+        onThumb?.(src)
+      }}
+    />
+  ))
+
+  useEffect(() => {
+    const index = focus ? images.indexOf(focus.src) : -1
+    if (swiper && index >= 0) swiper.slideTo(index)
+  }, [focus, swiper]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col gap-2.5 lg:contents">

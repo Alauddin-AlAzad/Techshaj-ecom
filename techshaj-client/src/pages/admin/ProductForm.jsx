@@ -1,5 +1,5 @@
-import { ChevronLeft, Minus, PackageX, Plus, Save, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronLeft, ImagePlus, Images, Minus, PackageX, Plus, Save, Trash2, X } from 'lucide-react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -12,11 +12,13 @@ import ErrorState from '../../components/admin/ErrorState.jsx'
 import FormField from '../../components/admin/FormField.jsx'
 import ImageUploader from '../../components/admin/ImageUploader.jsx'
 import Select from '../../components/admin/Select.jsx'
+import Spinner from '../../components/admin/Spinner.jsx'
 import StockBadge from '../../components/admin/StockBadge.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { toTree, useAdminCategories } from '../../hooks/useAdminCategories.js'
 import { useAdminProduct, useAllAdminProducts, useCreateProduct, useUpdateProduct } from '../../hooks/useAdminProducts.js'
+import { IMAGE_TYPES, useImageUpload } from '../../hooks/useImageUpload.js'
 import { useLeaveGuard } from '../../hooks/useLeaveGuard.js'
 import { formatDate } from '../../lib/adminFormat.js'
 import { cn } from '../../lib/cn.js'
@@ -53,7 +55,7 @@ const schema = z
     published: z.boolean(),
     collections: z.array(z.string()),
     images: z.array(z.string()).min(1, 'Add at least 1 image'),
-    variants: z.array(z.object({ name: z.string(), options: z.string() })),
+    variants: z.array(z.object({ name: z.string(), options: z.string(), images: z.record(z.string(), z.string()) })),
     specs: z.array(z.object({ label: z.string(), value: z.string() })),
   })
   .superRefine((v, ctx) => {
@@ -107,7 +109,7 @@ const toFormValues = (p) => ({
   published: p.published !== false,
   collections: p.collections ?? [],
   images: p.images ?? [],
-  variants: (p.variants ?? []).map((v) => ({ name: v.name, options: v.options.join(', ') })),
+  variants: (p.variants ?? []).map((v) => ({ name: v.name, options: v.options.join(', '), images: p.optionImages?.[v.name] ?? {} })),
   specs: (p.specs ?? []).map((s) => ({ label: s.label, value: s.value })),
 })
 
@@ -129,6 +131,13 @@ const toPayload = (v) => ({
   collections: v.collections,
   images: v.images,
   variants: v.variants.filter((r) => r.name.trim()).map((r) => ({ name: r.name.trim(), options: splitOptions(r.options) })),
+  // Only pictures of options that still exist are sent.
+  optionImages: Object.fromEntries(
+    v.variants
+      .filter((r) => r.name.trim())
+      .map((r) => [r.name.trim(), Object.fromEntries(Object.entries(r.images).filter(([o, url]) => url && splitOptions(r.options).includes(o)))])
+      .filter(([, images]) => Object.keys(images).length),
+  ),
   specs: v.specs.filter((r) => r.label.trim()).map((r) => ({ label: r.label.trim(), value: r.value.trim() })),
 })
 
@@ -188,6 +197,123 @@ function FlagRow({ label, hint, children }) {
         {hint && <span className="text-body-sm text-text-muted">{hint}</span>}
       </div>
       {children}
+    </div>
+  )
+}
+
+// One option's picture: upload one, pick a gallery image, or remove it.
+function OptionPicture({ option, url, gallery, onChange }) {
+  const { upload } = useImageUpload()
+  const [progress, setProgress] = useState(null)
+  const [error, setError] = useState(null)
+  const [picking, setPicking] = useState(false)
+  const inputId = useId()
+
+  const onFile = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setError(null)
+    setProgress(0)
+    try {
+      onChange(await upload(file, { onProgress: setProgress }))
+      setPicking(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setProgress(null)
+    }
+  }
+
+  return (
+    <li className="flex w-[148px] flex-col gap-2 rounded-[10px] border border-border bg-white p-2">
+      <div className="flex items-center gap-2">
+        <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-border-strong bg-fill-soft text-text-faint">
+          {url ? (
+            <img src={url} alt={`${option} picture`} className="size-full object-cover" />
+          ) : progress != null ? (
+            <span role="status" aria-label={`Uploading ${progress}%`} className="text-primary">
+              <Spinner size={16} />
+            </span>
+          ) : (
+            <ImagePlus size={16} />
+          )}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-text">{option}</span>
+        {url && (
+          <button type="button" onClick={() => onChange('')} aria-label={`Remove ${option} picture`} className="flex size-8 shrink-0 items-center justify-center rounded-md text-error hover:bg-error-tint">
+            <X size={14} />
+          </button>
+        )}
+      </div>
+      <div className="flex gap-1.5">
+        <label htmlFor={inputId} className="flex h-8 flex-1 cursor-pointer items-center justify-center rounded-md border border-border-strong text-[11px] font-semibold text-text hover:border-primary hover:text-primary">
+          Upload
+        </label>
+        <input id={inputId} type="file" accept={IMAGE_TYPES.join(',')} onChange={onFile} aria-label={`Upload ${option} picture`} className="sr-only" />
+        <button
+          type="button"
+          onClick={() => setPicking(!picking)}
+          disabled={!gallery.length}
+          aria-expanded={picking}
+          aria-label={`Pick ${option} picture from gallery`}
+          className={cn('flex h-8 flex-1 items-center justify-center gap-1 rounded-md border text-[11px] font-semibold disabled:opacity-40', picking ? 'border-primary text-primary' : 'border-border-strong text-text hover:border-primary hover:text-primary')}
+        >
+          <Images size={13} />
+          Gallery
+        </button>
+      </div>
+      {picking && (
+        <div className="grid grid-cols-3 gap-1">
+          {[...new Set(gallery)].map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              onClick={() => {
+                onChange(src)
+                setPicking(false)
+              }}
+              aria-label={`Use gallery image ${i + 1} for ${option}`}
+              className={cn('aspect-square overflow-hidden rounded-md border-2', src === url ? 'border-primary' : 'border-transparent hover:border-primary-soft')}
+            >
+              <img src={src} alt="" className="size-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="text-[11px] font-medium text-error">
+          {error}
+        </p>
+      )}
+    </li>
+  )
+}
+
+// Picture slots for every option of one variant row.
+function OptionPictures({ index, control, getValues, setValue }) {
+  const [optionsText, images = {}, gallery = []] = useWatch({ control, name: [`variants.${index}.options`, `variants.${index}.images`, 'images'] })
+  const options = [...new Set(splitOptions(optionsText ?? ''))]
+  if (!options.length) return null
+
+  // An uploaded option picture is also added to the gallery.
+  const setImage = (option, url) => {
+    const next = { ...getValues(`variants.${index}.images`) }
+    if (url) next[option] = url
+    else delete next[option]
+    setValue(`variants.${index}.images`, next, { shouldDirty: true })
+    const current = getValues('images')
+    if (url && !current.includes(url)) setValue('images', [...current, url], { shouldDirty: true, shouldValidate: true })
+  }
+
+  return (
+    <div className="col-span-full flex flex-col gap-2">
+      <span className="text-body-sm text-text-muted">Option pictures (optional). Choosing the option on the store shows its picture.</span>
+      <ul className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <OptionPicture key={o} option={o} url={images[o]} gallery={gallery} onChange={(url) => setImage(o, url)} />
+        ))}
+      </ul>
     </div>
   )
 }
@@ -261,6 +387,7 @@ function ProductEditor({ product }) {
     control,
     handleSubmit,
     setValue,
+    getValues,
     formState: { errors, isDirty },
   } = useForm({ resolver: zodResolver(schema), defaultValues: initial })
   const variants = useFieldArray({ control, name: 'variants' })
@@ -332,6 +459,17 @@ function ProductEditor({ product }) {
 
   const onInvalid = () => notify.error('Please fix the highlighted fields')
 
+  // A picture removed from the gallery is also removed from any option that used it.
+  const onImagesChange = (urls) => {
+    const removed = getValues('images').filter((url) => !urls.includes(url))
+    setValue('images', urls, { shouldDirty: true, shouldValidate: Boolean(errors.images) })
+    if (!removed.length) return
+    getValues('variants').forEach((row, i) => {
+      const kept = Object.fromEntries(Object.entries(row.images).filter(([, url]) => !removed.includes(url)))
+      if (Object.keys(kept).length !== Object.keys(row.images).length) setValue(`variants.${i}.images`, kept, { shouldDirty: true })
+    })
+  }
+
   const text = (field, label, { required, hint, placeholder, multiline, rows = 3, className } = {}) => {
     const Input = multiline ? 'textarea' : 'input'
     return (
@@ -393,7 +531,7 @@ function ProductEditor({ product }) {
           </Card>
 
           <Card title="Images" aside={<span className="text-body-sm text-text-muted max-sm:hidden">The first image is the main photo.</span>}>
-            <Controller control={control} name="images" render={({ field }) => <ImageUploader value={field.value} onChange={(urls) => setValue('images', urls, { shouldDirty: true, shouldValidate: Boolean(errors.images) })} />} />
+            <Controller control={control} name="images" render={({ field }) => <ImageUploader value={field.value} onChange={onImagesChange} />} />
             {errors.images && <p role="alert" className="text-body-sm font-medium text-error">{errors.images.message}</p>}
           </Card>
 
@@ -409,7 +547,7 @@ function ProductEditor({ product }) {
           <Card
             title="Variants"
             aside={
-              <Button variant="secondary" Icon={Plus} onClick={() => variants.append({ name: '', options: '' })}>
+              <Button variant="secondary" Icon={Plus} onClick={() => variants.append({ name: '', options: '', images: {} })}>
                 Add variant
               </Button>
             }
@@ -426,6 +564,7 @@ function ProductEditor({ product }) {
                 <button type="button" onClick={() => variants.remove(i)} aria-label={`Remove variant ${i + 1}`} className={rowButton}>
                   <Trash2 size={17} />
                 </button>
+                <OptionPictures index={i} control={control} getValues={getValues} setValue={setValue} />
               </div>
             ))}
           </Card>
