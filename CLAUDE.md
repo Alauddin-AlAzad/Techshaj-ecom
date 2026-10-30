@@ -1,7 +1,7 @@
 # TechShaj
 
 - `techshaj-client/` — the storefront (Vite + React).
-- `techshaj-server/` — backend (not set up yet).
+- `techshaj-server/` — backend (Express + MongoDB).
 
 ## Rules
 
@@ -14,6 +14,17 @@
 - **Language:** code, strings and comments in English. Bangla appears only where the Figma design shows Bangla text. Keep comments minimal.
 - **Responsive:** mobile first. Check every page at 390px and 1440px.
 - **Scope:** do not change files that are not part of the current task.
+
+## Backend rules (`techshaj-server`)
+
+- **One file:** all server code lives in `index.js`. Keep its existing structure: the `dns.setServers` line, Express setup, the `MongoClient` with `ServerApiVersion.v1`, and `run().catch(console.dir)`.
+- **Driver:** the native `mongodb` driver only (no Mongoose). Database: `techshajDB`.
+- **Inside `run()`:** define the collections (`const productsCollection = client.db("techshajDB").collection("products")`) and every route inside `run()`, after `client.connect()`.
+- **Errors:** wrap every route body in `try/catch` and respond with `res.status(500).send({ message: error.message })`.
+- **Comments:** one short comment line above each group of routes (e.g. `// products`). No other comments.
+- **Prices:** never trust prices, totals, discounts or shipping charges sent by the client. Recalculate them from the database (products, coupons, settings) before saving an order.
+- **Collections:** `products`, `categories`, `banners`, `offers`, `coupons`, `settings` (one document: store info, `shippingZones`, `freeShippingThreshold`), `orders`, `reviews`, `admins`. Unique indexes on `products.slug`, `products.code`, `categories.slug`, `orders.orderId`.
+- **Seeding:** `npm run seed` runs `seed.js`, which refills `techshajDB` from `techshaj-client/src/data/fakeData.json` after a terminal confirmation. Env keys are listed in `.env.example`.
 
 ## Structure (`techshaj-client/src`)
 
