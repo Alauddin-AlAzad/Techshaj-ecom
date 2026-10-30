@@ -1,5 +1,5 @@
 import { ArrowRight, ChevronDown, ChevronRight, Menu } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { getBanners, getBestSeller } from '../../data/api.js'
 import { useAsync } from '../../hooks/useAsync.js'
@@ -10,6 +10,9 @@ import CategoryIcon from '../CategoryIcon.jsx'
 
 const panel = 'rounded-2xl border border-border bg-white shadow-menu'
 const DROPDOWN_WIDTH = 572
+const MORE_WIDTH = 300
+const GAP = 24
+const itemClass = 'flex items-center gap-1 text-[13px] font-medium whitespace-nowrap text-text-secondary hover:text-primary'
 
 // "All Categories" mega menu (Figma 85:16830).
 function MegaMenu({ categories, promo, onClose }) {
@@ -101,7 +104,7 @@ function CategoryDropdown({ category, left, onClose }) {
             </Link>
             <p className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="text-price text-text">{formatPrice(bestSeller.price)}</span>
-              {discount > 0 && <span className="text-body-sm text-text-faint">{formatPrice(bestSeller.oldPrice)}</span>}
+              {discount > 0 && <span className="text-body-sm text-text-faint line-through">{formatPrice(bestSeller.oldPrice)}</span>}
             </p>
             {bestSeller.stock > 0 && (
               <button
@@ -122,25 +125,77 @@ function CategoryDropdown({ category, left, onClose }) {
   )
 }
 
+// Categories that don't fit in the nav row at the current width.
+function MoreDropdown({ categories, left, onClose }) {
+  return (
+    <div style={{ left }} className="absolute top-full z-30 pt-2">
+      <div className={cn(panel, 'flex w-[300px] flex-col gap-0.5 rounded-[14px] p-2.5')}>
+        {categories.map((c) => (
+          <Link
+            key={c.id}
+            to={`/category/${c.slug}`}
+            onClick={onClose}
+            className="group/row flex h-[46px] items-center gap-3 rounded-[10px] pr-3 pl-2.5 hover:bg-primary-tint"
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-text group-hover/row:bg-white">
+              <CategoryIcon name={c.icon} size={16} />
+            </span>
+            <span className="flex-1 text-[14px] font-medium text-text group-hover/row:font-semibold group-hover/row:text-primary">{c.menuName ?? c.name}</span>
+            <span className="text-[12px] font-medium text-text-faint group-hover/row:text-primary">{c.productCount}</span>
+            <ChevronRight size={14} className="text-text-faint group-hover/row:text-primary" />
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function CategoryNav({ categories = [] }) {
   const [hover, setHover] = useState(null)
   const [megaOpen, setMegaOpen] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(categories.length)
   const navRef = useRef(null)
+  const rowRef = useRef(null)
+  const measureRef = useRef(null)
   const banners = useAsync(getBanners)
   const hovered = categories.find((c) => c.id === hover?.id)
+  const hidden = categories.slice(visibleCount)
 
   const close = () => {
     setHover(null)
     setMegaOpen(false)
   }
 
-  const openDropdown = (category, el) => {
+  const openDropdown = (id, el, width) => {
     if (megaOpen) return
     const nav = navRef.current.getBoundingClientRect()
     const item = el.getBoundingClientRect()
-    const row = el.closest('ul').getBoundingClientRect()
-    setHover({ id: category.id, left: item.left - nav.left, width: item.width, max: row.right - nav.left - DROPDOWN_WIDTH })
+    const row = rowRef.current.getBoundingClientRect()
+    setHover({ id, left: item.left - nav.left, width: item.width, max: row.right - nav.left - width })
   }
+
+  // Measures every item in a hidden copy of the row and keeps as many as fit; the rest go under "More".
+  useLayoutEffect(() => {
+    const row = rowRef.current
+    const measure = measureRef.current
+    if (!row || !measure) return
+
+    const fit = () => {
+      const [all, more, ...items] = [...measure.children].map((el) => el.offsetWidth)
+      const available = row.clientWidth - all - GAP
+      const total = items.reduce((sum, w) => sum + w + GAP, 0)
+      if (total - GAP <= available) return setVisibleCount(items.length)
+      let used = more
+      let count = 0
+      while (count < items.length && used + items[count] + GAP <= available) used += items[count++] + GAP
+      setVisibleCount(count)
+    }
+
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(row)
+    return () => observer.disconnect()
+  }, [categories])
 
   useEffect(() => {
     if (!megaOpen) return
@@ -156,8 +211,24 @@ export default function CategoryNav({ categories = [] }) {
 
   return (
     <nav ref={navRef} aria-label="Categories" className="relative border-b border-nav-line bg-white" onMouseLeave={() => setHover(null)}>
-      <div className="site-container">
-        <ul className="no-scrollbar flex h-[50px] items-center gap-7 overflow-x-auto">
+      <div className="site-container relative">
+        <ul ref={measureRef} aria-hidden="true" className="invisible absolute flex h-0 w-max overflow-hidden">
+          <li className="flex items-center gap-2 text-[14px] font-bold whitespace-nowrap">
+            <Menu size={18} />
+            All Categories
+          </li>
+          <li className={itemClass}>
+            More
+            <ChevronDown size={14} />
+          </li>
+          {categories.map((c) => (
+            <li key={c.id} className={itemClass}>
+              {c.name}
+              <ChevronDown size={14} />
+            </li>
+          ))}
+        </ul>
+        <ul ref={rowRef} className="flex h-[50px] items-center gap-6">
           <li onMouseEnter={() => setHover(null)}>
             <button
               type="button"
@@ -169,35 +240,44 @@ export default function CategoryNav({ categories = [] }) {
               All Categories
             </button>
           </li>
-          {categories.map((c) => (
-            <li key={c.id} onMouseEnter={(e) => openDropdown(c, e.currentTarget)}>
+          {categories.slice(0, visibleCount).map((c) => (
+            <li key={c.id} onMouseEnter={(e) => openDropdown(c.id, e.currentTarget, DROPDOWN_WIDTH)}>
               <NavLink
                 to={`/category/${c.slug}`}
                 onClick={close}
-                onFocus={(e) => openDropdown(c, e.currentTarget)}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-1 text-[13.5px] font-medium whitespace-nowrap text-text-secondary hover:text-primary',
-                    (isActive || hover?.id === c.id) && 'text-primary',
-                  )
-                }
+                onFocus={(e) => openDropdown(c.id, e.currentTarget, DROPDOWN_WIDTH)}
+                className={({ isActive }) => cn(itemClass, (isActive || hover?.id === c.id) && 'text-primary')}
               >
                 {c.name}
                 <ChevronDown size={14} />
               </NavLink>
             </li>
           ))}
+          {hidden.length > 0 && (
+            <li onMouseEnter={(e) => openDropdown('more', e.currentTarget, MORE_WIDTH)}>
+              <button
+                type="button"
+                onFocus={(e) => openDropdown('more', e.currentTarget, MORE_WIDTH)}
+                aria-expanded={hover?.id === 'more'}
+                className={cn(itemClass, hover?.id === 'more' && 'text-primary')}
+              >
+                More
+                <ChevronDown size={14} />
+              </button>
+            </li>
+          )}
         </ul>
       </div>
 
-      {(megaOpen || hovered) && (
+      {(megaOpen || hover) && (
         <>
           <div aria-hidden="true" onClick={close} className={cn('absolute inset-x-0 top-full z-20 h-screen bg-dark/55', !megaOpen && 'pointer-events-none')} />
-          {hovered && <span aria-hidden="true" style={{ left: hover.left, width: hover.width }} className="absolute -bottom-px z-30 h-0.5 bg-primary" />}
+          {hover && <span aria-hidden="true" style={{ left: hover.left, width: hover.width }} className="absolute -bottom-px z-30 h-0.5 bg-primary" />}
         </>
       )}
       {megaOpen && <MegaMenu categories={categories} promo={banners?.menu} onClose={close} />}
       {hovered && <CategoryDropdown key={hovered.id} category={hovered} left={Math.min(hover.left - 15, hover.max)} onClose={close} />}
+      {hover?.id === 'more' && <MoreDropdown categories={hidden} left={Math.min(hover.left - 15, hover.max)} onClose={close} />}
     </nav>
   )
 }

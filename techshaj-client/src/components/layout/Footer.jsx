@@ -70,7 +70,7 @@ function DesktopFooter({ store, bestSelling, bestDeals }) {
       </div>
 
       <div className="flex h-16 items-center justify-between border-t border-dark-line">
-        <p className="text-[13px] text-text-faint">© {year} TechShaj. All rights reserved.</p>
+        <p className="text-[13px] text-text-faint">© {year} {store?.name}. All rights reserved.</p>
         <div className="flex items-center gap-2">
           <span className="text-[13px] font-semibold text-white">Pay with</span>
           {store?.paymentMethods?.map((m) => (
@@ -134,7 +134,7 @@ function MobileFooter({ store, bestSelling, bestDeals }) {
           </span>
         ))}
       </div>
-      <p className="text-body-sm text-text-faint">© {year} TechShaj. All rights reserved.</p>
+      <p className="text-body-sm text-text-faint">© {year} {store?.name}. All rights reserved.</p>
     </div>
   )
 }
