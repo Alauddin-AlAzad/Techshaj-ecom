@@ -63,6 +63,22 @@
   --color-highlight-line: #ffe19a;
   --color-whatsapp-ink: #16a34a;
 
+  /* Mobile menu drawer (Figma 39:5630) */
+  --color-drawer-line: #1f222b;
+  --color-drawer-field: #1c1f28;
+  --color-drawer-chip: #2a2e39;
+  --color-drawer-chip-text: #e4e7ec;
+  --color-drawer-row: #1a1d24;
+  --color-drawer-open: #15171d;
+  --color-drawer-sub-line: #22252e;
+  --color-drawer-sub: #c9ced8;
+
+  /* Desktop mega menu and category dropdown (Figma 85:14254, 85:11569) */
+  --color-menu-link: #4b5160;
+  --color-menu-eyebrow: #ffe0f0;
+  --color-primary-wash: #fff5fa;
+  --shadow-menu: 0 16px 40px rgb(18 18 26 / 0.14);
+
   --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
 
   @keyframes pulse-ring {

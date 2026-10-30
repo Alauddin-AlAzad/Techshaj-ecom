@@ -1,53 +1,15 @@
-import { ChevronDown, Mail, MapPin, MessageCircle } from 'lucide-react'
+import { ChevronDown, Mail, MapPin } from 'lucide-react'
 import { useState } from 'react'
-import { LuFacebook, LuInstagram } from 'react-icons/lu'
 import { Link } from 'react-router-dom'
 import { getProductsByIds } from '../../data/api.js'
 import { useAsync } from '../../hooks/useAsync.js'
 import { cn } from '../../lib/cn.js'
 import Logo from '../Logo.jsx'
-
-const usefulLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'Shop', to: '/shop' },
-  { label: 'About Us', to: '/about' },
-  { label: 'Contact Us', to: '/contact' },
-  { label: 'Blog', to: '/blog' },
-]
-
-const helpLinks = [
-  { label: 'FAQ', to: '/faq' },
-  { label: 'Shipping & Delivery', to: '/policy/shipping' },
-  { label: 'Returns & Refund', to: '/policy/returns' },
-  { label: 'Privacy Policy', to: '/policy/privacy' },
-  { label: 'Terms & Conditions', to: '/policy/terms' },
-]
-
-const paymentMethods = ['Cash on Delivery', 'bKash', 'Nagad', 'Rocket', 'Visa', 'Mastercard']
+import SocialLinks from '../SocialLinks.jsx'
 
 const year = new Date().getFullYear()
 
 const toProductLinks = (products) => (products ?? []).map((p) => ({ label: p.name, to: `/product/${p.slug}` }))
-
-function SocialLinks({ social, size }) {
-  const items = [
-    { href: social?.facebook, label: 'Facebook', Icon: LuFacebook, bg: 'bg-facebook' },
-    { href: social?.instagram, label: 'Instagram', Icon: LuInstagram, bg: 'bg-instagram' },
-    { href: social?.whatsapp, label: 'WhatsApp', Icon: MessageCircle, bg: 'bg-whatsapp' },
-  ]
-  const box = size === 'sm' ? 'size-[34px]' : 'size-9'
-  const icon = size === 'sm' ? 17 : 18
-
-  return (
-    <div className="flex gap-2.5">
-      {items.map(({ href, label, Icon, bg }) => (
-        <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className={cn('flex items-center justify-center rounded-full text-white', box, bg)}>
-          <Icon size={icon} />
-        </a>
-      ))}
-    </div>
-  )
-}
 
 function LinkColumn({ title, links }) {
   return (
@@ -94,8 +56,8 @@ function DesktopFooter({ store, bestSelling, bestDeals }) {
             {store?.email}
           </a>
         </div>
-        <LinkColumn title="Useful Links" links={usefulLinks} />
-        <LinkColumn title="Help Center" links={helpLinks} />
+        <LinkColumn title="Useful Links" links={store?.footerLinks?.useful ?? []} />
+        <LinkColumn title="Help Center" links={store?.footerLinks?.help ?? []} />
         <div className="flex flex-1 flex-col items-start gap-3.5">
           <h3 className="font-body text-[15px] font-bold text-white">Social Media</h3>
           <SocialLinks social={store?.social} />
@@ -111,9 +73,9 @@ function DesktopFooter({ store, bestSelling, bestDeals }) {
         <p className="text-[13px] text-text-faint">© {year} TechShaj. All rights reserved.</p>
         <div className="flex items-center gap-2">
           <span className="text-[13px] font-semibold text-white">Pay with</span>
-          {paymentMethods.map((m) => (
-            <span key={m} className="rounded-[5px] bg-white px-2.5 py-[5px] text-[12px] font-bold text-text">
-              {m}
+          {store?.paymentMethods?.map((m) => (
+            <span key={m.name} className="rounded-[5px] bg-white px-2.5 py-[5px] text-[12px] font-bold text-text">
+              {m.name}
             </span>
           ))}
         </div>
@@ -160,15 +122,15 @@ function MobileFooter({ store, bestSelling, bestDeals }) {
         <SocialLinks social={store?.social} size="sm" />
       </div>
       <div className="w-full border-t border-dark-line">
-        <AccordionItem title="Useful Links" links={usefulLinks} />
-        <AccordionItem title="Help Center" links={helpLinks} />
+        <AccordionItem title="Useful Links" links={store?.footerLinks?.useful ?? []} />
+        <AccordionItem title="Help Center" links={store?.footerLinks?.help ?? []} />
         <AccordionItem title="Best Selling" links={bestSelling} />
         <AccordionItem title="Best Deals" links={bestDeals} />
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {paymentMethods.map((m) => (
-          <span key={m} className="rounded-[5px] bg-white px-2 py-1 text-[11px] font-bold text-text">
-            {m === 'Cash on Delivery' ? 'COD' : m}
+        {store?.paymentMethods?.map((m) => (
+          <span key={m.name} className="rounded-[5px] bg-white px-2 py-1 text-[11px] font-bold text-text">
+            {m.shortName ?? m.name}
           </span>
         ))}
       </div>

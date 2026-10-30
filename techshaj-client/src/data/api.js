@@ -93,12 +93,24 @@ export function getBanners() {
     hero: data.banners.hero.filter((b) => b.active),
     side: data.banners.side.filter((b) => b.active),
     promo: data.banners.promo.filter((b) => b.active),
+    menu: data.banners.menu?.active ? data.banners.menu : null,
   })
 }
 
 export function getFeaturedCategories() {
   return resolve(
     data.home.featuredCategorySlugs.map((slug) => data.categories.find((c) => c.slug === slug)).filter(Boolean),
+  )
+}
+
+export function getPopularLinks() {
+  return resolve(data.home.popularLinks ?? [])
+}
+
+// Most sold product in a category, for the desktop category dropdown.
+export function getBestSeller(categorySlug) {
+  return getProducts({ category: categorySlug }).then(
+    (list) => list.reduce((best, p) => (!best || p.soldCount > best.soldCount ? p : best), null),
   )
 }
 

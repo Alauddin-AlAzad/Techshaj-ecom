@@ -1,10 +1,11 @@
 import logoMark from '../assets/logo-mark.png'
 import { cn } from '../lib/cn.js'
 
-// sm = the 85% instance used in the mobile header and footer
+// sm = the 85% instance used in the mobile header and footer, xs = the 75% instance in the menu drawer
 const sizes = {
   md: { wrap: 'gap-2.5', mark: 'size-10 rounded-[9px]', text: 'text-[22px] tracking-[-0.44px]' },
   sm: { wrap: 'gap-[8.5px]', mark: 'size-[34px] rounded-[7.65px]', text: 'text-[18.7px] tracking-[-0.374px]' },
+  xs: { wrap: 'gap-[7.5px]', mark: 'size-[30px] rounded-[6.75px]', text: 'text-[16.5px] tracking-[-0.33px]' },
 }
 
 export default function Logo({ size = 'md', className }) {
