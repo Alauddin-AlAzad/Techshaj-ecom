@@ -20,22 +20,22 @@ function MobileHeader({ cartCount, store, categories }) {
   const { name } = useBranding()
 
   return (
-    <div className="flex flex-col gap-3 bg-dark px-4 pt-3 pb-3.5 lg:hidden">
+    <div className="flex flex-col gap-2.5 bg-dark px-4 pt-2.5 pb-3 lg:hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} className="text-white">
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
           <Link to="/" aria-label={`${name} home`}>
             <Logo size="sm" />
           </Link>
         </div>
-        <div className="flex items-center gap-[18px] text-white">
+        <div className="flex items-center gap-4 text-white">
           <Link to="/track-order" aria-label="Track order">
-            <Truck size={22} />
+            <Truck size={20} />
           </Link>
           <Link to="/cart" aria-label={`Cart, ${cartCount} items`} className="relative">
-            <ShoppingCart size={22} />
+            <ShoppingCart size={20} />
             <CountBadge count={cartCount} className="top-[-6px] left-2.5" />
           </Link>
         </div>
@@ -43,9 +43,9 @@ function MobileHeader({ cartCount, store, categories }) {
       <button
         type="button"
         onClick={() => setSearchOpen(true)}
-        className="flex h-[42px] items-center gap-2.5 rounded-[22px] bg-dark-field px-4 text-left text-body text-text-faint"
+        className="flex h-10 items-center gap-2.5 rounded-[20px] bg-dark-field px-4 text-left text-[13px] text-text-faint"
       >
-        <Search size={17} className="shrink-0" />
+        <Search size={16} className="shrink-0" />
         Search products…
       </button>
       {searchOpen && <MobileSearch onClose={closeSearch} />}

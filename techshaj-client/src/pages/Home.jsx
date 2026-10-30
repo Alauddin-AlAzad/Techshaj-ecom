@@ -1,5 +1,4 @@
 import 'swiper/css'
-import CategoryChips from '../components/home/CategoryChips.jsx'
 import FeaturedCategories from '../components/home/FeaturedCategories.jsx'
 import FlashSale from '../components/home/FlashSale.jsx'
 import HeroSection from '../components/home/HeroSection.jsx'
@@ -54,7 +53,6 @@ export default function Home() {
 
   return (
     <div className="pb-10 lg:pb-[72px]">
-      <CategoryChips categories={categories} />
       <HeroSection banners={bannersQuery.data} loading={bannersQuery.isLoading} />
       <TrustBadges />
       <FeaturedCategories categories={featured} />
