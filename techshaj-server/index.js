@@ -85,6 +85,31 @@ async function run() {
     const dhakaStart = (day) => new Date(`${day}T00:00:00+06:00`);
     const dayPattern = /^\d{4}-\d{2}-\d{2}$/;
     const bannerTypes = ["hero", "side", "promo", "menu"];
+    const linkTargetTypes = ["category", "product", "collection", "offers", "shop", "page", "custom", "none"];
+    const topBarSpeeds = ["slow", "normal", "fast"];
+    const readTopBar = (topBar) => {
+      if (!isPlainObject(topBar)) return { error: "topBar must be an object" };
+      const list = (items, textKey, linkKey, max) => {
+        if (!Array.isArray(items) || items.length > max) return null;
+        const result = [];
+        for (const item of items) {
+          const text = typeof item?.[textKey] === "string" ? item[textKey].trim() : "";
+          const link = typeof item?.[linkKey] === "string" ? item[linkKey].trim() : "";
+          if (!text) return null;
+          result.push({ [textKey]: text, [linkKey]: link });
+        }
+        return result;
+      };
+      if (typeof topBar.enabled !== "boolean") return { error: "topBar.enabled must be true or false" };
+      if (!topBarSpeeds.includes(topBar.speed)) return { error: "topBar.speed must be slow, normal or fast" };
+      const messages = list(topBar.messages ?? [], "text", "link", 20);
+      const left = list(topBar.left ?? [], "label", "href", 2);
+      const right = list(topBar.right ?? [], "label", "href", 3);
+      if (!messages) return { error: "topBar.messages must be a list of { text, link }" };
+      if (!left) return { error: "topBar.left must be up to 2 items of { label, href }" };
+      if (!right) return { error: "topBar.right must be up to 3 items of { label, href }" };
+      return { topBar: { enabled: topBar.enabled, speed: topBar.speed, messages, left, right } };
+    };
     const cloudinaryUrl = /^https:\/\/res\.cloudinary\.com\/\S+$/;
     const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
     const toNumber = (value) => (typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN);
@@ -225,7 +250,7 @@ async function run() {
     };
     const readBanner = (body, current) => {
       const data = {};
-      const textError = readText(body, data, ["eyebrow", "title", "shortTitle", "subtitle", "link", "icon", "theme", "image"]) || readFlags(body, data, ["active"]);
+      const textError = readText(body, data, ["name", "eyebrow", "title", "shortTitle", "subtitle", "link", "icon", "theme", "image"]) || readFlags(body, data, ["active"]);
       if (textError) return { error: textError };
       if (body.type !== undefined) {
         if (!bannerTypes.includes(body.type)) return { error: "type must be hero, side, promo or menu" };
@@ -241,6 +266,13 @@ async function run() {
         if (body[key] === undefined) continue;
         data[key] = toDate(body[key]);
         if (isBadDate(data[key])) return { error: `${key} must be a valid date` };
+      }
+      if (body.linkTarget !== undefined) {
+        const target = body.linkTarget;
+        if (target !== null && !(isPlainObject(target) && linkTargetTypes.includes(target.type) && (target.value === undefined || target.value === null || typeof target.value === "string"))) {
+          return { error: "linkTarget must be { type, value }" };
+        }
+        data.linkTarget = target && { type: target.type, value: typeof target.value === "string" ? target.value.trim() : "" };
       }
       const startAt = data.startAt !== undefined ? data.startAt : current?.startAt;
       const endAt = data.endAt !== undefined ? data.endAt : current?.endAt;
@@ -691,7 +723,7 @@ async function run() {
     // admin settings related api
     app.patch("/admin/settings", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const { store, shippingZones, freeShippingThreshold } = req.body ?? {};
+        const { store, shippingZones, freeShippingThreshold, topBar } = req.body ?? {};
         const data = {};
         if (store !== undefined) {
           if (!isPlainObject(store)) return res.status(400).send({ message: "store must be an object" });
@@ -711,6 +743,11 @@ async function run() {
             return res.status(400).send({ message: "freeShippingThreshold must be 0 or more" });
           }
           data.freeShippingThreshold = threshold;
+        }
+        if (topBar !== undefined) {
+          const result = readTopBar(topBar);
+          if (result.error) return res.status(400).send({ message: result.error });
+          data.topBar = result.topBar;
         }
         if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
         const settings = await settingsCollection.findOneAndUpdate({}, { $set: data }, { upsert: true, returnDocument: "after" });
@@ -1068,8 +1105,8 @@ async function run() {
       try {
         const settings = await settingsCollection.findOne({});
         if (!settings) return res.status(404).send({ message: "Settings not found" });
-        const { store, shippingZones, freeShippingThreshold } = settings;
-        res.send({ ...store, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones } });
+        const { store, shippingZones, freeShippingThreshold, topBar } = settings;
+        res.send({ ...store, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones }, topBar: topBar ?? null });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }

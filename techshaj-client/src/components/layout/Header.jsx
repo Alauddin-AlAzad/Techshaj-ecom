@@ -94,7 +94,7 @@ export default function Header({ store, categories }) {
 
   return (
     <header>
-      <AnnouncementBar messages={store?.announcements} />
+      <AnnouncementBar settings={store} />
       <MobileHeader cartCount={cartCount} store={store} categories={categories ?? []} />
       <DesktopHeader cartCount={cartCount} favoriteCount={favoriteCount} />
       <div className="hidden lg:block">

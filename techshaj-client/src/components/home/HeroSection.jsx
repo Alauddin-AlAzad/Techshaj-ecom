@@ -1,16 +1,18 @@
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Autoplay } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
+import { useSliderAutoplay } from '../../hooks/useSliderAutoplay.js'
 import { cn } from '../../lib/cn.js'
-import CategoryIcon from '../CategoryIcon.jsx'
-import { bannerThemes } from './bannerThemes.js'
+import { Skeleton } from '../Skeleton.jsx'
+import BannerImage from './BannerImage.jsx'
 
-function Dots({ count, active, onSelect, className }) {
+const arrow = 'absolute top-1/2 z-10 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-text shadow-md transition-transform hover:scale-105 lg:flex'
+
+function Dots({ count, active, onSelect }) {
   if (count < 2) return null
   return (
-    <div className={cn('flex gap-1.5', className)}>
+    <div className="absolute inset-x-0 bottom-2.5 z-10 flex justify-center gap-1.5 lg:bottom-4">
       {Array.from({ length: count }, (_, i) => (
         <button
           key={i}
@@ -18,111 +20,79 @@ function Dots({ count, active, onSelect, className }) {
           onClick={() => onSelect(i)}
           aria-label={`Go to slide ${i + 1}`}
           aria-current={i === active}
-          className={cn('h-1 rounded-sm transition-all', i === active ? 'w-[22px] bg-primary' : 'w-2 bg-primary-soft')}
+          className={cn('h-1.5 rounded-full shadow-sm transition-all', i === active ? 'w-[22px] bg-primary' : 'w-1.5 bg-white')}
         />
       ))}
     </div>
   )
 }
 
-function MainSlide({ banner, dots }) {
-  const theme = bannerThemes[banner.theme] ?? bannerThemes.blue
+function HeroSlider({ slides }) {
+  const [swiper, setSwiper] = useState(null)
+  const [active, setActive] = useState(0)
+  const autoplay = useSliderAutoplay(4000)
+  const many = slides.length > 1
+
   return (
-    <div className={cn('relative flex h-[180px] items-center overflow-hidden pl-5 lg:h-[380px] lg:justify-between lg:px-14', theme.bg)}>
-      <div className="relative z-10 flex flex-col items-start gap-2.5 lg:w-[460px] lg:gap-3.5">
-        <span className={cn('rounded-[14px] bg-white px-[9px] py-1 text-[10px] font-bold tracking-[0.6px] lg:rounded-[20px] lg:px-3 lg:py-1.5 lg:text-[12px] lg:tracking-[0.72px]', theme.eyebrow)}>
-          {banner.eyebrow}
-        </span>
-        <h2 className="max-w-[190px] font-heading text-[22px] font-bold text-hero-ink lg:hidden">{banner.title.replace('\n', ' ')}</h2>
-        <h2 className="hidden font-heading text-[46px] leading-[50px] font-bold tracking-[-0.69px] whitespace-pre-line text-hero-ink lg:block">{banner.title}</h2>
-        {banner.subtitle && <p className="hidden w-[440px] text-body-lg text-hero-copy lg:block">{banner.subtitle}</p>}
-        <Link to={banner.link} className="flex h-9 items-center gap-1.5 rounded-[20px] bg-dark px-3.5 text-[13px] font-bold text-white lg:h-12 lg:gap-2 lg:rounded-3xl lg:px-[26px] lg:text-[15px]">
-          Shop Now
-          <ArrowRight className="size-[15px] lg:size-[18px]" />
-        </Link>
-        <div className="hidden pt-3.5 lg:block">{dots}</div>
-      </div>
-      <div className="absolute top-5 -right-3 flex size-[140px] shrink-0 items-center justify-center rounded-full bg-white lg:static lg:size-[290px]">
-        <CategoryIcon name={banner.icon} absoluteStrokeWidth className={cn('size-[66px] lg:size-[140px]', theme.icon)} />
+    <div className="relative aspect-[2/1] min-w-0 overflow-hidden rounded-[14px] lg:flex-[3]">
+      <Swiper
+        modules={[Autoplay]}
+        loop={many}
+        {...(many ? autoplay : { autoplay: false })}
+        onSwiper={setSwiper}
+        onSlideChange={(s) => setActive(s.realIndex)}
+        className="size-full"
+      >
+        {slides.map((b, i) => (
+          <SwiperSlide key={b.id ?? b._id}>
+            <BannerImage banner={b} eager={i === 0} className="size-full" />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+      <Dots count={slides.length} active={active} onSelect={(i) => swiper?.slideToLoop(i)} />
+      {many && (
+        <>
+          <button type="button" onClick={() => swiper?.slidePrev()} aria-label="Previous slide" className={cn(arrow, 'left-4')}>
+            <ChevronLeft size={20} />
+          </button>
+          <button type="button" onClick={() => swiper?.slideNext()} aria-label="Next slide" className={cn(arrow, 'right-4')}>
+            <ChevronRight size={20} />
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function HeroSkeleton() {
+  return (
+    <div className="site-container flex flex-col gap-2.5 pt-3.5 lg:flex-row lg:gap-4 lg:pt-5">
+      <Skeleton className="aspect-[2/1] rounded-[14px] lg:flex-[3]" />
+      <div className="grid grid-cols-2 gap-2.5 lg:flex lg:flex-1 lg:flex-col lg:gap-4">
+        <Skeleton className="aspect-[1.35/1] rounded-xl lg:aspect-auto lg:flex-1 lg:rounded-[14px]" />
+        <Skeleton className="aspect-[1.35/1] rounded-xl lg:aspect-auto lg:flex-1 lg:rounded-[14px]" />
       </div>
     </div>
   )
 }
 
-function SideBanner({ banner }) {
-  const theme = bannerThemes[banner.theme] ?? bannerThemes.pink
-  return (
-    <Link
-      to={banner.link}
-      className={cn('flex h-[90px] min-w-0 flex-1 items-center justify-between rounded-xl pr-3 pl-3.5 lg:h-[182px] lg:w-full lg:flex-none lg:rounded-[14px] lg:pr-6 lg:pl-7', theme.bg)}
-    >
-      <p className="text-[14px] leading-[18px] font-extrabold whitespace-pre-line text-text lg:hidden">{banner.shortTitle ?? banner.title}</p>
-      <div className="hidden flex-col items-start gap-2 lg:flex">
-        <span className={cn('text-[12px] font-bold tracking-[0.72px]', theme.eyebrow)}>{banner.eyebrow}</span>
-        <p className="font-heading text-h3 whitespace-pre-line text-text">{banner.title}</p>
-        <span className="flex items-center gap-1 text-label text-text">
-          Shop now
-          <ArrowRight size={16} />
-        </span>
-      </div>
-      <span className="flex size-[46px] shrink-0 items-center justify-center rounded-full bg-white lg:size-[110px]">
-        <CategoryIcon name={banner.icon} className={cn('size-[22px] lg:size-[54px]', theme.icon)} />
-      </span>
-    </Link>
-  )
-}
-
-export default function HeroSection({ banners }) {
-  const [swiper, setSwiper] = useState(null)
-  const [active, setActive] = useState(0)
+// Image-only banners: the hero slider (about 2:1) with two side banners (about 1.35:1).
+export default function HeroSection({ banners, loading = false }) {
+  if (loading) return <HeroSkeleton />
   const slides = banners?.hero ?? []
-  if (!slides.length) return null
-
-  const dots = <Dots count={slides.length} active={active} onSelect={(i) => swiper?.slideToLoop(i)} />
+  const side = (banners?.side ?? []).slice(0, 2)
+  if (!slides.length && !side.length) return null
 
   return (
     <section className="site-container flex flex-col gap-2.5 pt-3.5 lg:flex-row lg:gap-4 lg:pt-5">
-      <div className="group relative min-w-0 overflow-hidden rounded-[14px] lg:flex-[2]">
-        <Swiper
-          modules={[Autoplay]}
-          loop={slides.length > 1}
-          autoplay={{ delay: 5000, disableOnInteraction: false, pauseOnMouseEnter: true }}
-          onSwiper={setSwiper}
-          onSlideChange={(s) => setActive(s.realIndex)}
-        >
-          {slides.map((b) => (
-            <SwiperSlide key={b.id}>
-              <MainSlide banner={b} dots={dots} />
-            </SwiperSlide>
+      {slides.length > 0 && <HeroSlider slides={slides} />}
+      {side.length > 0 && (
+        <div className={cn('grid grid-cols-2 gap-2.5 lg:flex lg:flex-col lg:gap-4', slides.length ? 'lg:flex-1' : 'lg:flex-row')}>
+          {side.map((b) => (
+            <BannerImage key={b.id ?? b._id} banner={b} className="aspect-[1.35/1] rounded-xl lg:flex-1 lg:rounded-[14px]" />
           ))}
-        </Swiper>
-        <Dots count={slides.length} active={active} onSelect={(i) => swiper?.slideToLoop(i)} className="absolute bottom-3 left-5 z-10 lg:hidden" />
-        {slides.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => swiper?.slidePrev()}
-              aria-label="Previous slide"
-              className="absolute top-1/2 left-4 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-text opacity-0 shadow-md transition-opacity group-hover:opacity-100 focus-visible:opacity-100 lg:flex"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => swiper?.slideNext()}
-              aria-label="Next slide"
-              className="absolute top-1/2 right-4 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-text opacity-0 shadow-md transition-opacity group-hover:opacity-100 focus-visible:opacity-100 lg:flex"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </>
-        )}
-      </div>
-      <div className="flex gap-2.5 lg:flex-1 lg:flex-col lg:gap-4">
-        {banners.side.map((b) => (
-          <SideBanner key={b.id} banner={b} />
-        ))}
-      </div>
+        </div>
+      )}
     </section>
   )
 }

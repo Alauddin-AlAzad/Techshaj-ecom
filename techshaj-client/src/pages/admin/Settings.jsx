@@ -18,9 +18,11 @@ import Tabs from '../../components/admin/Tabs.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { useAdminSettings, useSaveSettings } from '../../hooks/useAdminSettings.js'
+import TopBarTab, { SaveBar } from '../../components/admin/TopBarSettings.jsx'
 import { useLeaveGuard } from '../../hooks/useLeaveGuard.js'
 import { DEFAULT_STORE_NAME } from '../../lib/branding.js'
 import { cn } from '../../lib/cn.js'
+import { CONTACT_BUTTONS } from '../../lib/contact.js'
 import { notify } from '../../lib/notify.jsx'
 import { errorMessage, isNotFound } from '../../lib/query.js'
 import { slugify } from '../../lib/slug.js'
@@ -29,17 +31,20 @@ import { zodResolver } from '../../lib/zodResolver.js'
 const TABS = [
   { value: 'store', label: 'Store' },
   { value: 'delivery', label: 'Delivery' },
+  { value: 'topbar', label: 'Top bar' },
 ]
 
 const BRANDING_KEYS = ['name', 'logoUrl', 'faviconUrl']
 // GET /settings mixes these into the store fields; they are edited on the Delivery tab.
-const NOT_STORE_KEYS = ['_id', 'freeShippingThreshold', 'shippingZones', 'shipping']
+// announcements is the older top bar list; the Top bar tab replaces it.
+const NOT_STORE_KEYS = ['_id', 'freeShippingThreshold', 'shippingZones', 'shipping', 'topBar', 'announcements']
+const CONTACT_DEFAULTS = Object.fromEntries(CONTACT_BUTTONS.map((k) => [k, true]))
 
 // Store fields by card; anything not listed lands in "Other".
 const GROUPS = [
   { title: 'Contact info', subtitle: 'Used in the footer, contact page and floating buttons.', keys: ['hotline', 'whatsapp', 'messengerUsername', 'email', 'address'] },
+  { title: 'Floating contact button', subtitle: 'Only the options that are on and have a number or username above are shown.', keys: ['contactButtons'] },
   { title: 'Social links', subtitle: 'Links in the footer and the menu.', keys: ['social'] },
-  { title: 'Announcement bar', subtitle: 'Scrolling messages at the top of every page.', keys: ['announcements'] },
   { title: 'Mobile payment numbers', subtitle: 'Shown at checkout for bKash and Nagad.', keys: ['mobilePayments'] },
   { title: 'Payment icons', subtitle: 'Payment methods shown in the footer.', keys: ['paymentMethods'] },
   { title: 'Footer', subtitle: 'Footer links and product lists (product ids).', keys: ['footerLinks', 'footerProducts'] },
@@ -55,6 +60,9 @@ const LABELS = {
   'social.youtube': 'YouTube',
   'social.tiktok': 'TikTok',
   shortName: 'Short name',
+  'contactButtons.messenger': 'Messenger (uses the page username)',
+  'contactButtons.whatsapp': 'WhatsApp (uses the WhatsApp number)',
+  'contactButtons.call': 'Call (uses the hotline)',
   to: 'Link',
 }
 
@@ -275,7 +283,7 @@ function BrandingCard({ settings, onDirtyChange }) {
     )
 
   const resetButton = (field) => (
-    <Button variant="ghost" Icon={RotateCcw} onClick={() => setValue(field, '', { shouldDirty: true })} disabled={!(field === 'logoUrl' ? logoUrl : faviconUrl)} className="h-8 px-2.5 text-[12px]">
+    <Button variant="ghost" Icon={RotateCcw} onClick={() => setValue(field, '', { shouldDirty: true })} disabled={!(field === 'logoUrl' ? logoUrl : faviconUrl)} className="h-11 px-2.5 text-[12px] md:h-8">
       Reset to default
     </Button>
   )
@@ -375,9 +383,6 @@ function StoreFieldsForm({ store, onDirtyChange }) {
     <form onSubmit={handleSubmit(onSubmit, () => notify.error('Please fix the highlighted fields'))} noValidate className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[13px] text-text-muted">Everything here updates the header, footer and contact buttons on every page.</p>
-        <Button type="submit" Icon={Save} loading={save.isPending} disabled={!isDirty}>
-          Save settings
-        </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
         {groups.map((g) => (
@@ -388,13 +393,17 @@ function StoreFieldsForm({ store, onDirtyChange }) {
           </Card>
         ))}
       </div>
+      <SaveBar dirty={isDirty} saving={save.isPending} onCancel={() => reset()} label="Save settings" />
     </form>
   )
 }
 
 function StoreTab({ settings, onDirtyChange }) {
   const [dirty, setDirty] = useState({ branding: false, fields: false })
-  const store = useMemo(() => Object.fromEntries(Object.entries(settings).filter(([k]) => !NOT_STORE_KEYS.includes(k) && !BRANDING_KEYS.includes(k))), [settings])
+  const store = useMemo(() => {
+    const fields = Object.fromEntries(Object.entries(settings).filter(([k]) => !NOT_STORE_KEYS.includes(k) && !BRANDING_KEYS.includes(k)))
+    return { ...fields, contactButtons: { ...CONTACT_DEFAULTS, ...fields.contactButtons } }
+  }, [settings])
   const setBranding = useMemo(() => (value) => setDirty((d) => (d.branding === value ? d : { ...d, branding: value })), [])
   const setFields = useMemo(() => (value) => setDirty((d) => (d.fields === value ? d : { ...d, fields: value })), [])
 
@@ -494,9 +503,6 @@ function DeliveryTab({ settings, onDirtyChange }) {
     <form onSubmit={handleSubmit(onSubmit, () => notify.error('Please fix the highlighted fields'))} noValidate className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[13px] text-text-muted">These values appear at checkout and on the Shipping page.</p>
-        <Button type="submit" Icon={Save} loading={save.isPending} disabled={!isDirty}>
-          Save changes
-        </Button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
@@ -550,6 +556,7 @@ function DeliveryTab({ settings, onDirtyChange }) {
           </FormField>
         </Card>
       </div>
+      <SaveBar dirty={isDirty} saving={save.isPending} onCancel={() => reset()} />
     </form>
   )
 }
@@ -587,7 +594,7 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Settings" subtitle="Store details, branding and delivery charges." />
+      <PageHeader title="Settings" subtitle="Store details, branding, delivery charges and the top bar." />
       <Tabs label="Settings section" tabs={TABS} value={tab} onChange={switchTab} />
 
       {isLoading ? (
@@ -598,8 +605,10 @@ export default function Settings() {
         </div>
       ) : tab === 'store' ? (
         <StoreTab settings={settings} onDirtyChange={setDirty} />
-      ) : (
+      ) : tab === 'delivery' ? (
         <DeliveryTab settings={settings} onDirtyChange={setDirty} />
+      ) : (
+        <TopBarTab settings={settings} onDirtyChange={setDirty} />
       )}
 
       <ConfirmDialog

@@ -19,7 +19,7 @@ import { notify } from '../../lib/notify.jsx'
 import { errorMessage } from '../../lib/query.js'
 import { zodResolver } from '../../lib/zodResolver.js'
 
-const iconButton = 'flex size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text'
+const iconButton = 'flex size-11 md:size-8 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:border-text-faint hover:text-text'
 
 const discountText = (c) => (c.type === 'percent' ? `${c.value}% off` : `${formatPrice(c.value)} off`)
 const isExpired = (c) => Boolean(c.expiresAt) && new Date(c.expiresAt) < new Date()
@@ -222,7 +222,7 @@ export default function Coupons() {
       render: (c) => (
         <div className="flex items-center gap-1.5">
           <span className="rounded-md border border-dashed border-check-line bg-fill px-2 py-1 text-[13px] font-bold whitespace-nowrap text-text">{c.code}</span>
-          <button type="button" onClick={() => copyText(c.code, 'Coupon code copied')} aria-label={`Copy ${c.code}`} className="flex size-7 items-center justify-center rounded-md text-text-faint hover:text-text">
+          <button type="button" onClick={() => copyText(c.code, 'Coupon code copied')} aria-label={`Copy ${c.code}`} className="flex size-11 md:size-7 items-center justify-center rounded-md text-text-faint hover:text-text">
             <Copy size={14} />
           </button>
         </div>

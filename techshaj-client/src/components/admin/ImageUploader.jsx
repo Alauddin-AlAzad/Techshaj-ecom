@@ -65,11 +65,11 @@ export default function ImageUploader({ value = [], onChange, max = 8, multiple 
             {i === 0 && <span className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">MAIN</span>}
             <div className="absolute top-1.5 right-1.5 flex gap-1">
               {i > 0 && (
-                <button type="button" onClick={() => moveLeft(i)} aria-label={`Move image ${i + 1} left`} className="flex size-7 items-center justify-center rounded-full bg-white/90 text-text shadow-sm hover:bg-white">
+                <button type="button" onClick={() => moveLeft(i)} aria-label={`Move image ${i + 1} left`} className="flex size-9 items-center justify-center rounded-full bg-white/90 md:size-7 text-text shadow-sm hover:bg-white">
                   <ArrowLeft size={14} />
                 </button>
               )}
-              <button type="button" onClick={() => remove(i)} aria-label={`Remove image ${i + 1}`} className="flex size-7 items-center justify-center rounded-full bg-white/90 text-error shadow-sm hover:bg-white">
+              <button type="button" onClick={() => remove(i)} aria-label={`Remove image ${i + 1}`} className="flex size-9 items-center justify-center rounded-full bg-white/90 md:size-7 text-error shadow-sm hover:bg-white">
                 <X size={14} />
               </button>
             </div>

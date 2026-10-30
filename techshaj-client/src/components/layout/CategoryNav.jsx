@@ -7,6 +7,7 @@ import { useOrderNow } from '../../hooks/useOrderNow.js'
 import { cn } from '../../lib/cn.js'
 import { discountPercent, formatPrice } from '../../lib/format.js'
 import CategoryIcon from '../CategoryIcon.jsx'
+import BannerImage from '../home/BannerImage.jsx'
 
 const panel = 'rounded-2xl border border-border bg-white shadow-menu'
 const DROPDOWN_WIDTH = 572
@@ -42,17 +43,7 @@ function MegaMenu({ categories, promo, onClose }) {
           ))}
         </div>
         {promo && (
-          <div className="flex w-[260px] shrink-0 flex-col items-start justify-end gap-2.5 self-stretch rounded-[14px] bg-linear-127 from-secondary from-14% to-primary to-86% px-5 py-[22px]">
-            <span className="flex size-[52px] items-center justify-center rounded-[14px] bg-white text-primary">
-              <CategoryIcon name={promo.icon} size={26} />
-            </span>
-            <p className="text-[11px] font-bold text-menu-eyebrow">{promo.eyebrow}</p>
-            <p className="font-heading text-h3 text-white">{promo.title}</p>
-            <Link to={promo.link} onClick={onClose} className="flex h-[38px] items-center gap-1.5 rounded-[19px] bg-white px-4 text-[13px] font-semibold text-text">
-              Shop Now
-              <ArrowRight size={14} />
-            </Link>
-          </div>
+          <BannerImage banner={promo} onClick={onClose} className="w-[260px] shrink-0 self-stretch rounded-[14px]" />
         )}
       </div>
     </div>

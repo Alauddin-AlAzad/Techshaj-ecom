@@ -12,7 +12,7 @@ const initials = (admin) =>
 export default function Topbar({ title, admin, onMenu, onLogout }) {
   return (
     <header className="sticky top-0 z-30 flex print:hidden h-16 items-center gap-3 border-b border-nav-line bg-white px-4 lg:h-[72px] lg:gap-4 lg:px-7">
-      <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1 flex size-10 items-center justify-center rounded-full text-text hover:bg-fill lg:hidden">
+      <button type="button" onClick={onMenu} aria-label="Open menu" className="-ml-1 flex size-11 items-center justify-center rounded-full text-text hover:bg-fill lg:hidden">
         <Menu size={22} />
       </button>
       <p className="min-w-0 flex-1 truncate font-heading text-[18px] font-bold text-text lg:text-h3">{title}</p>
@@ -39,7 +39,7 @@ export default function Topbar({ title, admin, onMenu, onLogout }) {
         type="button"
         onClick={onLogout}
         aria-label="Log out"
-        className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-border-strong px-2.5 text-[13px] font-semibold text-text hover:border-error hover:text-error sm:px-4"
+        className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-border-strong px-2.5 md:h-10 text-[13px] font-semibold text-text hover:border-error hover:text-error sm:px-4"
       >
         <LogOut size={16} />
         <span className="max-sm:hidden">Logout</span>

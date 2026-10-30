@@ -12,7 +12,7 @@ const variants = {
 
 export default function Button({ variant = 'primary', Icon, loading = false, to, className, children, disabled, ...props }) {
   const classes = cn(
-    'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-[13px] font-semibold whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex h-10 shrink-0 items-center justify-center max-md:min-h-11 gap-2 rounded-lg px-4 text-[13px] font-semibold whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50',
     variants[variant],
     className,
   )

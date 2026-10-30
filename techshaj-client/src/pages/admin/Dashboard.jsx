@@ -77,7 +77,7 @@ function SalesChart({ days }) {
   return (
     <Panel
       title="Sales, last 7 days"
-      className="lg:col-span-2"
+      className="min-w-0 lg:col-span-2"
       action={
         <span className="flex items-center gap-1.5 text-body-sm text-text-muted">
           <span className="size-2 rounded-sm bg-primary" />
@@ -88,7 +88,7 @@ function SalesChart({ days }) {
       <p className="-mt-2.5 text-body-sm text-text-muted">
         {formatPrice(total)} total · {orders} {orders === 1 ? 'order' : 'orders'}
       </p>
-      <div className="h-[240px] [&_.recharts-cartesian-axis-tick-value]:fill-text-muted [&_.recharts-cartesian-grid_line]:stroke-border">
+      <div className="h-[200px] min-w-0 sm:h-[240px] [&_.recharts-cartesian-axis-tick-value]:fill-text-muted [&_.recharts-cartesian-grid_line]:stroke-border">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: -8 }}>
             <CartesianGrid vertical={false} />
