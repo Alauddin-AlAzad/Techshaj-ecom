@@ -117,7 +117,6 @@ function CourierForm({ order }) {
   const [courier, setCourier] = useState(order.courier ?? '')
   const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber ?? '')
   const changed = courier.trim() !== (order.courier ?? '') || trackingNumber.trim() !== (order.trackingNumber ?? '')
-  const disabled = order.status === 'cancelled'
 
   const save = (e) => {
     e.preventDefault()
@@ -134,7 +133,7 @@ function CourierForm({ order }) {
     <Card title="Courier">
       <form onSubmit={save} className="flex flex-col gap-3">
         <FormField label="Courier service" htmlFor="courier">
-          <input id="courier" list="courier-list" value={courier} onChange={(e) => setCourier(e.target.value)} disabled={disabled} placeholder="e.g. Steadfast" maxLength={100} className={inputClass()} />
+          <input id="courier" list="courier-list" value={courier} onChange={(e) => setCourier(e.target.value)} placeholder="e.g. Steadfast" maxLength={100} className={inputClass()} />
           <datalist id="courier-list">
             {COURIERS.map((c) => (
               <option key={c} value={c} />
@@ -142,15 +141,11 @@ function CourierForm({ order }) {
           </datalist>
         </FormField>
         <FormField label="Tracking number" htmlFor="tracking">
-          <input id="tracking" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} disabled={disabled} placeholder="From the courier's booking" maxLength={100} className={inputClass()} />
+          <input id="tracking" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="From the courier's booking" maxLength={100} className={inputClass()} />
         </FormField>
-        {disabled ? (
-          <p className="text-body-sm text-text-muted">A cancelled order cannot get courier details.</p>
-        ) : (
-          <Button type="submit" Icon={Truck} loading={update.isPending} disabled={!changed} className="w-full bg-text hover:bg-dark">
-            Save courier
-          </Button>
-        )}
+        <Button type="submit" Icon={Truck} loading={update.isPending} disabled={!changed} className="w-full bg-text hover:bg-dark">
+          Save courier
+        </Button>
       </form>
     </Card>
   )
@@ -224,7 +219,14 @@ export default function OrderDetail() {
           setConfirmCancel(false)
         },
         onError: (err) => {
-          notify.error('Could not update the order', { description: errorMessage(err) })
+          if (err?.response?.status === 409) {
+            notify.error('This order was changed by someone else', {
+              description: 'Refresh to see its latest status, then try again.',
+              action: { label: 'Refresh', onClick: () => refetch() },
+            })
+          } else {
+            notify.error('Could not update the order', { description: errorMessage(err) })
+          }
           setConfirmCancel(false)
         },
       },
@@ -408,7 +410,7 @@ export default function OrderDetail() {
               </p>
             )}
 
-            <CourierForm key={`${order.courier}-${order.trackingNumber}`} order={order} />
+            {order.status !== 'cancelled' && <CourierForm key={`${order.courier}-${order.trackingNumber}`} order={order} />}
           </div>
         </div>
 
