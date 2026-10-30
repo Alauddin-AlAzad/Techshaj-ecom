@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+/* Tokens from Figma "Design Tokens" frame (node 86:20441) */
+@theme {
+  --color-primary: #ff1b8d;
+  --color-primary-soft: #ffc7e1;
+  --color-primary-tint: #ffeaf4;
+  --color-secondary: #8a2be2;
+  --color-secondary-tint: #f3ebfd;
+  --color-highlight: #ffc93c;
+  --color-highlight-tint: #fff8e1;
+  --color-dark: #0b0c10;
+  --color-text: #111318;
+  --color-text-secondary: #3a3f4b;
+  --color-text-muted: #6b7385;
+  --color-text-faint: #8a93a3;
+  --color-border: #eef0f3;
+  --color-border-strong: #e1e4ea;
+  --color-surface: #f6f7f9;
+  --color-white: #ffffff;
+  --color-success: #047857;
+  --color-success-tint: #e8f9ee;
+  --color-error: #e11d48;
+  --color-error-tint: #fff1f3;
+
+  --font-heading: 'Montserrat', 'Hind Siliguri', sans-serif;
+  --font-body: 'Inter', 'Hind Siliguri', sans-serif;
+  --font-bangla: 'Hind Siliguri', sans-serif;
+
+  --text-h1: 40px;
+  --text-h1--font-weight: 700;
+  --text-h2: 28px;
+  --text-h2--font-weight: 700;
+  --text-h3: 22px;
+  --text-h3--font-weight: 700;
+  --text-h4: 16px;
+  --text-h4--font-weight: 700;
+  --text-body-lg: 16px;
+  --text-body: 14px;
+  --text-body-sm: 12px;
+  --text-label: 14px;
+  --text-label--font-weight: 600;
+  --text-label-sm: 12px;
+  --text-label-sm--font-weight: 600;
+  --text-price-lg: 28px;
+  --text-price-lg--font-weight: 700;
+  --text-price: 16px;
+  --text-price--font-weight: 700;
+}
+
+@utility bg-brand-gradient {
+  background-image: linear-gradient(to right, #00a3ff 0%, #8a2be2 55%, #ff1b8d 100%);
+}
+
+@layer base {
+  body {
+    @apply bg-white font-body text-body text-text antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
