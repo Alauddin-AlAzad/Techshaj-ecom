@@ -50,14 +50,14 @@ export default function ProductCard({ product, className, orderOnHover = false }
 
       <div className="relative flex flex-col items-start gap-2 px-1 pt-2.5">
         <h3 className="line-clamp-2 h-9 font-body text-[13px] leading-[18px] font-semibold text-text group-hover/card:text-primary lg:h-10 lg:text-[14px] lg:leading-5">{product.name}</h3>
-        {shouldShowRating(product) ? (
-          <p className="flex items-center gap-1 text-body-sm whitespace-pre text-text-muted">
-            <Star size={13} className="fill-highlight text-highlight" />
-            {product.rating}  ·  {formatSold(product.soldCount)} sold
-          </p>
-        ) : product.isNew ? (
-          <span className="rounded-md bg-secondary-tint px-[7px] py-0.5 text-[10px] font-semibold text-secondary lg:text-[11px]">New arrival</span>
-        ) : null}
+        <div className="h-4">
+          {shouldShowRating(product) && (
+            <p className="flex items-center gap-1 text-body-sm whitespace-pre text-text-muted">
+              <Star size={13} className="fill-highlight text-highlight" />
+              {product.rating}  ·  {formatSold(product.soldCount)} sold
+            </p>
+          )}
+        </div>
         <p className="flex items-baseline gap-2 whitespace-nowrap">
           <span className="text-[15px] font-bold text-text lg:text-[17px]">{formatPrice(product.price)}</span>
           {discount > 0 && <span className="text-[13px] text-text-faint line-through">{formatPrice(product.oldPrice)}</span>}
