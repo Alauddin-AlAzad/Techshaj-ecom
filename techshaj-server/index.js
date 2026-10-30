@@ -6,24 +6,26 @@ const cors= require('cors')
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const rateLimit = require('express-rate-limit')
 const port=process.env.PORT || 5000;
 // middle ware
-app.use(cors());
+const clientUrls = (process.env.CLIENT_URLS || "http://localhost:5173").split(",").map((url) => url.trim()).filter(Boolean);
+app.use(cors({ origin: clientUrls }));
 app.use(express.json())
 
 app.get('/', (req,res)=>{
-    res.send("boss is runninh")
+    res.send("TechShaj server is running")
 })
 
 app.listen( port, ()=>{
-    console.log(`Bistro boss is  sitting on port ${port}`)
+    console.log(`TechShaj server is running on port ${port}`)
 })
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const user = encodeURIComponent(process.env.DB_USER);
 const pass = encodeURIComponent(process.env.DB_PASS);
-const uri = `mongodb+srv://${user}:${pass}@cluster0.gkemlm6.mongodb.net/;`
+const uri = `mongodb+srv://${user}:${pass}@cluster0.gkemlm6.mongodb.net/`
                                                                                               
 const client = new MongoClient(uri, {
   serverApi: {
@@ -323,8 +325,16 @@ async function run() {
       }
     };
 
+    const jwtLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 10,
+      standardHeaders: "draft-7",
+      legacyHeaders: false,
+      message: { message: "Too many login attempts, please try again after 15 minutes" },
+    });
+
     // jwt related api
-    app.post("/jwt", async (req, res) => {
+    app.post("/jwt", jwtLimiter, async (req, res) => {
       try {
         const { email, password } = req.body ?? {};
         if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password) {
@@ -1022,6 +1032,7 @@ async function run() {
             trackingNumber: null,
             createdAt: now,
           });
+          if (coupon) await couponsCollection.updateOne({ code: coupon }, { $inc: { usedCount: 1 } }).catch(console.dir);
           res.send({ orderId, total });
         } catch (error) {
           for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
