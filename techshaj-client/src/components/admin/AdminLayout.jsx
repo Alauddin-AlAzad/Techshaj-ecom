@@ -35,12 +35,12 @@ export default function AdminLayout() {
   }, [menuOpen, closeMenu])
 
   return (
-    <div className="min-h-screen bg-surface">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden lg:block">
+    <div className="min-h-screen bg-surface print:min-h-0 print:bg-white">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden lg:block print:hidden">
         <Sidebar onLogout={logout} />
       </aside>
 
-      <div className={cn('fixed inset-0 z-50 lg:hidden', !menuOpen && 'pointer-events-none')} aria-hidden={!menuOpen}>
+      <div className={cn('fixed inset-0 z-50 lg:hidden print:hidden', !menuOpen && 'pointer-events-none')} aria-hidden={!menuOpen}>
         <button
           type="button"
           tabIndex={menuOpen ? 0 : -1}
@@ -59,9 +59,9 @@ export default function AdminLayout() {
         </div>
       </div>
 
-      <div className="flex min-h-screen flex-col lg:pl-[260px]">
+      <div className="flex min-h-screen flex-col lg:pl-[260px] print:min-h-0 print:p-0">
         <Topbar title={title} admin={admin} onMenu={() => setMenuOpen(true)} onLogout={logout} />
-        <main className="flex-1 px-4 pt-5 pb-10 lg:px-7 lg:pt-7">
+        <main className="flex-1 px-4 pt-5 pb-10 lg:px-7 lg:pt-7 print:p-0">
           <Suspense
             fallback={
               <div role="status" aria-label="Loading" className="flex justify-center py-20 text-primary">

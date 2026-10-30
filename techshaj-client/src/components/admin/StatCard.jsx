@@ -12,17 +12,17 @@ const tones = {
 
 export default function StatCard({ label, value, Icon, tone = 'primary', hint, hintClassName, loading = false }) {
   return (
-    <div className="flex min-w-0 flex-col gap-2.5 rounded-xl border border-border bg-white p-[18px]">
-      <div className="flex items-center justify-between gap-3">
-        <p className="truncate text-[13px] font-medium text-text-muted">{label}</p>
+    <div className="flex min-w-0 flex-col gap-2.5 rounded-xl border border-border bg-white p-3.5 lg:p-[18px]">
+      <div className="flex items-start justify-between gap-2 lg:items-center lg:gap-3">
+        <p className="text-[13px] font-medium text-text-muted">{label}</p>
         {Icon && (
-          <span className={cn('flex size-[38px] shrink-0 items-center justify-center rounded-[10px]', tones[tone])}>
+          <span className={cn('flex size-9 shrink-0 lg:size-[38px] items-center justify-center rounded-[10px]', tones[tone])}>
             <Icon size={19} />
           </span>
         )}
       </div>
-      {loading ? <Skeleton className="h-8 w-24" /> : <p className="truncate font-heading text-[26px] font-bold text-text">{value}</p>}
-      {hint && <p className={cn('truncate text-label-sm text-text-muted', hintClassName)}>{hint}</p>}
+      {loading ? <Skeleton className="h-8 w-24" /> : <p className="font-heading text-[22px] font-bold break-words text-text lg:text-[26px]">{value}</p>}
+      {hint && <p className={cn('text-label-sm text-text-muted', hintClassName)}>{hint}</p>}
     </div>
   )
 }
