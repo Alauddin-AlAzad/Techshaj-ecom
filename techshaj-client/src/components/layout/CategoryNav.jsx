@@ -1,8 +1,8 @@
 import { ArrowRight, ChevronDown, ChevronRight, Menu } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { getBanners, getBestSeller } from '../../data/api.js'
-import { useAsync } from '../../hooks/useAsync.js'
+import { useBanners } from '../../hooks/useBanners.js'
+import { useAllProducts } from '../../hooks/useProducts.js'
 import { useOrderNow } from '../../hooks/useOrderNow.js'
 import { cn } from '../../lib/cn.js'
 import { discountPercent, formatPrice } from '../../lib/format.js'
@@ -61,7 +61,10 @@ function MegaMenu({ categories, promo, onClose }) {
 
 // Single category dropdown (Figma 85:14146).
 function CategoryDropdown({ category, left, onClose }) {
-  const bestSeller = useAsync(() => getBestSeller(category.slug), [category.slug])
+  const { data: products } = useAllProducts()
+  // Most sold product in the department, for the dropdown card.
+  const ids = [category.id, ...category.children.map((c) => c.id)]
+  const bestSeller = products?.filter((p) => ids.includes(p.categoryId)).reduce((best, p) => (!best || p.soldCount > best.soldCount ? p : best), null) ?? null
   const orderNow = useOrderNow()
   const discount = bestSeller ? discountPercent(bestSeller.price, bestSeller.oldPrice) : 0
 
@@ -157,7 +160,7 @@ export default function CategoryNav({ categories = [] }) {
   const navRef = useRef(null)
   const rowRef = useRef(null)
   const measureRef = useRef(null)
-  const banners = useAsync(getBanners)
+  const { data: banners = null } = useBanners()
   const hovered = categories.find((c) => c.id === hover?.id)
   const hidden = categories.slice(visibleCount)
 

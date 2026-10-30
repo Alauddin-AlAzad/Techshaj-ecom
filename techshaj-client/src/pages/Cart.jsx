@@ -1,6 +1,7 @@
 import CartItem from '../components/cart/CartItem.jsx'
 import CartSummary from '../components/cart/CartSummary.jsx'
 import EmptyCart from '../components/cart/EmptyCart.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import FreeShippingBar from '../components/cart/FreeShippingBar.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import { useCart } from '../hooks/useCart.js'
@@ -29,7 +30,9 @@ export default function Cart() {
           {cart.count > 0 && <span className="rounded-[10px] bg-highlight px-2 py-0.5 font-body text-label-sm font-bold">{cart.count}</span>}
         </h1>
 
-        {!cart.ready ? (
+        {!cart.ready && cart.isError ? (
+          <ErrorState title="Could not load your cart" onRetry={cart.refetch} />
+        ) : !cart.ready ? (
           <div className="min-h-[60vh]" />
         ) : empty ? (
           <div className="pt-20 lg:rounded-2xl lg:bg-white lg:pt-0">

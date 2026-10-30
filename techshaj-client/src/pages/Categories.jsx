@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import CategoryIcon from '../components/CategoryIcon.jsx'
-import { getCategories } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import ErrorState from '../components/ErrorState.jsx'
+import { useCategories } from '../hooks/useCategories.js'
 import { cn } from '../lib/cn.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -54,9 +54,10 @@ function Group({ department, children }) {
 
 export default function Categories() {
   usePageTitle('All Categories')
-  const tree = useAsync(getCategories)
+  const { data: tree, isError, refetch } = useCategories()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState('all')
+  if (!tree && isError) return <ErrorState onRetry={refetch} />
   if (!tree) return <div className="min-h-[60vh]" />
 
   const q = query.trim().toLowerCase()

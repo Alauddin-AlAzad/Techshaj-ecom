@@ -1,8 +1,7 @@
 import { ChevronDown, Mail, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getProductsByIds } from '../../data/api.js'
-import { useAsync } from '../../hooks/useAsync.js'
+import { useAllProducts } from '../../hooks/useProducts.js'
 import { cn } from '../../lib/cn.js'
 import Logo from '../Logo.jsx'
 import SocialLinks from '../SocialLinks.jsx'
@@ -141,8 +140,10 @@ function MobileFooter({ store, bestSelling, bestDeals }) {
 
 export default function Footer({ store }) {
   const ids = store?.footerProducts
-  const bestSelling = toProductLinks(useAsync(() => getProductsByIds(ids?.bestSelling, { instant: true }), [ids]))
-  const bestDeals = toProductLinks(useAsync(() => getProductsByIds(ids?.bestDeals, { instant: true }), [ids]))
+  const { data: products } = useAllProducts()
+  const byIds = (list = []) => (products ? list.map((id) => products.find((p) => p.id === id)).filter(Boolean) : null)
+  const bestSelling = toProductLinks(byIds(ids?.bestSelling))
+  const bestDeals = toProductLinks(byIds(ids?.bestDeals))
   const props = { store, bestSelling, bestDeals }
 
   return (

@@ -1,8 +1,7 @@
 import { ArrowRight, Check, Copy, PackageSearch, Phone } from 'lucide-react'
 import { Link, Navigate } from 'react-router-dom'
 import { useOrderStore } from '../context/useOrderStore.js'
-import { getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import { useSettings } from '../hooks/useSettings.js'
 import { copyText } from '../lib/clipboard.js'
 import { formatPrice } from '../lib/format.js'
 import { itemCount, PAYMENT_LABELS } from '../lib/order.js'
@@ -11,8 +10,8 @@ import { usePageTitle } from '../hooks/usePageTitle.js'
 // Figma "Order Success" desktop (34:3320) and mobile (34:3718).
 export default function OrderSuccess() {
   usePageTitle('Order Placed')
-  const order = useOrderStore((s) => s.orders.find((o) => o.id === s.lastOrderId))
-  const store = useAsync(getStore)
+  const order = useOrderStore((s) => s.lastOrder)
+  const { data: store } = useSettings()
 
   if (!order) return <Navigate to="/" replace />
 
@@ -36,11 +35,11 @@ export default function OrderSuccess() {
         <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-nav-line bg-fill-soft px-4 py-3.5 text-left">
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-body-sm text-text-muted">Order ID</span>
-            <span className="font-heading text-[20px] font-bold tracking-[-0.3px] text-text lg:text-[24px] lg:tracking-[-0.36px]">{order.id}</span>
+            <span className="font-heading text-[20px] font-bold tracking-[-0.3px] text-text lg:text-[24px] lg:tracking-[-0.36px]">{order.orderId}</span>
           </div>
           <button
             type="button"
-            onClick={() => copyText(order.id, 'Order ID copied')}
+            onClick={() => copyText(order.orderId, 'Order ID copied')}
             className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border-strong bg-white px-3 py-2 text-label-sm text-text"
           >
             <Copy size={15} />
@@ -59,7 +58,7 @@ export default function OrderSuccess() {
 
         <div className="flex w-full flex-col gap-2.5 lg:flex-row">
           <Link
-            to={`/track-order?id=${order.id}&phone=${order.phone}`}
+            to={`/track-order?id=${order.orderId}&phone=${order.phone}`}
             className="flex h-12 items-center justify-center gap-2 rounded-[10px] lg:flex-1 border-[1.5px] border-text text-body font-bold text-text"
           >
             <PackageSearch size={18} />

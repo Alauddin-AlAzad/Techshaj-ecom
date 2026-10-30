@@ -1,4 +1,8 @@
-import { matchesSearch } from '../data/api.js'
+// Search matches product name and code only, like the server.
+export function matchesSearch(product, query) {
+  const q = query.trim().toLowerCase()
+  return !q || product.name.toLowerCase().includes(q) || (product.code ?? '').toLowerCase().includes(q)
+}
 
 export const PAGE_SIZE = 12
 
@@ -50,7 +54,7 @@ export function activeFilterCount(f) {
 }
 
 export function colorFamilies(product, colors) {
-  const options = product.variants.find((v) => v.name === 'Color')?.options ?? []
+  const options = (product.variants ?? []).find((v) => v.name === 'Color')?.options ?? []
   return colors.filter((c) => options.some((o) => o === c.name || c.aliases.includes(o))).map((c) => c.name)
 }
 
@@ -61,7 +65,7 @@ export function applyFilters(products, f, { categories, colors }, skip) {
     (p) =>
       matchesSearch(p, f.q) &&
       (skip === 'cat' || !f.cats.length || catIds.has(p.categoryId)) &&
-      (skip === 'col' || !f.cols.length || f.cols.some((c) => p.collections.includes(c))) &&
+      (skip === 'col' || !f.cols.length || f.cols.some((c) => p.collections?.includes(c))) &&
       (skip === 'color' || !f.colors.length || colorFamilies(p, colors).some((c) => f.colors.includes(c))) &&
       (skip === 'brand' || !f.brands.length || f.brands.includes(p.brand)) &&
       (f.min == null || p.price >= f.min) &&

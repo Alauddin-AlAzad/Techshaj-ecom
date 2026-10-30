@@ -1,25 +1,25 @@
 import { ShieldCheck, TriangleAlert, Truck, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import EmptyCart from '../components/cart/EmptyCart.jsx'
 import QtyStepper from '../components/cart/QtyStepper.jsx'
 import CouponBox from '../components/checkout/CouponBox.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import Field from '../components/checkout/Field.jsx'
 import RadioCard from '../components/checkout/RadioCard.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { useOrderStore } from '../context/useOrderStore.js'
-import { getCoupons } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
 import { useCart } from '../hooks/useCart.js'
+import { usePlaceOrder, useValidateCoupon } from '../hooks/useCheckout.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
-import { applyCoupon, variantLabel } from '../lib/cart.js'
+import { variantLabel } from '../lib/cart.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice, toBanglaDigits, toLatinDigits } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
-import { buildOrder, newOrderId } from '../lib/order.js'
+import { errorMessage } from '../lib/query.js'
 import { zodResolver } from '../lib/zodResolver.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -34,7 +34,7 @@ const normalizePhone = (v) => toLatinDigits(v).replace(/\D/g, '').replace(/^880/
 
 const schema = z
   .object({
-    phone: z.preprocess((v) => normalizePhone(String(v ?? '')), z.string().regex(/^01\d{9}$/, 'সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন')),
+    phone: z.preprocess((v) => normalizePhone(String(v ?? '')), z.string().regex(/^01[3-9]\d{8}$/, 'সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন')),
     name: z.string().trim().min(2, 'আপনার নাম লিখুন'),
     address: z.string().trim().min(10, 'ডেলিভারির জন্য পুরো ঠিকানা দরকার'),
     note: z.string().optional(),
@@ -116,22 +116,24 @@ function PlaceOrder({ total, submitting, className }) {
   )
 }
 
-function CheckoutForm({ cart, coupons }) {
+function CheckoutForm({ cart }) {
   const navigate = useNavigate()
   const isDesktop = useIsDesktop()
   const clearCart = useCartStore((s) => s.clear)
-  const orders = useOrderStore((s) => s.orders)
-  const addOrder = useOrderStore((s) => s.addOrder)
-  const [couponCode, setCouponCode] = useState(null)
+  const setLastOrder = useOrderStore((s) => s.setLastOrder)
+  // { code, discount, subtotal } as the server last confirmed it.
+  const [applied, setApplied] = useState(null)
   const [couponError, setCouponError] = useState(null)
+  const validateCoupon = useValidateCoupon()
+  const placeOrder = usePlaceOrder()
   const { store, lines, subtotal, freeShipping, allFreeDelivery } = cart
-  const zones = store.shipping.zones
+  const zones = store.shippingZones
 
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting, submitCount },
+    formState: { errors, submitCount },
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: { phone: '', name: '', address: '', note: '', zone: zones[0].id, payment: 'cod', trxId: '' },
@@ -140,25 +142,54 @@ function CheckoutForm({ cart, coupons }) {
   const [zoneId, payment] = useWatch({ control, name: ['zone', 'payment'] })
   const zone = zones.find((z) => z.id === zoneId) ?? zones[0]
   const wallet = store.mobilePayments?.find((m) => m.id === payment)
+  // Shown as a preview only; the server works out the real totals when the order is placed.
   const shipping = freeShipping ? 0 : zone.charge
-  // Re-checked on every change so removing items can invalidate a coupon.
-  const couponResult = couponCode ? applyCoupon(couponCode, coupons, subtotal) : null
-  const discount = couponResult?.discount ?? 0
+  const discount = applied && !couponError ? applied.discount : 0
   const total = subtotal + shipping - discount
   const errorCount = Object.keys(errors).length
 
-  const onApplyCoupon = (code) => {
-    const result = applyCoupon(code, coupons, subtotal)
-    setCouponCode(result.error ? null : code)
-    setCouponError(result.error ?? null)
-    if (!result.error) notify.info('Coupon applied', { description: `${code} · You saved ${formatPrice(result.discount)}` })
-  }
+  const checkCoupon = (code, { silent } = {}) =>
+    validateCoupon.mutate(
+      { code, subtotal },
+      {
+        onSuccess: (result) => {
+          setApplied(result.valid ? { code, discount: result.discount, subtotal } : null)
+          setCouponError(result.valid ? null : result.message)
+          if (result.valid && !silent) notify.info('Coupon applied', { description: `${code} · You saved ${formatPrice(result.discount)}` })
+        },
+        onError: (error) => setCouponError(errorMessage(error, 'Could not check this coupon. Try again.')),
+      },
+    )
+
+  // Re-checked when the cart changes so removing items can invalidate a coupon.
+  useEffect(() => {
+    if (applied && applied.subtotal !== subtotal && !validateCoupon.isPending) checkCoupon(applied.code, { silent: true })
+  }, [subtotal]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = (form) => {
-    const id = newOrderId(orders.map((o) => o.id))
-    addOrder(buildOrder({ id, form, lines, zone, subtotal, shipping, discount, coupon: couponResult?.coupon }))
-    navigate('/order-success', { replace: true })
-    clearCart()
+    const order = {
+      customer: { name: form.name.trim(), phone: form.phone, address: form.address.trim(), note: form.note?.trim() ?? '' },
+      zoneId: zone.id,
+      paymentMethod: form.payment,
+      transactionId: form.payment === 'cod' ? '' : form.trxId.trim(),
+      couponCode: applied?.code ?? '',
+      items: lines.map((l) => ({ productId: l.productId, variant: l.variant, quantity: l.qty })),
+    }
+    placeOrder.mutate(order, {
+      onSuccess: ({ orderId, total }) => {
+        setLastOrder({
+          orderId,
+          total,
+          phone: order.customer.phone,
+          address: order.customer.address,
+          paymentMethod: order.paymentMethod,
+          items: lines.map((l) => ({ name: l.product.name, qty: l.qty })),
+        })
+        navigate('/order-success', { replace: true })
+        clearCart()
+      },
+      onError: (error) => notify.error('Order failed', { description: errorMessage(error, 'Could not place your order. Please try again.') }),
+    })
   }
 
   const close = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))
@@ -207,7 +238,7 @@ function CheckoutForm({ cart, coupons }) {
         {zones.map((z) => (
           <RadioCard key={z.id} value={z.id} checked={zone.id === z.id} {...register('zone')} className="h-[54px] flex-1 basis-[130px] px-3 lg:h-[58px] lg:gap-2.5">
             <span className="flex flex-col font-bangla leading-normal whitespace-nowrap">
-              <span className="text-[13px] font-semibold text-text lg:text-label">{z.nameBn}</span>
+              <span className="text-[13px] font-semibold text-text lg:text-label">{z.nameBn || z.name}</span>
               {freeShipping ? (
                 <span className="text-body-sm font-bold text-success lg:text-[13px]">ফ্রি</span>
               ) : (
@@ -228,12 +259,12 @@ function CheckoutForm({ cart, coupons }) {
 
   const coupon = (
     <CouponBox
-      applied={couponCode}
-      error={couponError ?? couponResult?.error}
+      applied={applied?.code ?? null}
+      error={couponError}
       discount={discount}
-      onApply={onApplyCoupon}
+      onApply={(code) => checkCoupon(code)}
       onRemove={() => {
-        setCouponCode(null)
+        setApplied(null)
         setCouponError(null)
       }}
     />
@@ -295,7 +326,7 @@ function CheckoutForm({ cart, coupons }) {
               {coupon}
               <Bill subtotal={subtotal} shipping={shipping} discount={discount} total={total} />
               {paymentSection}
-              <PlaceOrder total={total} submitting={isSubmitting} />
+              <PlaceOrder total={total} submitting={placeOrder.isPending} />
             </div>
           </div>
         ) : (
@@ -309,7 +340,7 @@ function CheckoutForm({ cart, coupons }) {
             <Bill subtotal={subtotal} shipping={shipping} discount={discount} total={total} />
             <PlaceOrder
               total={total}
-              submitting={isSubmitting}
+              submitting={placeOrder.isPending}
               className="fixed inset-x-0 bottom-0 z-30 border-t border-nav-line bg-white px-4 pt-2.5 pb-[calc(14px+env(safe-area-inset-bottom))]"
             />
           </div>
@@ -323,9 +354,9 @@ function CheckoutForm({ cart, coupons }) {
 export default function Checkout() {
   usePageTitle('Checkout')
   const cart = useCart()
-  const coupons = useAsync(getCoupons)
 
-  if (!cart.ready || !coupons) return <div className="min-h-[60vh]" />
+  if (!cart.ready && cart.isError) return <ErrorState onRetry={cart.refetch} />
+  if (!cart.ready) return <div className="min-h-[60vh]" />
   if (cart.lines.length === 0) {
     return (
       <div className="pt-10 lg:py-16">
@@ -333,5 +364,5 @@ export default function Checkout() {
       </div>
     )
   }
-  return <CheckoutForm cart={cart} coupons={coupons} />
+  return <CheckoutForm cart={cart} />
 }

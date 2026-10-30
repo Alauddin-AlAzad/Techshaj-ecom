@@ -1,8 +1,7 @@
 import { BatteryCharging, Headphones, Lamp, Snowflake } from 'lucide-react'
 import PageHero from '../components/info/PageHero.jsx'
 import { TINTS } from '../components/info/tints.js'
-import { getPage } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import pages from '../data/pages.json'
 import { cn } from '../lib/cn.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
@@ -11,8 +10,7 @@ const ICONS = { 'battery-charging': BatteryCharging, headphones: Headphones, lam
 // Figma "Blog" desktop (42:7274) and mobile (43:7636).
 export default function Blog() {
   usePageTitle('Blog')
-  const page = useAsync(() => getPage('blog'))
-  if (!page) return <div className="min-h-[60vh]" />
+  const page = pages.blog
 
   return (
     <>

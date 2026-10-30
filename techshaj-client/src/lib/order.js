@@ -1,4 +1,3 @@
-// Same steps as the orders in fakeData.
 const STEPS = [
   { key: 'order-placed', label: 'Order placed' },
   { key: 'confirmed', label: 'Confirmed' },
@@ -7,45 +6,34 @@ const STEPS = [
   { key: 'delivered', label: 'Delivered' },
 ]
 
-// TS + yymmdd + a digit, e.g. TS2610306. Grows a digit if the day's ids run out.
-export function newOrderId(existingIds, date = new Date()) {
-  const pad = (n) => String(n).padStart(2, '0')
-  const prefix = `TS${pad(date.getFullYear() % 100)}${pad(date.getMonth() + 1)}${pad(date.getDate())}`
-  for (let digits = 1; ; digits++) {
-    const free = Array.from({ length: 10 ** digits }, (_, i) => `${prefix}${String(i).padStart(digits, '0')}`).filter((id) => !existingIds.includes(id))
-    if (free.length) return free[Math.floor(Math.random() * free.length)]
-  }
-}
+// Server statuses -> timeline step keys. A new order is "pending" on the server.
+const stepKey = (status) => (status === 'pending' || status === 'placed' ? 'order-placed' : status)
 
-export function buildOrder({ id, form, lines, zone, subtotal, shipping, discount, coupon }) {
-  const placedAt = new Date().toISOString()
+// Turns an /orders/track result into the shape the tracking UI uses.
+export function normalizeOrder(order, zones = []) {
+  const history = order.statusHistory ?? []
+  const status = order.status === 'pending' ? 'placed' : order.status
+  // A cancelled order keeps the steps it reached before cancelling.
+  const reached = Math.max(0, ...history.map((h) => STEPS.findIndex((s) => s.key === stepKey(h.status))), STEPS.findIndex((s) => s.key === stepKey(status)))
+  const dateOf = (key) => history.findLast((h) => stepKey(h.status) === key)?.at ?? (key === 'order-placed' ? order.createdAt : null)
+  const courier = order.courier || order.trackingNumber ? order.courier ?? {} : null
+
   return {
-    id,
-    phone: form.phone,
-    name: form.name.trim(),
-    address: form.address.trim(),
-    note: form.note?.trim() ?? '',
-    status: 'placed',
-    placedAt,
-    shippingZoneId: zone.id,
-    paymentMethod: form.payment,
-    transactionId: form.payment === 'cod' ? null : form.trxId.trim(),
-    items: lines.map((l) => ({
-      productId: l.product.id,
-      slug: l.product.slug,
-      name: l.product.name,
-      image: l.product.images[0],
-      price: l.product.price,
-      qty: l.qty,
-      variant: l.variant,
-    })),
-    subtotal,
-    shipping,
-    discount,
-    coupon: coupon?.code ?? null,
-    total: subtotal + shipping - discount,
-    steps: STEPS.map((s, i) => ({ ...s, done: i === 0, date: i === 0 ? placedAt : null })),
-    courier: null,
+    id: order.orderId,
+    status,
+    placedAt: order.createdAt,
+    shippingZoneId: zones.find((z) => z.name === order.area)?.id ?? null,
+    items: (order.items ?? []).map((i) => ({ ...i, qty: i.quantity ?? i.qty })),
+    subtotal: order.subtotal,
+    shipping: order.shipping,
+    discount: order.discount,
+    total: order.total,
+    steps: STEPS.map((s, i) => ({ ...s, done: i <= reached, date: i <= reached ? dateOf(s.key) : null })),
+    courier: courier && {
+      name: typeof courier === 'string' ? courier : (courier.name ?? 'Courier'),
+      trackingId: order.trackingNumber ?? courier.trackingId ?? null,
+      trackingUrl: courier.trackingUrl ?? null,
+    },
   }
 }
 

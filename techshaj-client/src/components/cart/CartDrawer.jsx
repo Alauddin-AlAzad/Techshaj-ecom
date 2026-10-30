@@ -5,6 +5,7 @@ import { useCart } from '../../hooks/useCart.js'
 import CartItem from './CartItem.jsx'
 import CartSummary from './CartSummary.jsx'
 import EmptyCart from './EmptyCart.jsx'
+import ErrorState from '../ErrorState.jsx'
 import FreeShippingBar from './FreeShippingBar.jsx'
 
 // Figma "Cart Drawer – Desktop 1440" (31:3327). Desktop only; mobile uses the /cart page.
@@ -41,7 +42,9 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {!cart.ready ? null : cart.lines.length === 0 ? (
+        {!cart.ready && cart.isError ? (
+          <ErrorState title="Could not load your cart" onRetry={cart.refetch} />
+        ) : !cart.ready ? null : cart.lines.length === 0 ? (
           <div className="flex flex-1 items-center justify-center">
             <EmptyCart onNavigate={close} />
           </div>

@@ -2,15 +2,11 @@ import { ChevronDown, MessageCircle, Search } from 'lucide-react'
 import { useState } from 'react'
 import PageHero from '../components/info/PageHero.jsx'
 import RichText from '../components/info/RichText.jsx'
-import { getPage, getStore } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import ErrorState from '../components/ErrorState.jsx'
+import pages from '../data/pages.json'
+import { useSettings } from '../hooks/useSettings.js'
 import { cn } from '../lib/cn.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
-
-async function loadFaq() {
-  const [page, store] = await Promise.all([getPage('faq'), getStore()])
-  return { page, store }
-}
 
 function FaqItem({ item, open, onToggle }) {
   const id = `faq-${item.question.replace(/\W+/g, '-').toLowerCase()}`
@@ -40,13 +36,14 @@ function FaqItem({ item, open, onToggle }) {
 // Figma "FAQ" desktop (42:6853) and mobile (43:7383).
 export default function Faq() {
   usePageTitle('FAQ')
-  const data = useAsync(loadFaq)
+  const { data: store, isError, refetch } = useSettings()
+  const page = pages.faq
   const [query, setQuery] = useState('')
   const [topic, setTopic] = useState('all')
   const [openQuestion, setOpenQuestion] = useState(null)
 
-  if (!data) return <div className="min-h-[60vh]" />
-  const { page, store } = data
+  if (!store && isError) return <ErrorState onRetry={refetch} />
+  if (!store) return <div className="min-h-[60vh]" />
   const q = query.trim().toLowerCase()
   const items = page.items.filter(
     (i) => (topic === 'all' || i.topic === topic) && (!q || i.question.toLowerCase().includes(q) || i.answer.toLowerCase().includes(q)),

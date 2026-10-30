@@ -2,13 +2,15 @@ import { BadgePercent, ChevronDown, Zap } from 'lucide-react'
 import { Fragment, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard.jsx'
+import ErrorState from '../components/ErrorState.jsx'
 import { ProductGridSkeleton } from '../components/Skeleton.jsx'
-import { getOffers, getProducts } from '../data/api.js'
-import { useAsync } from '../hooks/useAsync.js'
+import { useOffers } from '../hooks/useOffers.js'
+import { useAllProducts } from '../hooks/useProducts.js'
 import { useCountdown } from '../hooks/useCountdown.js'
 import { copyText } from '../lib/clipboard.js'
 import { cn } from '../lib/cn.js'
 import { discountPercent, formatPrice } from '../lib/format.js'
+import { combine } from '../lib/query.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const TABS = [
@@ -33,7 +35,7 @@ const isOffer = (p) => discountOf(p) > 0 || p.freeDelivery
 function matchesTab(product, tab) {
   if (tab === 'all') return true
   if (tab === 'free-delivery') return product.freeDelivery
-  return product.collections.includes(tab)
+  return product.collections?.includes(tab)
 }
 
 function sortOffers(list, sort) {
@@ -41,11 +43,6 @@ function sortOffers(list, sort) {
   if (sort === 'price-asc') return sorted.sort((a, b) => a.price - b.price)
   if (sort === 'price-desc') return sorted.sort((a, b) => b.price - a.price)
   return sorted.sort((a, b) => discountOf(b) - discountOf(a))
-}
-
-async function loadOffers() {
-  const [offers, products] = await Promise.all([getOffers(), getProducts()])
-  return { ...offers, products }
 }
 
 function CouponCard({ coupon }) {
@@ -97,7 +94,13 @@ function FlashSaleBar({ title, endsAt }) {
 // Figma "Offers – Mobile 390" (95:18258). Desktop reuses the sections with the 5-column Shop grid.
 export default function Offers() {
   usePageTitle('Offers & Deals')
-  const data = useAsync(loadOffers)
+  const offersQuery = useOffers()
+  const productsQuery = useAllProducts()
+  const { isError, refetch } = combine(offersQuery, productsQuery)
+  const data = useMemo(
+    () => (offersQuery.data && productsQuery.data ? { ...offersQuery.data, products: productsQuery.data } : null),
+    [offersQuery.data, productsQuery.data],
+  )
   const [params, setParams] = useSearchParams()
   const tab = TABS.some((t) => t.value === params.get('tab')) ? params.get('tab') : 'all'
   const sort = SORTS.some((s) => s.value === params.get('sort')) ? params.get('sort') : 'discount'
@@ -175,7 +178,9 @@ export default function Offers() {
           </label>
         </div>
 
-        {!data ? (
+        {!data && isError ? (
+          <ErrorState title="Could not load offers" onRetry={refetch} />
+        ) : !data ? (
           <ProductGridSkeleton count={10} className="grid grid-cols-2 gap-x-3 gap-y-4 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-[22px] xl:grid-cols-5" />
         ) : results.length === 0 ? (
           <p className="py-16 text-center text-body text-text-muted">No offers in this category right now. Check back soon.</p>

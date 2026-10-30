@@ -1,14 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-// Orders placed from this browser. Customers have no login, so this is their order history.
+// Summary of the last order placed from this browser, for the Order Success page.
 export const useOrderStore = create(
   persist(
     (set) => ({
-      orders: [],
-      lastOrderId: null,
-      addOrder: (order) => set((state) => ({ orders: [order, ...state.orders], lastOrderId: order.id })),
+      lastOrder: null,
+      setLastOrder: (order) => set({ lastOrder: order }),
     }),
-    { name: 'techshaj-orders' },
+    { name: 'techshaj-last-order' },
   ),
 )
