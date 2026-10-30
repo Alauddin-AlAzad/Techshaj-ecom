@@ -13,7 +13,7 @@ const panel = 'rounded-2xl border border-border bg-white shadow-menu'
 const DROPDOWN_WIDTH = 572
 const MORE_WIDTH = 300
 const GAP = 24
-const itemClass = 'flex items-center gap-1 text-[13px] font-medium whitespace-nowrap text-text-secondary hover:text-primary'
+const itemClass = 'flex items-center gap-1 text-[15px] font-medium whitespace-nowrap text-text-secondary hover:text-primary'
 
 // "All Categories" mega menu (Figma 85:16830).
 function MegaMenu({ categories, promo, onClose }) {
@@ -207,7 +207,7 @@ export default function CategoryNav({ categories = [] }) {
     <nav ref={navRef} aria-label="Categories" className="relative border-b border-nav-line bg-white" onMouseLeave={() => setHover(null)}>
       <div className="site-container relative">
         <ul ref={measureRef} aria-hidden="true" className="invisible absolute flex h-0 w-max overflow-hidden">
-          <li className="flex items-center gap-2 text-[14px] font-bold whitespace-nowrap">
+          <li className="flex items-center gap-2 text-[16px] font-bold whitespace-nowrap">
             <Menu size={18} />
             All Categories
           </li>
@@ -222,13 +222,13 @@ export default function CategoryNav({ categories = [] }) {
             </li>
           ))}
         </ul>
-        <ul ref={rowRef} className="flex h-[50px] items-center gap-6">
+        <ul ref={rowRef} className="flex h-[60px] items-center gap-6">
           <li onMouseEnter={() => setHover(null)}>
             <button
               type="button"
               onClick={() => setMegaOpen(!megaOpen)}
               aria-expanded={megaOpen}
-              className={cn('flex items-center gap-2 text-[14px] font-bold whitespace-nowrap', megaOpen ? 'text-primary' : 'text-text')}
+              className={cn('flex items-center gap-2 text-[16px] font-bold whitespace-nowrap', megaOpen ? 'text-primary' : 'text-text')}
             >
               <Menu size={18} />
               All Categories

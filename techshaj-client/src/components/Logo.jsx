@@ -8,6 +8,8 @@ import { cn } from '../lib/cn.js'
 const sizes = {
   xl: { wrap: 'h-20 gap-5', mark: 'size-20 rounded-[18px]', text: 'text-[44px] tracking-[-0.88px]', image: 'h-20 max-w-[360px]' },
   lg: { wrap: 'h-12 gap-3', mark: 'size-12 rounded-[10.8px]', text: 'text-[26.4px] tracking-[-0.528px]', image: 'h-12 max-w-[260px]' },
+  // nav = md at 110%, the desktop header.
+  nav: { wrap: 'h-11 gap-[11px]', mark: 'size-11 rounded-[10px]', text: 'text-[24px] tracking-[-0.48px]', image: 'h-11 max-w-[242px]' },
   md: { wrap: 'h-10 gap-2.5', mark: 'size-10 rounded-[9px]', text: 'text-[22px] tracking-[-0.44px]', image: 'h-10 max-w-[220px]' },
   sm: { wrap: 'h-[34px] gap-[8.5px]', mark: 'size-[34px] rounded-[7.65px]', text: 'text-[18.7px] tracking-[-0.374px]', image: 'h-[34px] max-w-[170px]' },
   xs: { wrap: 'h-[30px] gap-[7.5px]', mark: 'size-[30px] rounded-[6.75px]', text: 'text-[16.5px] tracking-[-0.33px]', image: 'h-[30px] max-w-[150px]' },

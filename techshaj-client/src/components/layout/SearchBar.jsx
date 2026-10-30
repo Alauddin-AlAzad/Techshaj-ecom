@@ -8,7 +8,7 @@ import { cn } from '../../lib/cn.js'
 import SearchResults from '../search/SearchResults.jsx'
 
 // Desktop header search with the live dropdown (Figma 39:5294).
-export default function SearchBar({ placeholder, className, iconClassName }) {
+export default function SearchBar({ placeholder, className, iconClassName, inputClassName }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -83,7 +83,7 @@ export default function SearchBar({ placeholder, className, iconClassName }) {
             aria-expanded={showDropdown}
             aria-autocomplete="list"
             role="combobox"
-            className="h-full min-w-0 flex-1 bg-transparent text-body text-white outline-none placeholder:text-text-faint [&::-webkit-search-cancel-button]:hidden"
+            className={cn('h-full min-w-0 flex-1 bg-transparent text-body text-white outline-none placeholder:text-text-faint [&::-webkit-search-cancel-button]:hidden', inputClassName)}
           />
         </form>
 
