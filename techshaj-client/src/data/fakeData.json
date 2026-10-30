@@ -29,7 +29,74 @@
         28,
         21
       ]
-    }
+    },
+    "footerLinks": {
+      "useful": [
+        {
+          "label": "Home",
+          "to": "/"
+        },
+        {
+          "label": "Shop",
+          "to": "/shop"
+        },
+        {
+          "label": "About Us",
+          "to": "/about"
+        },
+        {
+          "label": "Contact Us",
+          "to": "/contact"
+        },
+        {
+          "label": "Blog",
+          "to": "/blog"
+        }
+      ],
+      "help": [
+        {
+          "label": "FAQ",
+          "to": "/faq"
+        },
+        {
+          "label": "Shipping & Delivery",
+          "to": "/policy/shipping"
+        },
+        {
+          "label": "Returns & Refund",
+          "to": "/policy/returns"
+        },
+        {
+          "label": "Privacy Policy",
+          "to": "/policy/privacy"
+        },
+        {
+          "label": "Terms & Conditions",
+          "to": "/policy/terms"
+        }
+      ]
+    },
+    "paymentMethods": [
+      {
+        "name": "Cash on Delivery",
+        "shortName": "COD"
+      },
+      {
+        "name": "bKash"
+      },
+      {
+        "name": "Nagad"
+      },
+      {
+        "name": "Rocket"
+      },
+      {
+        "name": "Visa"
+      },
+      {
+        "name": "Mastercard"
+      }
+    ]
   },
   "shipping": {
     "zones": [
@@ -60,7 +127,8 @@
       "slug": "computer-laptop-accessories",
       "icon": "Keyboard",
       "parentId": null,
-      "shortName": "Computer"
+      "shortName": "Computer",
+      "menuName": "Computer & Laptop"
     },
     {
       "id": 101,
@@ -2609,7 +2677,14 @@
         "theme": "purple",
         "active": true
       }
-    ]
+    ],
+    "menu": {
+      "eyebrow": "MEGA POWER WEEK",
+      "title": "Power Banks up to 25% OFF",
+      "link": "/category/power-bank",
+      "icon": "BatteryCharging",
+      "active": true
+    }
   },
   "offers": {
     "flashSale": {
@@ -2845,6 +2920,32 @@
       "overhead-headphones",
       "earbuds",
       "mobile-cooler"
+    ],
+    "popularLinks": [
+      {
+        "label": "Power Bank",
+        "to": "/category/power-bank"
+      },
+      {
+        "label": "Earbuds",
+        "to": "/category/earbuds"
+      },
+      {
+        "label": "Smart Watches",
+        "to": "/category/smart-watches"
+      },
+      {
+        "label": "Mobile Cooler",
+        "to": "/category/mobile-cooler"
+      },
+      {
+        "label": "Cables",
+        "to": "/category/cables"
+      },
+      {
+        "label": "Moon Lamp",
+        "to": "/shop?q=moon%20lamp"
+      }
     ]
   },
   "collections": [

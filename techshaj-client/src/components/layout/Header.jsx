@@ -7,20 +7,23 @@ import CountBadge from '../CountBadge.jsx'
 import Logo from '../Logo.jsx'
 import AnnouncementBar from './AnnouncementBar.jsx'
 import CategoryNav from './CategoryNav.jsx'
+import MobileMenu from './MobileMenu.jsx'
 import MobileSearch from './MobileSearch.jsx'
 import SearchBar from './SearchBar.jsx'
 
-function MobileHeader({ cartCount }) {
+function MobileHeader({ cartCount, store, categories }) {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const closeSearch = useCallback(() => setSearchOpen(false), [])
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
 
   return (
     <div className="flex flex-col gap-3 bg-dark px-4 pt-3 pb-3.5 lg:hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/categories" aria-label="All categories" className="text-white">
+          <button type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen} className="text-white">
             <Menu size={24} />
-          </Link>
+          </button>
           <Link to="/" aria-label="TechShaj home">
             <Logo size="sm" />
           </Link>
@@ -44,6 +47,7 @@ function MobileHeader({ cartCount }) {
         Search products…
       </button>
       {searchOpen && <MobileSearch onClose={closeSearch} />}
+      {menuOpen && <MobileMenu store={store} categories={categories} onClose={closeMenu} />}
     </div>
   )
 }
@@ -86,7 +90,7 @@ export default function Header({ store, categories }) {
   return (
     <header>
       <AnnouncementBar messages={store?.announcements} />
-      <MobileHeader cartCount={cartCount} />
+      <MobileHeader cartCount={cartCount} store={store} categories={categories ?? []} />
       <DesktopHeader cartCount={cartCount} favoriteCount={favoriteCount} />
       <div className="hidden lg:block">
         <CategoryNav categories={categories ?? []} />
