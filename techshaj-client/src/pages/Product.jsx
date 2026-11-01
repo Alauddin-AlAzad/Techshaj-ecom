@@ -72,7 +72,7 @@ function ProductDetails({ product, store, reviews, related }) {
   const crumbs = [{ label: 'Home', to: '/' }, { label: category.name, to: `/category/${category.slug}` }, { label: product.name }]
 
   return (
-    <div className="pb-[calc(69px+env(safe-area-inset-bottom))] lg:bg-surface lg:pb-[72px]">
+    <div className="pb-[calc(81px+env(safe-area-inset-bottom))] lg:bg-surface lg:pb-[72px]">
       <Breadcrumbs items={crumbs.slice(0, 2)} className="site-container pt-3 lg:hidden" />
       <Breadcrumbs items={crumbs} className="site-container hidden h-[52px] lg:flex" />
 
@@ -104,8 +104,7 @@ function ProductDetails({ product, store, reviews, related }) {
 
       <ProductRow title="Related Products" products={related} seeAllTo={`/category/${category.slug}`} seeAllLabel={category.name} />
 
-      {/* Sits directly above the 68px bottom nav (Figma 30:3938). */}
-      <div className="fixed inset-x-0 bottom-[calc(68px+env(safe-area-inset-bottom))] z-30 flex gap-2.5 border-t border-nav-line bg-white px-4 py-2.5 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2.5 border-t border-nav-line bg-white px-4 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom))] lg:hidden">
         <button
           type="button"
           disabled={!inStock}
@@ -115,7 +114,7 @@ function ProductDetails({ product, store, reviews, related }) {
           <ShoppingCart size={17} />
           Add to Cart
         </button>
-        <button type="button" disabled={!inStock} onClick={orderNow} className="bg-brand-gradient h-12 flex-1 rounded-[10px] text-[14px] font-bold text-white disabled:opacity-40">
+        <button type="button" disabled={!inStock} onClick={orderNow} className="bg-primary hover:bg-primary-deep h-12 flex-1 rounded-[10px] text-[14px] font-bold text-white disabled:opacity-40">
           {inStock ? 'Order Now' : 'Out of Stock'}
         </button>
       </div>

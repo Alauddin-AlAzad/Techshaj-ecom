@@ -25,7 +25,7 @@ export default function CartSummary({ totals, mobileSubtotal = true, onCheckout,
       <Link
         to="/checkout"
         onClick={onCheckout}
-        className="bg-brand-gradient flex h-[50px] items-center justify-center gap-2 rounded-[10px] text-[15px] font-bold text-white lg:h-[52px]"
+        className="bg-primary hover:bg-primary-deep flex h-[50px] items-center justify-center gap-2 rounded-[10px] text-[15px] font-bold text-white lg:h-[52px]"
       >
         Order Now
         <ArrowRight size={18} />

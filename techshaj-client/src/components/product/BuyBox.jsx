@@ -141,7 +141,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
           <ShoppingCart size={19} />
           ADD TO CART
         </button>
-        <button type="button" disabled={!inStock} onClick={onOrderNow} className="bg-brand-gradient h-[52px] flex-1 rounded-[10px] text-[15px] font-bold text-white disabled:opacity-40">
+        <button type="button" disabled={!inStock} onClick={onOrderNow} className="bg-primary hover:bg-primary-deep h-[52px] flex-1 rounded-[10px] text-[15px] font-bold text-white disabled:opacity-40">
           {inStock ? 'Order Now' : 'Out of Stock'}
         </button>
       </div>
