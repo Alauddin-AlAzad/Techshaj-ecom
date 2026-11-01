@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import { Fragment } from 'react'
+import { Link } from 'react-router-dom'
 import { useCountdown } from '../../hooks/useCountdown.js'
 import { useSwiperNav } from '../../hooks/useSwiperNav.js'
 import { ProductCardsSkeleton, Skeleton } from '../Skeleton.jsx'
@@ -7,29 +8,22 @@ import { ProductSwiper } from './ProductRow.jsx'
 
 function Countdown({ endsAt }) {
   const t = useCountdown(endsAt)
-  const units = [
-    [t.days, 'DAYS'],
-    [t.hours, 'HOURS'],
-    [t.mins, 'MINS'],
-    [t.secs, 'SECS'],
-  ]
+  const hours = String(Number(t.days) * 24 + Number(t.hours)).padStart(2, '0')
+  const units = [hours, t.mins, t.secs]
 
   return (
-    <div role="timer" aria-label="Time left in flash sale" className="flex items-center gap-2 rounded-lg border border-secondary px-3 py-1.5 lg:gap-2.5 lg:px-[18px] lg:py-2">
-      {units.map(([value, label], i) => (
-        <Fragment key={label}>
-          {i > 0 && <span className="text-[16px] font-bold text-white lg:text-[20px]">:</span>}
-          <span className="flex w-[38px] flex-col items-center lg:w-11">
-            <span className="text-[18px] font-bold text-white tabular-nums lg:text-[24px]">{value}</span>
-            <span className="text-[9px] font-semibold tracking-[0.54px] text-flash-muted lg:text-[10px] lg:tracking-[0.6px]">{label}</span>
-          </span>
+    <div role="timer" aria-label="Time left in flash sale" className="flex items-center gap-1 lg:gap-1.5">
+      {units.map((value, i) => (
+        <Fragment key={i}>
+          {i > 0 && <span className="text-[14px] font-bold text-white lg:text-[16px]">:</span>}
+          <span className="flex h-7 min-w-8 items-center justify-center rounded-md bg-primary-tint px-1.5 text-[14px] font-bold text-primary tabular-nums lg:h-9 lg:min-w-[42px] lg:text-[18px]">{value}</span>
         </Fragment>
       ))}
     </div>
   )
 }
 
-const arrow = 'flex size-9 items-center justify-center rounded-full border border-flash-muted/40 text-white hover:bg-white/10'
+const arrow = 'absolute top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md hover:bg-primary-tint max-lg:hidden'
 
 export default function FlashSale({ flashSale, loading = false }) {
   const { swiperProps, nav } = useSwiperNav()
@@ -37,7 +31,7 @@ export default function FlashSale({ flashSale, loading = false }) {
     return (
       <section role="status" aria-label="Loading" className="site-container pt-7 lg:pt-12">
         <div className="overflow-hidden rounded-[14px] border border-nav-line">
-          <Skeleton className="h-[110px] rounded-none lg:h-[100px]" />
+          <Skeleton className="h-[64px] rounded-none lg:h-[80px]" />
           <div className="p-3 lg:p-5">
             <ProductCardsSkeleton />
           </div>
@@ -49,31 +43,32 @@ export default function FlashSale({ flashSale, loading = false }) {
 
   return (
     <section className="site-container pt-7 lg:pt-12">
-      <div className="overflow-hidden rounded-[14px] border border-nav-line bg-white">
-        <div className="flex flex-col items-start gap-3 bg-flash p-3.5 lg:h-[100px] lg:flex-row lg:items-center lg:justify-between lg:px-7 lg:py-0">
-          <div className="flex items-center gap-2.5 lg:gap-3">
-            <Zap className="size-6 text-highlight lg:size-[30px]" />
-            <div className="flex flex-col gap-0.5">
-              <h2 className="font-heading text-[18px] font-bold tracking-[-0.27px] text-white lg:text-[26px] lg:tracking-[-0.39px]">{flashSale.title}</h2>
-              <p className="text-[11px] text-flash-muted lg:text-[13px]">Big discounts on top products</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
+      <div className="relative overflow-hidden rounded-[14px] bg-flash bg-[radial-gradient(circle_at_88%_0%,color-mix(in_srgb,var(--color-primary)_50%,transparent),transparent_55%),radial-gradient(circle_at_0%_100%,color-mix(in_srgb,var(--color-secondary)_40%,transparent),transparent_50%)] px-3 pt-4 pb-4 lg:px-5 lg:pt-5 lg:pb-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:gap-x-4">
+          <h2 className="flex items-center gap-1.5 font-heading text-[18px] font-bold text-white lg:gap-2 lg:text-[28px]">
+            <Zap className="size-5 fill-highlight text-highlight lg:size-7" />
+            {flashSale.title}
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-semibold text-white lg:text-[14px]">Ends in</span>
             <Countdown endsAt={flashSale.endsAt} />
-            {flashSale.products.length > 5 && (
-              <div className="hidden gap-2 lg:flex">
-                <button type="button" onClick={nav.prev} aria-label="Previous" className={arrow}>
-                  <ChevronLeft size={18} />
-                </button>
-                <button type="button" onClick={nav.next} aria-label="Next" className={arrow}>
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            )}
           </div>
+          <Link to="/offers" className="ml-auto flex h-8 items-center rounded-lg border border-white px-3 text-[12px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:px-4 lg:text-[14px]">
+            See All
+          </Link>
         </div>
-        <div className="p-3 lg:p-5">
-          <ProductSwiper products={flashSale.products} swiperProps={swiperProps} gap={14} />
+        <div className="relative mt-3.5 lg:mt-5">
+          {flashSale.products.length > 5 && (
+            <>
+              <button type="button" onClick={nav.prev} aria-label="Previous" className={`${arrow} -left-3`}>
+                <ChevronLeft size={20} />
+              </button>
+              <button type="button" onClick={nav.next} aria-label="Next" className={`${arrow} -right-3`}>
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
+          <ProductSwiper products={flashSale.products} swiperProps={swiperProps} gap={14} variant="flash" />
         </div>
       </div>
     </section>
