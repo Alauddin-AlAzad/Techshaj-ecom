@@ -19,6 +19,20 @@ export function useSaveSettings() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data) => (await axiosSecure.patch('/admin/settings', data)).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['settings'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-meta'] })
+    },
   })
+}
+
+// { pixelId, enabled, testEventCode, hasToken, tokenHint }: the access token itself is never sent to the browser.
+export function useAdminMeta() {
+  const axiosSecure = useAxiosSecure()
+  return useQuery({ queryKey: ['admin-meta'], queryFn: async () => (await axiosSecure.get('/admin/meta')).data, staleTime: 0 })
+}
+
+export function useSendMetaTest() {
+  const axiosSecure = useAxiosSecure()
+  return useMutation({ mutationFn: async () => (await axiosSecure.post('/admin/meta/test')).data })
 }

@@ -19,6 +19,7 @@ import { variantLabel } from '../lib/cart.js'
 import { cn } from '../lib/cn.js'
 import { formatPrice, toBanglaDigits, toLatinDigits } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
+import { metaBrowserIds, newEventId, pixelContents, trackPixel } from '../lib/pixel.js'
 import { variantImage } from '../lib/product.js'
 import { errorMessage } from '../lib/query.js'
 import { zodResolver } from '../lib/zodResolver.js'
@@ -168,6 +169,7 @@ function CheckoutForm({ cart }) {
   }, [subtotal]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = (form) => {
+    const eventId = newEventId()
     const order = {
       customer: { name: form.name.trim(), phone: form.phone, address: form.address.trim(), note: form.note?.trim() ?? '' },
       zoneId: zone.id,
@@ -175,9 +177,11 @@ function CheckoutForm({ cart }) {
       transactionId: form.payment === 'cod' ? '' : form.trxId.trim(),
       couponCode: applied?.code ?? '',
       items: lines.map((l) => ({ productId: l.productId, variant: l.variant, quantity: l.qty })),
+      tracking: { eventId, ...metaBrowserIds(), sourceUrl: window.location.href },
     }
     placeOrder.mutate(order, {
       onSuccess: ({ orderId, total }) => {
+        trackPixel('Purchase', pixelContents(pixelItems, total), eventId)
         setLastOrder({
           orderId,
           total,
@@ -192,6 +196,11 @@ function CheckoutForm({ cart }) {
       onError: (error) => notify.error('Order failed', { description: errorMessage(error, 'Could not place your order. Please try again.') }),
     })
   }
+
+  const pixelItems = lines.map((l) => ({ id: l.productId, qty: l.qty, price: l.product.price }))
+  useEffect(() => {
+    trackPixel('InitiateCheckout', pixelContents(pixelItems, subtotal))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const close = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))
   const section = 'flex w-full flex-col gap-3 bg-white p-4 lg:contents'

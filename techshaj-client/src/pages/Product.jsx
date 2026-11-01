@@ -1,6 +1,6 @@
 import 'swiper/css'
 import { ShoppingCart } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import ProductRow from '../components/home/ProductRow.jsx'
@@ -19,6 +19,7 @@ import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { discountPercent, formatPrice } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
 import { defaultVariant } from '../lib/product.js'
+import { newEventId, pixelContents, trackPixel } from '../lib/pixel.js'
 import { combine } from '../lib/query.js'
 import NotFound from './NotFound.jsx'
 
@@ -52,6 +53,12 @@ function ProductDetails({ product, store, reviews, related }) {
   const inStock = product.stock > 0
   const category = product.category
 
+  useEffect(() => {
+    trackPixel('ViewContent', pixelContents([product], product.price))
+  }, [product])
+
+  const trackAdd = () => trackPixel('AddToCart', pixelContents([{ ...product, qty }], product.price * qty), newEventId())
+
   const addToCart = () => {
     const inCart = useCartStore.getState().items.reduce((sum, i) => (i.productId === product.id ? sum + i.qty : sum), 0)
     if (inCart + qty > product.stock) {
@@ -59,6 +66,7 @@ function ProductDetails({ product, store, reviews, related }) {
       return
     }
     addItem(product.id, qty, variant)
+    trackAdd()
     notify.success('Added to cart', {
       description: `${qty > 1 ? `${qty} × ` : ''}${product.name} · ${formatPrice(product.price * qty)}`,
       action: isDesktop ? { label: 'View cart', onClick: openCart } : { label: 'View', onClick: () => navigate('/cart') },
@@ -66,6 +74,7 @@ function ProductDetails({ product, store, reviews, related }) {
   }
   const orderNow = () => {
     addItem(product.id, qty, variant)
+    trackAdd()
     navigate('/checkout')
   }
 
