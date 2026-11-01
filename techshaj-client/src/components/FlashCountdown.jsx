@@ -16,8 +16,8 @@ export default function FlashCountdown({ endsAt }) {
       {units.map(([value, label], i) => (
         <Fragment key={label}>
           {i > 0 && <span className="text-[14px] font-bold text-white lg:text-[16px]">:</span>}
-          <span className="flex h-10 w-[38px] flex-col items-center justify-center rounded-md bg-primary-tint text-primary tabular-nums lg:h-12 lg:w-[52px]">
-            <span className="text-[15px] leading-none font-bold lg:text-[19px]">{value}</span>
+          <span className="flex h-9 w-[34px] flex-col items-center justify-center rounded-md bg-primary-tint text-primary tabular-nums lg:h-12 lg:w-[52px]">
+            <span className="text-[14px] leading-none font-bold lg:text-[19px]">{value}</span>
             <span className="mt-0.5 text-[8px] leading-none font-semibold text-text-muted uppercase lg:text-[9px]">{label}</span>
           </span>
         </Fragment>
