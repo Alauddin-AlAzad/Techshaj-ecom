@@ -62,7 +62,7 @@ export default function FlashSale({ flashSale, loading = false }) {
             <span className="text-[12px] font-semibold text-white lg:text-[14px]">Ends in</span>
             <Countdown endsAt={flashSale.endsAt} />
           </div>
-          <Link to="/offers" className="ml-auto flex h-8 items-center rounded-lg border border-white px-3 text-[12px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:px-4 lg:text-[14px]">
+          <Link to="/offers?tab=flash-sale" className="ml-auto flex h-8 items-center rounded-lg border border-white px-3 text-[12px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:px-4 lg:text-[14px]">
             See All
           </Link>
         </div>

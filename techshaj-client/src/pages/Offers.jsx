@@ -32,8 +32,9 @@ const discountOf = (p) => discountPercent(p.price, p.oldPrice)
 // Every discounted or free-delivery product is an offer.
 const isOffer = (p) => discountOf(p) > 0 || p.freeDelivery
 
-function matchesTab(product, tab) {
+function matchesTab(product, tab, flashIds) {
   if (tab === 'all') return true
+  if (tab === 'flash-sale') return flashIds.has(product.id)
   if (tab === 'free-delivery') return product.freeDelivery
   return product.collections?.includes(tab)
 }
@@ -106,7 +107,9 @@ export default function Offers() {
   const sort = SORTS.some((s) => s.value === params.get('sort')) ? params.get('sort') : 'discount'
 
   const offers = useMemo(() => (data ? data.products.filter(isOffer) : []), [data])
-  const results = useMemo(() => sortOffers(offers.filter((p) => matchesTab(p, tab)), sort), [offers, tab, sort])
+  const flashIds = useMemo(() => new Set(offersQuery.data?.flashSale?.products?.map((p) => p.id) ?? []), [offersQuery.data])
+  // Flash sale products are listed even when they have no old price.
+  const results = useMemo(() => sortOffers((tab === 'flash-sale' && data ? data.products : offers).filter((p) => matchesTab(p, tab, flashIds)), sort), [data, offers, tab, sort, flashIds])
   const maxDiscount = Math.max(0, ...offers.map(discountOf))
   const sale = offersQuery.data?.flashSale
   const banner = sale?.bannerImage ? { image: sale.bannerImage, mobile: sale.bannerMobile } : null

@@ -44,7 +44,7 @@ export default function MobileMenu({ store, categories = [], onClose }) {
               <Truck size={16} />
               Track Order
             </Link>
-            <Link to="/offers" onClick={onClose} className="flex h-[42px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-highlight text-[13px] font-semibold text-text">
+            <Link to="/offers?tab=flash-sale" onClick={onClose} className="flex h-[42px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-highlight text-[13px] font-semibold text-text">
               <BadgePercent size={16} />
               Flash Sale
             </Link>
