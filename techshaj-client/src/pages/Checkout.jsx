@@ -37,7 +37,7 @@ const schema = z
   .object({
     phone: z.preprocess((v) => normalizePhone(String(v ?? '')), z.string().regex(/^01[3-9]\d{8}$/, 'সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন')),
     name: z.string().trim().min(2, 'আপনার নাম লিখুন'),
-    address: z.string().trim().min(1, 'ঠিকানা লিখুন'),
+    address: z.string().trim().min(5, 'ঠিকানা কমপক্ষে ৫ অক্ষরের লিখুন'),
     note: z.string().optional(),
     zone: z.string(),
     payment: z.enum(['cod', 'bkash', 'nagad']),
