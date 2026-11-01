@@ -124,7 +124,7 @@ export default function Offers() {
           <h1 className="sr-only">Offers &amp; Deals</h1>
           <picture>
             {banner.mobile && <source media="(max-width: 1023px)" srcSet={banner.mobile} />}
-            <img src={banner.image} alt="" className="block w-full" />
+            <img src={banner.image} alt="" className="block aspect-[800/250] w-full object-cover lg:aspect-[1600/250]" />
           </picture>
         </section>
       ) : (
