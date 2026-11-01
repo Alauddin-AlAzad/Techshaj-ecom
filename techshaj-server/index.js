@@ -440,6 +440,12 @@ async function run() {
       message: { message: "Too many login attempts, please try again after 15 minutes" },
     });
 
+    const publicLimiter = (limit, windowMinutes, message) =>
+      rateLimit({ windowMs: windowMinutes * 60 * 1000, limit, standardHeaders: "draft-7", legacyHeaders: false, message: { message } });
+    const orderLimiter = publicLimiter(20, 60, "Too many orders from this connection, please try again later");
+    const couponLimiter = publicLimiter(30, 10, "Too many coupon checks, please try again in a few minutes");
+    const trackLimiter = publicLimiter(30, 10, "Too many tracking requests, please try again in a few minutes");
+
     // jwt related api
     app.post("/jwt", jwtLimiter, async (req, res) => {
       try {
@@ -1090,7 +1096,11 @@ async function run() {
     // products related api
     app.get("/products", async (req, res) => {
       try {
-        const { category, collection, minPrice, maxPrice, inStock, freeDelivery, search, sort } = req.query;
+        const text = (value) => (typeof value === "string" ? value : "");
+        const { minPrice, maxPrice, inStock, freeDelivery, sort } = req.query;
+        const category = text(req.query.category);
+        const collection = text(req.query.collection);
+        const search = text(req.query.search);
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
         const query = { published: { $ne: false } };
@@ -1108,7 +1118,7 @@ async function run() {
         }
         if (inStock === "true") query.stock = { $gt: 0 };
         if (freeDelivery === "true") query.freeDelivery = true;
-        if (search?.trim()) {
+        if (search.trim()) {
           const regex = { $regex: escapeRegex(search.trim()), $options: "i" };
           query.$or = [{ name: regex }, { code: regex }];
         }
@@ -1117,7 +1127,7 @@ async function run() {
         const products = await productsCollection
           .find(query)
           .project(productProjection)
-          .sort(sortOptions[sort] || sortOptions.newest)
+          .sort(sortOptions[Object.hasOwn(sortOptions, sort) ? sort : "newest"])
           .skip((page - 1) * limit)
           .limit(limit)
           .toArray();
@@ -1232,7 +1242,7 @@ async function run() {
     });
 
     // coupons related api
-    app.post("/coupons/validate", async (req, res) => {
+    app.post("/coupons/validate", couponLimiter, async (req, res) => {
       try {
         const { code, subtotal } = req.body ?? {};
         const amount = Number(subtotal);
@@ -1245,7 +1255,7 @@ async function run() {
     });
 
     // orders related api
-    app.post("/orders", async (req, res) => {
+    app.post("/orders", orderLimiter, async (req, res) => {
       try {
         const { customer, zoneId, paymentMethod, transactionId, couponCode, items } = req.body ?? {};
         const name = typeof customer?.name === "string" ? customer.name.trim() : "";
@@ -1366,7 +1376,7 @@ async function run() {
       }
     });
 
-    app.get("/orders/track", async (req, res) => {
+    app.get("/orders/track", trackLimiter, async (req, res) => {
       try {
         const phone = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
         const orderId = typeof req.query.orderId === "string" ? req.query.orderId.trim().toUpperCase() : "";
