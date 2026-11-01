@@ -26,3 +26,18 @@ export function variantImages(product, variant = {}) {
 export function variantImage(product, variant = {}) {
   return variantImages(product, variant)[0]
 }
+
+// Every picture of the product: the gallery first, then pictures that only belong to an option.
+export function allImages(product) {
+  const optionPicsAll = Object.values(product.optionImages ?? {}).flatMap((options) => Object.values(options).flatMap((v) => [v].flat()))
+  return [...new Set([...product.images, ...optionPicsAll].filter(Boolean))]
+}
+
+// The first variant option that owns this picture, as { name, option }.
+export function optionOfImage(product, src) {
+  for (const [name, options] of Object.entries(product.optionImages ?? {})) {
+    const option = Object.keys(options).find((o) => [options[o]].flat().includes(src))
+    if (option && product.variants?.some((v) => v.name === name && v.options.includes(option))) return { name, option }
+  }
+  return null
+}
