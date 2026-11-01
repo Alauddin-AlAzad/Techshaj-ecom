@@ -1,5 +1,6 @@
-import { Heart } from 'lucide-react'
+import { Heart, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import ShareSheet from './ShareSheet.jsx'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useFavoriteToggle } from '../../hooks/useFavoriteToggle.js'
 import { cn } from '../../lib/cn.js'
@@ -46,6 +47,7 @@ function Thumb({ src, active, onClick, index }) {
 export default function Gallery({ product, discount, focus, onThumb }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
+  const [sharing, setSharing] = useState(false)
   const [isFavorite, toggleFavorite] = useFavoriteToggle(product)
   // Option pictures that are not in the gallery are added after it.
   const optionSrcs = Object.values(product.optionImages ?? {}).flatMap((options) => Object.values(options))
@@ -93,6 +95,9 @@ export default function Gallery({ product, discount, focus, onThumb }) {
         >
           <Heart className={cn('size-[17px] lg:size-[19px]', isFavorite && 'fill-primary text-primary')} />
         </button>
+        <button type="button" onClick={() => setSharing(true)} aria-label="Share" className="absolute top-16 right-4 z-10 hidden size-10 items-center justify-center rounded-full bg-white text-text lg:flex">
+          <Share2 className="size-[19px]" />
+        </button>
         <span className="absolute bottom-6 left-4 z-10 hidden rounded-xl bg-white px-2.5 py-[5px] text-label-sm text-text lg:block">
           {active + 1} / {images.length}
         </span>
@@ -104,6 +109,7 @@ export default function Gallery({ product, discount, focus, onThumb }) {
           </div>
         )}
       </div>
+      {sharing && <ShareSheet product={product} onClose={() => setSharing(false)} />}
     </div>
   )
 }
