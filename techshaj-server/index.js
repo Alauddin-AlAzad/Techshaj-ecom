@@ -85,10 +85,13 @@ async function run() {
       const coupon = await couponsCollection.findOne({ code: { $regex: `^${escapeRegex(trimmed)}$`, $options: "i" } });
       if (!coupon || coupon.active === false) return { valid: false, discount: 0, message: "Invalid coupon code" };
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return { valid: false, discount: 0, message: "This coupon has expired" };
+      if (coupon.maxUses && (await ordersCollection.countDocuments({ coupon: coupon.code, status: { $ne: "cancelled" } })) >= coupon.maxUses) {
+        return { valid: false, discount: 0, message: "This coupon has been fully used" };
+      }
       if (subtotal < (coupon.minOrder ?? 0)) return { valid: false, discount: 0, message: `Minimum order ৳${coupon.minOrder} for this coupon` };
       const amount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
       const discount = Math.min(amount, subtotal);
-      return { valid: true, discount, message: "Coupon applied", code: coupon.code };
+      return { valid: true, discount, message: "Coupon applied", code: coupon.code, perPhoneLimit: coupon.perPhoneLimit ?? null };
     };
     const lowStockLimit = 5;
     const ratingModes = ["manual", "auto"];
@@ -440,6 +443,18 @@ async function run() {
         data.minOrder = body.minOrder === null ? 0 : toNumber(body.minOrder);
         if (!Number.isFinite(data.minOrder) || data.minOrder < 0) return { error: "minOrder must be 0 or more" };
       }
+      if (body.maxUses !== undefined) {
+        data.maxUses = body.maxUses === null ? null : toNumber(body.maxUses);
+        if (data.maxUses !== null && (!Number.isInteger(data.maxUses) || data.maxUses < 1 || data.maxUses > 1000000)) {
+          return { error: "maxUses must be a whole number of 1 or more, or empty for no limit" };
+        }
+      }
+      if (body.perPhoneLimit !== undefined) {
+        data.perPhoneLimit = body.perPhoneLimit === null ? null : toNumber(body.perPhoneLimit);
+        if (data.perPhoneLimit !== null && (!Number.isInteger(data.perPhoneLimit) || data.perPhoneLimit < 1 || data.perPhoneLimit > 1000)) {
+          return { error: "perPhoneLimit must be a whole number from 1 to 1000, or empty for no limit" };
+        }
+      }
       if (body.expiresAt !== undefined) {
         data.expiresAt = toDate(body.expiresAt);
         if (isBadDate(data.expiresAt)) return { error: "expiresAt must be a valid date" };
@@ -527,6 +542,12 @@ async function run() {
       message: { message: "Too many login attempts, please try again after 15 minutes" },
     });
 
+    const publicLimiter = (limit, windowMinutes, message) =>
+      rateLimit({ windowMs: windowMinutes * 60 * 1000, limit, standardHeaders: "draft-7", legacyHeaders: false, message: { message } });
+    const orderLimiter = publicLimiter(20, 60, "Too many orders from this connection, please try again later");
+    const couponLimiter = publicLimiter(30, 10, "Too many coupon checks, please try again in a few minutes");
+    const trackLimiter = publicLimiter(30, 10, "Too many tracking requests, please try again in a few minutes");
+
     // jwt related api
     app.post("/jwt", jwtLimiter, async (req, res) => {
       try {
@@ -537,7 +558,7 @@ async function run() {
         const admin = await adminsCollection.findOne({ email: { $regex: `^${escapeRegex(email.trim())}$`, $options: "i" } });
         const match = admin?.password ? await bcrypt.compare(password, admin.password) : false;
         if (!match) return res.status(401).send({ message: "Invalid email or password" });
-        const token = jwt.sign({ email: admin.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ email: admin.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
         res.send({ token });
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -1212,7 +1233,11 @@ async function run() {
     // products related api
     app.get("/products", async (req, res) => {
       try {
-        const { category, collection, minPrice, maxPrice, inStock, freeDelivery, search, sort } = req.query;
+        const text = (value) => (typeof value === "string" ? value : "");
+        const { minPrice, maxPrice, inStock, freeDelivery, sort } = req.query;
+        const category = text(req.query.category);
+        const collection = text(req.query.collection);
+        const search = text(req.query.search);
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
         const query = { published: { $ne: false } };
@@ -1230,7 +1255,7 @@ async function run() {
         }
         if (inStock === "true") query.stock = { $gt: 0 };
         if (freeDelivery === "true") query.freeDelivery = true;
-        if (search?.trim()) {
+        if (search.trim()) {
           const regex = { $regex: escapeRegex(search.trim()), $options: "i" };
           query.$or = [{ name: regex }, { code: regex }];
         }
@@ -1239,7 +1264,7 @@ async function run() {
         const products = await productsCollection
           .find(query)
           .project(productProjection)
-          .sort(sortOptions[sort] || sortOptions.newest)
+          .sort(sortOptions[Object.hasOwn(sortOptions, sort) ? sort : "newest"])
           .skip((page - 1) * limit)
           .limit(limit)
           .toArray();
@@ -1315,7 +1340,7 @@ async function run() {
         const sale = sales.find((s) => !s.endsAt || new Date(s.endsAt) > new Date());
         const coupons = await couponsCollection
           .find({ active: { $ne: false }, isPublic: { $ne: false } })
-          .project({ usedCount: 0, usageLimit: 0, usedBy: 0 })
+          .project({ usedCount: 0, usageLimit: 0, usedBy: 0, maxUses: 0, perPhoneLimit: 0 })
           .toArray();
         const flashSale = sale
           ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }
@@ -1355,7 +1380,7 @@ async function run() {
     });
 
     // coupons related api
-    app.post("/coupons/validate", async (req, res) => {
+    app.post("/coupons/validate", couponLimiter, async (req, res) => {
       try {
         const { code, subtotal } = req.body ?? {};
         const amount = Number(subtotal);
@@ -1368,7 +1393,7 @@ async function run() {
     });
 
     // orders related api
-    app.post("/orders", async (req, res) => {
+    app.post("/orders", orderLimiter, async (req, res) => {
       try {
         const { customer, zoneId, paymentMethod, transactionId, couponCode, items, tracking } = req.body ?? {};
         const name = typeof customer?.name === "string" ? customer.name.trim() : "";
@@ -1432,6 +1457,12 @@ async function run() {
         if (typeof couponCode === "string" && couponCode.trim()) {
           const result = await checkCoupon(couponCode, subtotal);
           if (!result.valid) return res.status(400).send({ message: result.message });
+          if (result.perPhoneLimit) {
+            const used = await ordersCollection.countDocuments({ coupon: result.code, status: { $ne: "cancelled" }, $or: [{ phone }, { "customer.phone": phone }] });
+            if (used >= result.perPhoneLimit) {
+              return res.status(400).send({ message: result.perPhoneLimit === 1 ? "This coupon can be used only once per phone number" : `This coupon can be used only ${result.perPhoneLimit} times per phone number` });
+            }
+          }
           discount = result.discount;
           coupon = result.code;
         }
@@ -1491,7 +1522,7 @@ async function run() {
       }
     });
 
-    app.get("/orders/track", async (req, res) => {
+    app.get("/orders/track", trackLimiter, async (req, res) => {
       try {
         const phone = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
         const orderId = typeof req.query.orderId === "string" ? req.query.orderId.trim().toUpperCase() : "";
