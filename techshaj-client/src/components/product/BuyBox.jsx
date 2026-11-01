@@ -43,12 +43,12 @@ export default function BuyBox({ product, category, store, discount, variant, on
           {category.name}
         </Link>
       )}
-      <h1 className="font-heading text-[21px] leading-[27px] font-bold tracking-[-0.315px] text-text lg:text-h2 lg:leading-normal lg:tracking-normal">{product.name}</h1>
+      <h1 className="font-heading text-[16px] leading-[22px] font-bold tracking-normal text-text lg:text-h2 lg:leading-normal lg:tracking-normal">{product.name}</h1>
 
       {shouldShowRating(product) ? (
         <p className="flex items-center gap-1 whitespace-pre">
           <Stars rating={product.rating} />
-          <span className="text-[13px] font-bold text-text lg:text-body lg:font-bold"> {product.rating}</span>
+          <span className="text-[12px] font-bold text-text lg:text-body lg:font-bold"> {product.rating}</span>
           <span className="text-body-sm text-text-muted lg:text-[13px]">
             <span className="lg:hidden">  ({product.reviewCount})</span>
             <span className="hidden lg:inline">  ({product.reviewCount} reviews)</span>
@@ -58,14 +58,14 @@ export default function BuyBox({ product, category, store, discount, variant, on
       ) : product.isNew ? (
         <span className="rounded-md bg-secondary-tint px-[7px] py-0.5 text-[11px] font-semibold text-secondary">New arrival</span>
       ) : product.soldCount > 0 ? (
-        <p className="text-body-sm text-text-muted lg:text-[13px]">{formatSold(product.soldCount)} sold</p>
+        <p className="text-[11px] text-text-muted lg:text-[13px]">{formatSold(product.soldCount)} sold</p>
       ) : null}
 
       <p className="flex flex-wrap items-center gap-2.5 lg:gap-3">
-        <span className="text-[26px] font-extrabold tracking-[-0.26px] text-text lg:text-[32px] lg:tracking-[-0.32px]">{formatPrice(product.price)}</span>
+        <span className="text-[20px] font-extrabold tracking-[-0.2px] text-text lg:text-[32px] lg:tracking-[-0.32px]">{formatPrice(product.price)}</span>
         {discount > 0 && (
           <>
-            <span className="text-[15px] text-text-faint line-through lg:text-[18px]">{formatPrice(product.oldPrice)}</span>
+            <span className="text-[13px] text-text-faint line-through lg:text-[18px]">{formatPrice(product.oldPrice)}</span>
             <span className="rounded-md bg-secondary-tint px-[7px] py-[3px] text-[11px] font-bold whitespace-pre text-primary-deep lg:px-2 lg:py-1 lg:text-body-sm lg:font-bold">
               -{discount}%<span className="hidden lg:inline">{`  Save ${formatPrice(saved)}`}</span>
             </span>
@@ -79,31 +79,31 @@ export default function BuyBox({ product, category, store, discount, variant, on
             <Truck className="size-[17px] lg:size-[19px]" />
           </span>
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[13px] font-bold text-text lg:text-body lg:font-bold">Free Delivery on this product</span>
-            <span className="text-[11.5px] text-text-muted lg:text-[12.5px]">No delivery charge anywhere in Bangladesh</span>
+            <span className="text-[12px] font-bold text-text lg:text-body lg:font-bold">Free Delivery on this product</span>
+            <span className="text-[10.5px] text-text-muted lg:text-[12.5px]">No delivery charge anywhere in Bangladesh</span>
           </span>
         </div>
       )}
 
       <hr className="hidden w-full border-border lg:block" />
       <div className="flex flex-wrap gap-4 lg:flex-col lg:gap-2">
-        <p className="flex items-center gap-1.5 text-[13px] lg:gap-2 lg:text-body">
+        <p className="flex items-center gap-1.5 text-[12px] lg:gap-2 lg:text-body">
           <span className={cn('size-2 rounded-full', inStock ? 'bg-stock' : 'bg-error')} />
           <span className="hidden text-text-muted lg:inline">Availability:</span>
           <span className={cn('font-bold', inStock ? 'text-stock-ink' : 'text-error')}>{inStock ? 'In Stock' : 'Out of Stock'}</span>
         </p>
-        <p className="flex items-center gap-1.5 text-[13px] lg:gap-2 lg:text-body">
+        <p className="flex items-center gap-1.5 text-[12px] lg:gap-2 lg:text-body">
           <span className="hidden size-2 rounded-full bg-text lg:inline-block" />
           <span className="text-text-muted">Brand:</span>
           <span className="font-bold text-text">{product.brand}</span>
         </p>
       </div>
-      <p className="text-[13px] leading-5 text-text-secondary lg:text-body lg:leading-normal">{product.shortDescription}</p>
+      <p className="text-[12px] leading-[18px] text-text-secondary lg:text-body lg:leading-normal">{product.shortDescription}</p>
       <hr className="hidden w-full border-border lg:block" />
 
       {product.variants.map((group) => (
         <fieldset key={group.name} className="flex flex-col gap-2 lg:gap-2.5">
-          <legend className="mb-2 text-[13px] font-bold text-text lg:mb-2.5 lg:text-body lg:font-bold">{group.name}</legend>
+          <legend className="mb-2 text-[12px] font-bold text-text lg:mb-2.5 lg:text-body lg:font-bold">{group.name}</legend>
           <div className="flex flex-wrap gap-2 lg:gap-2.5">
             {group.options.map((option) => {
               const selected = variant[group.name] === option
@@ -127,7 +127,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
       ))}
 
       <div className="flex items-center gap-3 lg:gap-3.5">
-        <span className="text-[13px] font-bold text-text lg:text-body lg:font-bold">Quantity</span>
+        <span className="text-[12px] font-bold text-text lg:text-body lg:font-bold">Quantity</span>
         <QuantityStepper value={qty} max={Math.max(1, product.stock)} onChange={onQty} />
       </div>
 
@@ -150,7 +150,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
         href={whatsappOrderUrl(store?.whatsapp, product)}
         target="_blank"
         rel="noreferrer"
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-whatsapp text-[13px] font-bold text-whatsapp-ink lg:h-12 lg:text-body lg:font-bold"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-whatsapp text-[12px] font-bold text-whatsapp-ink lg:h-12 lg:text-body lg:font-bold"
       >
         <MessageCircle className="size-[17px] lg:size-[18px]" />
         WhatsApp to Order
