@@ -84,7 +84,7 @@ function FlashSaleBar({ title, endsAt }) {
         {units.map((u, i) => (
           <Fragment key={i}>
             {i > 0 && <span>:</span>}
-            <span className="flex h-[30px] min-w-8 items-center justify-center rounded-md bg-primary px-1">{u}</span>
+            <span className="flex h-[30px] min-w-8 items-center justify-center rounded-md bg-primary-tint px-1 text-primary">{u}</span>
           </Fragment>
         ))}
       </span>
