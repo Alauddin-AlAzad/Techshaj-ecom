@@ -84,6 +84,9 @@ async function run() {
       const coupon = await couponsCollection.findOne({ code: { $regex: `^${escapeRegex(trimmed)}$`, $options: "i" } });
       if (!coupon || coupon.active === false) return { valid: false, discount: 0, message: "Invalid coupon code" };
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return { valid: false, discount: 0, message: "This coupon has expired" };
+      if (coupon.maxUses && (await ordersCollection.countDocuments({ coupon: coupon.code, status: { $ne: "cancelled" } })) >= coupon.maxUses) {
+        return { valid: false, discount: 0, message: "This coupon has been fully used" };
+      }
       if (subtotal < (coupon.minOrder ?? 0)) return { valid: false, discount: 0, message: `Minimum order ৳${coupon.minOrder} for this coupon` };
       const amount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
       const discount = Math.min(amount, subtotal);
@@ -352,6 +355,12 @@ async function run() {
       if (body.minOrder !== undefined) {
         data.minOrder = body.minOrder === null ? 0 : toNumber(body.minOrder);
         if (!Number.isFinite(data.minOrder) || data.minOrder < 0) return { error: "minOrder must be 0 or more" };
+      }
+      if (body.maxUses !== undefined) {
+        data.maxUses = body.maxUses === null ? null : toNumber(body.maxUses);
+        if (data.maxUses !== null && (!Number.isInteger(data.maxUses) || data.maxUses < 1 || data.maxUses > 1000000)) {
+          return { error: "maxUses must be a whole number of 1 or more, or empty for no limit" };
+        }
       }
       if (body.perPhoneLimit !== undefined) {
         data.perPhoneLimit = body.perPhoneLimit === null ? null : toNumber(body.perPhoneLimit);
@@ -1209,7 +1218,7 @@ async function run() {
         const sale = sales.find((s) => !s.endsAt || new Date(s.endsAt) > new Date());
         const coupons = await couponsCollection
           .find({ active: { $ne: false }, isPublic: { $ne: false } })
-          .project({ usedCount: 0, usageLimit: 0, usedBy: 0 })
+          .project({ usedCount: 0, usageLimit: 0, usedBy: 0, maxUses: 0, perPhoneLimit: 0 })
           .toArray();
         const flashSale = sale
           ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }

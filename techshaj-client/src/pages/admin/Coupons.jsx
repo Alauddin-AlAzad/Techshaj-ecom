@@ -39,6 +39,10 @@ const schema = z
       .string()
       .trim()
       .refine((v) => v === '' || Number(v) >= 0, 'Minimum order must be 0 or more'),
+    maxUses: z
+      .string()
+      .trim()
+      .refine((v) => v === '' || (Number.isInteger(Number(v)) && Number(v) >= 1), 'Enter a whole number of 1 or more'),
     perPhoneLimit: z
       .string()
       .trim()
@@ -54,6 +58,7 @@ const toFormValues = (c) => ({
   type: c?.type ?? 'fixed',
   value: c ? String(c.value) : '',
   minOrder: c?.minOrder ? String(c.minOrder) : '',
+  maxUses: c?.maxUses ? String(c.maxUses) : '',
   perPhoneLimit: c?.perPhoneLimit ? String(c.perPhoneLimit) : '',
   expiresAt: toDhakaInput(c?.expiresAt).slice(0, 10),
   active: c ? c.active !== false : true,
@@ -66,6 +71,7 @@ const toPayload = (v) => ({
   type: v.type,
   value: Number(v.value),
   minOrder: v.minOrder === '' ? 0 : Number(v.minOrder),
+  maxUses: v.maxUses === '' ? null : Number(v.maxUses),
   perPhoneLimit: v.perPhoneLimit === '' ? null : Number(v.perPhoneLimit),
   expiresAt: v.expiresAt ? new Date(`${v.expiresAt}T23:59:59+06:00`).toISOString() : null,
   active: v.active,
@@ -175,6 +181,10 @@ function CouponForm({ coupon, onClose }) {
           </FormField>
         </div>
 
+        <FormField label="Total uses" htmlFor="coupon-max" error={errors.maxUses?.message} hint="How many orders in total can use this coupon, for example 50. Empty: no limit. Cancelled orders do not count.">
+          <input id="coupon-max" type="number" inputMode="numeric" min="1" placeholder="50" aria-invalid={Boolean(errors.maxUses)} className={inputClass(errors.maxUses)} {...register('maxUses')} />
+        </FormField>
+
         <FormField label="Uses per phone number" htmlFor="coupon-limit" error={errors.perPhoneLimit?.message} hint="How many times one phone number can use this coupon. Empty: no limit. Cancelled orders do not count.">
           <input id="coupon-limit" type="number" inputMode="numeric" min="1" placeholder="1" aria-invalid={Boolean(errors.perPhoneLimit)} className={inputClass(errors.perPhoneLimit)} {...register('perPhoneLimit')} />
         </FormField>
@@ -246,7 +256,7 @@ export default function Coupons() {
       render: (c) =>
         !c.expiresAt ? <span className="text-text-muted">No expiry</span> : <span className={cn('whitespace-nowrap', isExpired(c) && 'font-semibold text-error')}>{isExpired(c) ? `Ended ${formatDate(c.expiresAt)}` : formatDate(c.expiresAt)}</span>,
     },
-    { key: 'used', header: 'Used', align: 'center', render: (c) => c.usedCount ?? 0 },
+    { key: 'used', header: 'Used', align: 'center', render: (c) => (c.maxUses ? `${c.usedCount ?? 0} / ${c.maxUses}` : (c.usedCount ?? 0)) },
     { key: 'isPublic', header: 'Public', render: flag('isPublic', 'List publicly') },
     { key: 'active', header: 'Active', render: flag('active', 'Turn on') },
     {
