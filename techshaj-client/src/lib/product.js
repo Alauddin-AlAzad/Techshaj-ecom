@@ -8,8 +8,21 @@ export function defaultVariant(product) {
   return Object.fromEntries((product.variants ?? []).map((v) => [v.name, v.options[0]]))
 }
 
-// The picture of the first chosen option that has one, otherwise the main image.
+// Option pictures are stored as a list per option; older products hold a single url.
+export function optionPics(product, name, option) {
+  const value = product.optionImages?.[name]?.[option]
+  return [value ?? []].flat().filter(Boolean)
+}
+
+// The pictures of the first chosen option that has any, otherwise the product gallery.
+export function variantImages(product, variant = {}) {
+  for (const [name, option] of Object.entries(variant)) {
+    const pics = optionPics(product, name, option)
+    if (pics.length) return pics
+  }
+  return product.images
+}
+
 export function variantImage(product, variant = {}) {
-  const picked = Object.entries(variant).map(([name, option]) => product.optionImages?.[name]?.[option])
-  return picked.find(Boolean) ?? product.images[0]
+  return variantImages(product, variant)[0]
 }
