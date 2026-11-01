@@ -878,6 +878,12 @@ async function run() {
       try {
         const { title, endsAt, productIds, active } = req.body ?? {};
         const data = {};
+        for (const key of ["bannerImage", "bannerMobile"]) {
+          if (req.body?.[key] === undefined) continue;
+          const url = typeof req.body[key] === "string" ? req.body[key].trim() : null;
+          if (url === null || (url && !/^https:\/\/\S+$/.test(url))) return res.status(400).send({ message: `${key} must be empty or an https URL` });
+          data[key] = url;
+        }
         if (title !== undefined) {
           data.title = typeof title === "string" ? title.trim() : "";
           if (!data.title) return res.status(400).send({ message: "title is required" });
