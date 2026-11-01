@@ -136,7 +136,35 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
             {errorMessage(save.error)}
           </p>
         )}
-        <FormField label="Name" htmlFor="cat-name" required error={errors.name?.message}>
+        <FormField
+          label="Category"
+          htmlFor="cat-parent"
+          hint={
+            lockedParent
+              ? 'This subcategory is added under this category.'
+              : hasChildren
+                ? 'This category has subcategories, so it stays at the top level.'
+                : 'Leave it as None to make a main category, or pick a category to make this a subcategory.'
+          }
+        >
+          {lockedParent || hasChildren ? (
+            <p id="cat-parent" className={cn(inputClass(), 'flex items-center bg-fill-soft text-text-muted')}>
+              {lockedParent ? lockedParent.name : 'None'}
+            </p>
+          ) : (
+            <Select id="cat-parent" className={selectClass} {...register('parentId')}>
+              <option value="">None (main category)</option>
+              {parents
+                .filter((p) => p.id !== category?.id)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+            </Select>
+          )}
+        </FormField>
+        <FormField label={isSub ? 'Subcategory name' : 'Category name'} htmlFor="cat-name" required error={errors.name?.message}>
           <input id="cat-name" autoFocus placeholder={isSub ? 'e.g. Earbuds' : 'e.g. Audio'} aria-invalid={Boolean(errors.name)} className={inputClass(errors.name)} {...register('name')} />
         </FormField>
         <FormField label="URL slug" htmlFor="cat-slug" error={errors.slug?.message} hint={isEdit ? 'Changing the slug changes the category link.' : 'Filled in from the name. You can edit it.'}>
@@ -156,34 +184,6 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
               }}
             />
           </div>
-        </FormField>
-        <FormField
-          label="Parent category"
-          htmlFor="cat-parent"
-          hint={
-            lockedParent
-              ? 'This subcategory is added under the category you picked.'
-              : hasChildren
-                ? 'This category has subcategories, so it stays at the top level.'
-                : 'Categories go two levels deep: a subcategory cannot have its own subcategories.'
-          }
-        >
-          {lockedParent || hasChildren ? (
-            <p id="cat-parent" className={cn(inputClass(), 'flex items-center bg-fill-soft text-text-muted')}>
-              {lockedParent ? lockedParent.name : 'None (top level)'}
-            </p>
-          ) : (
-            <Select id="cat-parent" className={selectClass} {...register('parentId')}>
-              <option value="">None (top level)</option>
-              {parents
-                .filter((p) => p.id !== category?.id)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-            </Select>
-          )}
         </FormField>
         <FormField label="Picture" hint="Square image, shown on the categories page, menus and Home. Without a picture the icon is shown.">
           <Controller
