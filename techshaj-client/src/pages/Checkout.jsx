@@ -104,7 +104,7 @@ function PlaceOrder({ total, submitting, className }) {
       <button
         type="submit"
         disabled={submitting}
-        className="bg-brand-gradient h-[50px] w-full rounded-[10px] font-bangla text-body-lg font-semibold whitespace-pre text-white disabled:opacity-60 lg:h-[52px] lg:text-[17px]"
+        className="bg-primary hover:bg-primary-deep h-[50px] w-full rounded-[10px] font-bangla text-body-lg font-semibold whitespace-pre text-white disabled:opacity-60 lg:h-[52px] lg:text-[17px]"
       >
         {`অর্ডার কনফার্ম করুন  •  ${formatPrice(total)}`}
       </button>

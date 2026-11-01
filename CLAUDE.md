@@ -49,4 +49,5 @@ Defined in `techshaj-client/src/index.css` (from Figma frame `86:20441`).
 - `site-container`: 1240px content width (from the 1440px frames) with a 16px gutter. Use it for every page section.
 - Fonts: `font-heading` (Montserrat), `font-body` (Inter, default), `font-bangla` (Hind Siliguri).
 - Type scale: `text-h1`–`text-h4`, `text-body-lg`, `text-body`, `text-body-sm`, `text-label`, `text-label-sm`, `text-price-lg`, `text-price`. Each sets the size and the Figma weight.
-- `bg-brand-gradient`: only for final purchase buttons (Order Now, Checkout, অর্ডার কনফার্ম করুন).
+- Buttons are flat: primary actions use `bg-primary hover:bg-primary-deep`. No gradients on buttons.
+- Product pages (`/product/:slug`) hide the header, footer and bottom nav and show `ProductBackBar` instead.

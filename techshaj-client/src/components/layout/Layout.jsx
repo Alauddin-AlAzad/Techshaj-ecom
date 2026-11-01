@@ -11,6 +11,7 @@ import BottomNav from './BottomNav.jsx'
 import FloatingContact from './FloatingContact.jsx'
 import Footer from './Footer.jsx'
 import Header from './Header.jsx'
+import ProductBackBar from './ProductBackBar.jsx'
 
 export default function Layout() {
   const { data: store = null } = useSettings()
@@ -18,6 +19,7 @@ export default function Layout() {
   const { pathname } = useLocation()
   const closeDrawer = useCartStore((s) => s.closeDrawer)
   // These mobile frames replace the site header and footer with their own top bar; checkout also drops the bottom nav.
+  const focus = pathname.startsWith('/product/')
   const bareMobile = ['/cart', '/checkout', '/favorite'].includes(pathname)
 
   // Scroll to top on every route change.
@@ -46,19 +48,25 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       {/* Top bar and navbar stick together; z-50 keeps the mega menu and mobile drawer above the bottom nav. */}
-      <div className={cn('sticky top-0 z-50', bareMobile && 'max-lg:hidden')}>
-        <Header store={store} categories={categories} />
-      </div>
+      {focus ? (
+        <ProductBackBar />
+      ) : (
+        <div className={cn('sticky top-0 z-50', bareMobile && 'max-lg:hidden')}>
+          <Header store={store} categories={categories} />
+        </div>
+      )}
       <main className="flex-1">
         <Suspense fallback={<PageSkeleton pathname={pathname} />}>
           <Outlet />
         </Suspense>
       </main>
-      <div className={cn(bareMobile && 'max-lg:hidden')}>
-        <Footer store={store} />
-      </div>
+      {!focus && (
+        <div className={cn(bareMobile && 'max-lg:hidden')}>
+          <Footer store={store} />
+        </div>
+      )}
       <FloatingContact store={store} />
-      {pathname !== '/checkout' && <BottomNav />}
+      {pathname !== '/checkout' && !focus && <BottomNav />}
       <CartDrawer />
     </div>
   )
