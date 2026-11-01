@@ -35,16 +35,16 @@ export default function FlashSale({ flashSale, loading = false }) {
             <div className="absolute inset-0 bg-flash/55" />
           </>
         )}
-        <div className="relative flex items-center gap-1.5 lg:gap-x-4">
-          <h2 className="flex shrink-0 items-center gap-1 font-heading text-[14px] font-bold text-white lg:gap-2 lg:text-[28px]">
-            <Zap className="size-4 fill-highlight text-highlight lg:size-7" />
+        <div className="relative flex items-center gap-1 lg:gap-x-4">
+          <h2 className="flex shrink-0 items-center gap-0.5 font-heading text-[12px] font-bold text-white lg:gap-2 lg:text-[28px]">
+            <Zap className="size-3.5 fill-highlight max-[359px]:hidden text-highlight lg:size-7" />
             {flashSale.title}
           </h2>
-          <div className="flex items-center gap-1.5 lg:gap-2">
-            <span className="text-[10px] leading-tight font-semibold text-white lg:text-[14px]">Ends in</span>
+          <div className="flex min-w-0 items-center gap-1 lg:gap-2">
+            <span className="text-[9px] leading-tight font-semibold whitespace-nowrap max-[359px]:hidden text-white lg:text-[14px]">Ends in</span>
             <FlashCountdown endsAt={flashSale.endsAt} />
           </div>
-          <Link to="/offers?tab=flash-sale" className="ml-auto flex h-7 shrink-0 items-center rounded-md border border-white px-2 text-[11px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:rounded-lg lg:px-4 lg:text-[14px]">
+          <Link to="/offers?tab=flash-sale" className="ml-auto flex h-6 shrink-0 items-center rounded-md border border-white px-1.5 text-[10px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:rounded-lg lg:px-4 lg:text-[14px]">
             See All
           </Link>
         </div>
