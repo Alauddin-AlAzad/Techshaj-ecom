@@ -15,7 +15,7 @@ import { zodResolver } from '../lib/zodResolver.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
 const schema = z.object({
-  id: z.string().trim().toUpperCase().min(1, 'Enter your order ID'),
+  id: z.string().trim().toUpperCase(),
   phone: z.preprocess(
     (v) => toLatinDigits(String(v ?? '')).replace(/\D/g, '').replace(/^880/, '0'),
     z.string().regex(/^01[3-9]\d{8}$/, 'Enter the 11-digit phone number you used at checkout'),
@@ -47,7 +47,7 @@ export default function TrackOrder() {
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema), defaultValues: { id: params.get('id') ?? '', phone: params.get('phone') ?? '' } })
 
-  const onSubmit = (query) => setParams({ id: query.id, phone: query.phone }, { replace: true })
+  const onSubmit = (query) => setParams(query.id ? { id: query.id, phone: query.phone } : { phone: query.phone }, { replace: true })
 
   return (
     <div className="pb-24 lg:pb-[72px]">
@@ -64,14 +64,7 @@ export default function TrackOrder() {
 
         <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-2.5">
           <div className="flex w-full flex-col gap-2.5 lg:flex-row">
-            <input
-              {...register('id')}
-              placeholder="Order ID (e.g. TS2610305)"
-              aria-label="Order ID"
-              aria-invalid={Boolean(errors.id)}
-              autoComplete="off"
-              className={cn(input, 'uppercase placeholder:normal-case', errors.id && 'border-error bg-error-wash')}
-            />
+            <input {...register('id')} placeholder="Order ID (e.g. TS2610305)" aria-label="Order ID" autoComplete="off" className={cn(input, 'uppercase placeholder:normal-case')} />
             <input
               {...register('phone')}
               type="tel"
@@ -87,10 +80,12 @@ export default function TrackOrder() {
               Track
             </button>
           </div>
-          {(errors.id || errors.phone) && (
+          {errors.phone ? (
             <p role="alert" className="text-body-sm font-medium text-error">
-              {errors.id?.message ?? errors.phone.message}
+              {errors.phone.message}
             </p>
+          ) : (
+            <p className="text-body-sm text-text-faint">No order ID? Search with your phone number only to see all your orders.</p>
           )}
         </form>
 
@@ -104,11 +99,16 @@ export default function TrackOrder() {
                 <PackageSearch size={36} className="text-text-faint" />
                 <p className="text-body-lg font-bold text-text">No order found</p>
                 <p className="text-body text-text-muted">
-                  Check the order ID and phone number and try again.
+                  {result.query.id ? 'Check the order ID and phone number and try again.' : 'We could not find any orders for this phone number.'}
                 </p>
               </div>
             ) : (
               <>
+                {!result.query.id && (
+                  <p className="text-body text-text-muted">
+                    {result.orders.length} {result.orders.length === 1 ? 'order' : 'orders'} for {result.query.phone}
+                  </p>
+                )}
                 {result.orders.map((order) => (
                   <TrackingResult key={order.id} order={order} zones={zones ?? []} />
                 ))}

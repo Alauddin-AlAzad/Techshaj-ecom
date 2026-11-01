@@ -87,7 +87,7 @@ async function run() {
       if (subtotal < (coupon.minOrder ?? 0)) return { valid: false, discount: 0, message: `Minimum order ৳${coupon.minOrder} for this coupon` };
       const amount = coupon.type === "percent" ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
       const discount = Math.min(amount, subtotal);
-      return { valid: true, discount, message: "Coupon applied", code: coupon.code };
+      return { valid: true, discount, message: "Coupon applied", code: coupon.code, perPhoneLimit: coupon.perPhoneLimit ?? null };
     };
     const lowStockLimit = 5;
     const ratingModes = ["manual", "auto"];
@@ -352,6 +352,12 @@ async function run() {
       if (body.minOrder !== undefined) {
         data.minOrder = body.minOrder === null ? 0 : toNumber(body.minOrder);
         if (!Number.isFinite(data.minOrder) || data.minOrder < 0) return { error: "minOrder must be 0 or more" };
+      }
+      if (body.perPhoneLimit !== undefined) {
+        data.perPhoneLimit = body.perPhoneLimit === null ? null : toNumber(body.perPhoneLimit);
+        if (data.perPhoneLimit !== null && (!Number.isInteger(data.perPhoneLimit) || data.perPhoneLimit < 1 || data.perPhoneLimit > 1000)) {
+          return { error: "perPhoneLimit must be a whole number from 1 to 1000, or empty for no limit" };
+        }
       }
       if (body.expiresAt !== undefined) {
         data.expiresAt = toDate(body.expiresAt);
@@ -1319,6 +1325,12 @@ async function run() {
         if (typeof couponCode === "string" && couponCode.trim()) {
           const result = await checkCoupon(couponCode, subtotal);
           if (!result.valid) return res.status(400).send({ message: result.message });
+          if (result.perPhoneLimit) {
+            const used = await ordersCollection.countDocuments({ coupon: result.code, status: { $ne: "cancelled" }, $or: [{ phone }, { "customer.phone": phone }] });
+            if (used >= result.perPhoneLimit) {
+              return res.status(400).send({ message: result.perPhoneLimit === 1 ? "This coupon can be used only once per phone number" : `This coupon can be used only ${result.perPhoneLimit} times per phone number` });
+            }
+          }
           discount = result.discount;
           coupon = result.code;
         }
@@ -1380,10 +1392,10 @@ async function run() {
       try {
         const phone = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
         const orderId = typeof req.query.orderId === "string" ? req.query.orderId.trim().toUpperCase() : "";
-        if (!orderId) return res.status(400).send({ message: "Order ID is required" });
         if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
 
-        const query = { $or: [{ phone }, { "customer.phone": phone }], orderId };
+        const query = { $or: [{ phone }, { "customer.phone": phone }] };
+        if (orderId) query.orderId = orderId;
         const orders = await ordersCollection.find(query).sort({ createdAt: -1 }).toArray();
         const tracked = orders.map((o) => ({
           orderId: o.orderId,
@@ -1400,8 +1412,11 @@ async function run() {
           createdAt: o.createdAt,
         }));
 
-        if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
-        res.send(tracked[0]);
+        if (orderId) {
+          if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
+          return res.send(tracked[0]);
+        }
+        res.send(tracked);
       } catch (error) {
         res.status(500).send({ message: error.message });
       }

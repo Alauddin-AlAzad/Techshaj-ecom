@@ -39,6 +39,10 @@ const schema = z
       .string()
       .trim()
       .refine((v) => v === '' || Number(v) >= 0, 'Minimum order must be 0 or more'),
+    perPhoneLimit: z
+      .string()
+      .trim()
+      .refine((v) => v === '' || (Number.isInteger(Number(v)) && Number(v) >= 1 && Number(v) <= 1000), 'Enter a whole number from 1 to 1000'),
     expiresAt: z.string(),
     active: z.boolean(),
     isPublic: z.boolean(),
@@ -50,6 +54,7 @@ const toFormValues = (c) => ({
   type: c?.type ?? 'fixed',
   value: c ? String(c.value) : '',
   minOrder: c?.minOrder ? String(c.minOrder) : '',
+  perPhoneLimit: c?.perPhoneLimit ? String(c.perPhoneLimit) : '',
   expiresAt: toDhakaInput(c?.expiresAt).slice(0, 10),
   active: c ? c.active !== false : true,
   isPublic: c ? c.isPublic !== false : true,
@@ -61,6 +66,7 @@ const toPayload = (v) => ({
   type: v.type,
   value: Number(v.value),
   minOrder: v.minOrder === '' ? 0 : Number(v.minOrder),
+  perPhoneLimit: v.perPhoneLimit === '' ? null : Number(v.perPhoneLimit),
   expiresAt: v.expiresAt ? new Date(`${v.expiresAt}T23:59:59+06:00`).toISOString() : null,
   active: v.active,
   isPublic: v.isPublic,
@@ -168,6 +174,10 @@ function CouponForm({ coupon, onClose }) {
             <input id="coupon-min" type="number" inputMode="numeric" min="0" placeholder="1500" aria-invalid={Boolean(errors.minOrder)} className={inputClass(errors.minOrder)} {...register('minOrder')} />
           </FormField>
         </div>
+
+        <FormField label="Uses per phone number" htmlFor="coupon-limit" error={errors.perPhoneLimit?.message} hint="How many times one phone number can use this coupon. Empty: no limit. Cancelled orders do not count.">
+          <input id="coupon-limit" type="number" inputMode="numeric" min="1" placeholder="1" aria-invalid={Boolean(errors.perPhoneLimit)} className={inputClass(errors.perPhoneLimit)} {...register('perPhoneLimit')} />
+        </FormField>
 
         <FormField label="Valid until" htmlFor="coupon-expiry" hint="Works until the end of this day. Empty: never expires.">
           <input id="coupon-expiry" type="date" className={inputClass()} {...register('expiresAt')} />
