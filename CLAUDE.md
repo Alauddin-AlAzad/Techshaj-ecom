@@ -51,4 +51,4 @@ Defined in `techshaj-client/src/index.css` (from Figma frame `86:20441`).
 - Fonts: `font-heading` (Montserrat), `font-body` (Inter, default), `font-bangla` (Hind Siliguri).
 - Type scale: `text-h1`–`text-h4`, `text-body-lg`, `text-body`, `text-body-sm`, `text-label`, `text-label-sm`, `text-price-lg`, `text-price`. Each sets the size and the Figma weight.
 - Buttons are flat: primary actions use `bg-primary hover:bg-primary-deep`. No gradients on buttons.
-- Product pages (`/product/:slug`) hide the header, footer and bottom nav and show `ProductBackBar` instead.
+- Product pages (`/product/:slug`): on mobile the header, footer and bottom nav are replaced by `ProductBackBar` (back arrow, product title, share, cart); on desktop the header stays. Share opens `ShareSheet`.
