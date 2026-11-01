@@ -1,27 +1,9 @@
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react'
-import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
-import { useCountdown } from '../../hooks/useCountdown.js'
+import FlashCountdown from '../FlashCountdown.jsx'
 import { useSwiperNav } from '../../hooks/useSwiperNav.js'
 import { ProductCardsSkeleton, Skeleton } from '../Skeleton.jsx'
 import { ProductSwiper } from './ProductRow.jsx'
-
-function Countdown({ endsAt }) {
-  const t = useCountdown(endsAt)
-  const hours = String(Number(t.days) * 24 + Number(t.hours)).padStart(2, '0')
-  const units = [hours, t.mins, t.secs]
-
-  return (
-    <div role="timer" aria-label="Time left in flash sale" className="flex items-center gap-1 lg:gap-1.5">
-      {units.map((value, i) => (
-        <Fragment key={i}>
-          {i > 0 && <span className="text-[14px] font-bold text-white lg:text-[16px]">:</span>}
-          <span className="flex h-7 min-w-8 items-center justify-center rounded-md bg-primary-tint px-1.5 text-[14px] font-bold text-primary tabular-nums lg:h-9 lg:min-w-[42px] lg:text-[18px]">{value}</span>
-        </Fragment>
-      ))}
-    </div>
-  )
-}
 
 const arrow = 'absolute top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white text-primary shadow-md hover:bg-primary-tint max-lg:hidden'
 
@@ -60,7 +42,7 @@ export default function FlashSale({ flashSale, loading = false }) {
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-semibold text-white lg:text-[14px]">Ends in</span>
-            <Countdown endsAt={flashSale.endsAt} />
+            <FlashCountdown endsAt={flashSale.endsAt} />
           </div>
           <Link to="/offers?tab=flash-sale" className="ml-auto flex h-8 items-center rounded-lg border border-white px-3 text-[12px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:px-4 lg:text-[14px]">
             See All

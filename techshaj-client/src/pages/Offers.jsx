@@ -1,11 +1,12 @@
 import { BadgePercent, ChevronDown, Zap } from 'lucide-react'
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard.jsx'
 import ErrorState from '../components/ErrorState.jsx'
 import { ProductGridSkeleton } from '../components/Skeleton.jsx'
 import { useOffers } from '../hooks/useOffers.js'
 import { useAllProducts } from '../hooks/useProducts.js'
+import FlashCountdown from '../components/FlashCountdown.jsx'
 import { useCountdown } from '../hooks/useCountdown.js'
 import { copyText } from '../lib/clipboard.js'
 import { cn } from '../lib/cn.js'
@@ -68,8 +69,6 @@ function CouponCard({ coupon }) {
 
 function FlashSaleBar({ title, endsAt }) {
   const t = useCountdown(endsAt)
-  // Hours, minutes and seconds; with more than a day left the hours count past 24 so the seconds keep moving.
-  const units = [String(Number(t.days) * 24 + Number(t.hours)).padStart(2, '0'), t.mins, t.secs]
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-[14px] bg-flash-bar px-3.5 py-3">
@@ -80,14 +79,7 @@ function FlashSaleBar({ title, endsAt }) {
           <span className="text-[11px] text-flash-sub">{t.ended ? 'Ended' : 'Ends in'}</span>
         </span>
       </span>
-      <span role="timer" aria-label="Time left in flash sale" className="flex items-center gap-1 text-body font-bold text-white tabular-nums">
-        {units.map((u, i) => (
-          <Fragment key={i}>
-            {i > 0 && <span>:</span>}
-            <span className="flex h-[30px] min-w-8 items-center justify-center rounded-md bg-primary-tint px-1 text-primary">{u}</span>
-          </Fragment>
-        ))}
-      </span>
+      <FlashCountdown endsAt={endsAt} />
     </div>
   )
 }
