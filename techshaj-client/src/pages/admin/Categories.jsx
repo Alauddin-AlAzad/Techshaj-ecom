@@ -64,22 +64,32 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
     register,
     handleSubmit,
     setValue,
+    setError,
+    clearErrors,
     control,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema), defaultValues: defaults })
 
   const slugEdited = useRef(isEdit)
-  const [name, icon, image, parentId] = useWatch({ control, name: ['name', 'icon', 'image', 'parentId'] })
+  const [name, icon, image] = useWatch({ control, name: ['name', 'icon', 'image'] })
   useEffect(() => {
     if (!slugEdited.current) setValue('slug', slugify(name))
   }, [name, setValue])
 
   const hasChildren = category?.children?.length > 0
   const slugField = register('slug')
-  const isSub = Boolean(parentId)
+  const [kind, setKind] = useState(defaults.parentId ? 'sub' : 'category')
+  const isSub = kind === 'sub'
+  const kindLocked = Boolean(lockedParent) || hasChildren
+  const chooseKind = (next) => {
+    setKind(next)
+    if (next === 'category') setValue('parentId', '')
+    clearErrors('parentId')
+  }
   const title = isEdit ? (category.parentId ? 'Edit subcategory' : 'Edit category') : lockedParent ? `Add subcategory to ${lockedParent.name}` : 'Add category'
 
   const onSubmit = (values) => {
+    if (isSub && !values.parentId) return setError('parentId', { message: 'Choose the category' })
     const data = {
       name: values.name.trim(),
       slug: slugify(values.slug),
@@ -136,34 +146,47 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
             {errorMessage(save.error)}
           </p>
         )}
-        <FormField
-          label="Category"
-          htmlFor="cat-parent"
-          hint={
-            lockedParent
-              ? 'This subcategory is added under this category.'
-              : hasChildren
-                ? 'This category has subcategories, so it stays at the top level.'
-                : 'Leave it as None to make a main category, or pick a category to make this a subcategory.'
-          }
-        >
-          {lockedParent || hasChildren ? (
-            <p id="cat-parent" className={cn(inputClass(), 'flex items-center bg-fill-soft text-text-muted')}>
-              {lockedParent ? lockedParent.name : 'None'}
-            </p>
-          ) : (
-            <Select id="cat-parent" className={selectClass} {...register('parentId')}>
-              <option value="">None (main category)</option>
-              {parents
-                .filter((p) => p.id !== category?.id)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-            </Select>
-          )}
-        </FormField>
+        <div className="flex flex-col gap-1.5">
+          <div role="tablist" className="grid grid-cols-2 gap-1 rounded-[10px] bg-fill p-1">
+            {[
+              ['category', 'Category'],
+              ['sub', 'Subcategory'],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={kind === key}
+                disabled={kindLocked}
+                onClick={() => chooseKind(key)}
+                className={cn('h-10 rounded-lg text-[13px] font-semibold disabled:cursor-not-allowed', kind === key ? 'bg-white text-text shadow-sm' : 'text-text-muted', kindLocked && kind !== key && 'opacity-50')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {hasChildren && <p className="text-[12px] text-text-faint">This category has subcategories, so it stays a main category.</p>}
+        </div>
+        {kind === 'sub' && (
+          <FormField label="Under which category" htmlFor="cat-parent" required error={errors.parentId?.message}>
+            {lockedParent ? (
+              <p id="cat-parent" className={cn(inputClass(), 'flex items-center bg-fill-soft text-text-muted')}>
+                {lockedParent.name}
+              </p>
+            ) : (
+              <Select id="cat-parent" error={errors.parentId} className={selectClass} {...register('parentId')}>
+                <option value="">Select a category</option>
+                {parents
+                  .filter((p) => p.id !== category?.id)
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+              </Select>
+            )}
+          </FormField>
+        )}
         <FormField label={isSub ? 'Subcategory name' : 'Category name'} htmlFor="cat-name" required error={errors.name?.message}>
           <input id="cat-name" autoFocus placeholder={isSub ? 'e.g. Earbuds' : 'e.g. Audio'} aria-invalid={Boolean(errors.name)} className={inputClass(errors.name)} {...register('name')} />
         </FormField>
