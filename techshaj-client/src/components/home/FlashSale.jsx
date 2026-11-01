@@ -44,7 +44,16 @@ export default function FlashSale({ flashSale, loading = false }) {
   return (
     <section className="site-container pt-7 lg:pt-12">
       <div className="relative overflow-hidden rounded-[14px] bg-flash bg-[radial-gradient(circle_at_88%_0%,color-mix(in_srgb,var(--color-primary)_50%,transparent),transparent_55%),radial-gradient(circle_at_0%_100%,color-mix(in_srgb,var(--color-secondary)_40%,transparent),transparent_50%)] px-3 pt-4 pb-4 lg:px-5 lg:pt-5 lg:pb-6">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:gap-x-4">
+        {flashSale.bannerImage && (
+          <>
+            <picture>
+              {flashSale.bannerMobile && <source media="(max-width: 1023px)" srcSet={flashSale.bannerMobile} />}
+              <img src={flashSale.bannerImage} alt="" className="absolute inset-0 size-full object-cover" />
+            </picture>
+            <div className="absolute inset-0 bg-flash/55" />
+          </>
+        )}
+        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:gap-x-4">
           <h2 className="flex items-center gap-1.5 font-heading text-[18px] font-bold text-white lg:gap-2 lg:text-[28px]">
             <Zap className="size-5 fill-highlight text-highlight lg:size-7" />
             {flashSale.title}

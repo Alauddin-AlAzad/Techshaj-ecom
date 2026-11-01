@@ -108,6 +108,8 @@ export default function Offers() {
   const offers = useMemo(() => (data ? data.products.filter(isOffer) : []), [data])
   const results = useMemo(() => sortOffers(offers.filter((p) => matchesTab(p, tab)), sort), [offers, tab, sort])
   const maxDiscount = Math.max(0, ...offers.map(discountOf))
+  const sale = offersQuery.data?.flashSale
+  const banner = sale?.bannerImage ? { image: sale.bannerImage, mobile: sale.bannerMobile } : null
 
   const update = (key, value, fallback) =>
     setParams(
@@ -122,11 +124,21 @@ export default function Offers() {
 
   return (
     <div className="site-container flex flex-col gap-[18px] pt-4 pb-24 lg:gap-6 lg:pt-8 lg:pb-[72px]">
-      <section className="bg-offers-gradient flex flex-col gap-1.5 rounded-2xl px-[18px] py-5 lg:gap-2 lg:px-10 lg:py-9">
-        <p className="text-[11px] font-bold text-menu-eyebrow lg:text-label-sm">THIS WEEK</p>
-        <h1 className="text-[24px] font-bold text-white lg:text-[36px]">Offers &amp; Deals</h1>
-        {maxDiscount > 0 && <p className="text-[13px] text-offers-copy lg:text-body-lg">Up to {maxDiscount}% OFF on gadgets you love</p>}
-      </section>
+      {banner ? (
+        <section className="overflow-hidden rounded-2xl">
+          <h1 className="sr-only">Offers &amp; Deals</h1>
+          <picture>
+            {banner.mobile && <source media="(max-width: 1023px)" srcSet={banner.mobile} />}
+            <img src={banner.image} alt="" className="block w-full" />
+          </picture>
+        </section>
+      ) : (
+        <section className="bg-offers-gradient flex flex-col gap-1.5 rounded-2xl px-[18px] py-5 lg:gap-2 lg:px-10 lg:py-9">
+          <p className="text-[11px] font-bold text-menu-eyebrow lg:text-label-sm">THIS WEEK</p>
+          <h1 className="text-[24px] font-bold text-white lg:text-[36px]">Offers &amp; Deals</h1>
+          {maxDiscount > 0 && <p className="text-[13px] text-offers-copy lg:text-body-lg">Up to {maxDiscount}% OFF on gadgets you love</p>}
+        </section>
+      )}
 
       <div role="tablist" aria-label="Offer type" className="-mx-4 flex gap-2 overflow-x-auto px-4 no-scrollbar lg:mx-0 lg:px-0">
         {TABS.map((t) => (

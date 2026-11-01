@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { Skeleton } from '../../components/Skeleton.jsx'
+import ImageUploader from '../../components/admin/ImageUploader.jsx'
 import Button from '../../components/admin/Button.jsx'
 import Card from '../../components/admin/Card.jsx'
 import ConfirmDialog from '../../components/admin/ConfirmDialog.jsx'
@@ -30,6 +31,8 @@ const schemaFor = (isNew) =>
       title: z.string().trim().min(1, 'Enter a title').max(80, 'Keep the title under 80 characters'),
       endsAt: z.string().min(1, 'Choose when the sale ends'),
       active: z.boolean(),
+      bannerImage: z.string(),
+      bannerMobile: z.string(),
       products: isNew ? z.array(productSchema).min(1, 'Add at least one product') : z.array(productSchema),
     })
     .refine((v) => !v.active || !v.endsAt || new Date(fromDhakaInput(v.endsAt)) > new Date(), { path: ['endsAt'], message: 'Pick a time in the future, or turn the sale off' })
@@ -40,6 +43,8 @@ const toFormValues = (sale) => ({
   title: sale?.title ?? 'Flash Sale',
   endsAt: toDhakaInput(sale?.endsAt),
   active: sale ? sale.active !== false : true,
+  bannerImage: sale?.bannerImage ?? '',
+  bannerMobile: sale?.bannerMobile ?? '',
   // Unpublished products are not returned by /offers, so they show by id only.
   products: (sale?.productIds ?? []).map((id) => {
     const p = sale.products?.find((x) => x.id === id)
@@ -51,6 +56,8 @@ const toPayload = (v) => ({
   title: v.title.trim(),
   endsAt: fromDhakaInput(v.endsAt),
   active: v.active,
+  bannerImage: v.bannerImage,
+  bannerMobile: v.bannerMobile,
   productIds: v.products.map((p) => p.id),
 })
 
@@ -217,6 +224,25 @@ function FlashSaleEditor({ sale }) {
           <FormField label="Ends" htmlFor="sale-ends" required error={errors.endsAt?.message} hint="Dhaka time. The countdown runs to this moment.">
             <input id="sale-ends" type="datetime-local" aria-invalid={Boolean(errors.endsAt)} className={inputClass(errors.endsAt)} {...register('endsAt')} />
           </FormField>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            ['bannerImage', 'Banner image', 'Wide image, about 1600 × 500. Shown at the top of the Offers page and behind the Flash Sale section on the homepage. Empty: the pink gradient.'],
+            ['bannerMobile', 'Mobile banner (optional)', 'Taller image for phones, about 800 × 500. Empty: the banner image above is used.'],
+          ].map(([name, label, hint]) => (
+            <FormField key={name} label={label} hint={hint}>
+              <Controller
+                control={control}
+                name={name}
+                render={({ field }) => (
+                  <div className="max-w-[300px]">
+                    <ImageUploader value={field.value ? [field.value] : []} max={1} multiple={false} onChange={(urls) => field.onChange(urls.at(-1) ?? '')} />
+                  </div>
+                )}
+              />
+            </FormField>
+          ))}
         </div>
 
         <div className="flex flex-col gap-3">
