@@ -1,5 +1,5 @@
 import { Heart, Share2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ShareSheet from './ShareSheet.jsx'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useFavoriteToggle } from '../../hooks/useFavoriteToggle.js'
@@ -43,8 +43,8 @@ function Thumb({ src, active, onClick, index }) {
 }
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
-// images: the pictures to show, which change with the chosen variant option.
-export default function Gallery({ product, images, discount }) {
+// images: all pictures. focus: { src } to show; onThumb(src) runs when a thumb is clicked.
+export default function Gallery({ product, images, focus, onThumb, discount }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
   const [sharing, setSharing] = useState(false)
@@ -55,9 +55,17 @@ export default function Gallery({ product, images, discount }) {
       src={src}
       index={i}
       active={i === active}
-      onClick={() => swiper?.slideTo(i)}
+      onClick={() => {
+        swiper?.slideTo(i)
+        onThumb?.(src)
+      }}
     />
   ))
+
+  useEffect(() => {
+    const index = focus ? images.indexOf(focus.src) : -1
+    if (swiper && index >= 0) swiper.slideTo(index)
+  }, [focus, swiper]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col gap-2.5 lg:contents">

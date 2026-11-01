@@ -18,7 +18,7 @@ import { usePageTitle } from '../hooks/usePageTitle.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { discountPercent, formatPrice } from '../lib/format.js'
 import { notify } from '../lib/notify.jsx'
-import { defaultVariant, variantImages } from '../lib/product.js'
+import { allImages, defaultVariant, optionOfImage, optionPics } from '../lib/product.js'
 import { newEventId, pixelContents, trackPixel } from '../lib/pixel.js'
 import { combine } from '../lib/query.js'
 import NotFound from './NotFound.jsx'
@@ -26,8 +26,19 @@ import NotFound from './NotFound.jsx'
 // Keyed by slug from the route so state resets when moving between products.
 function ProductDetails({ product, store, reviews, related }) {
   const [variant, setVariant] = useState(() => defaultVariant(product))
-  const images = variantImages(product, variant)
-  const chooseVariant = (next) => setVariant(next)
+  const [focus, setFocus] = useState(null)
+  const images = allImages(product)
+  // Choosing an option shows its first picture, also when it was already chosen; a new object re-focuses it.
+  const chooseVariant = (next, name) => {
+    const src = optionPics(product, name, next[name])[0]
+    setVariant(next)
+    if (src) setFocus({ src })
+  }
+  // A picture that belongs to an option selects that option.
+  const pickFromGallery = (src) => {
+    const found = optionOfImage(product, src)
+    if (found) setVariant((v) => ({ ...v, [found.name]: found.option }))
+  }
   const [qty, setQty] = useState(1)
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openDrawer)
@@ -72,7 +83,7 @@ function ProductDetails({ product, store, reviews, related }) {
       <div className="lg:site-container">
         <section className="flex flex-col gap-0 lg:grid lg:grid-cols-[72px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-10 lg:rounded-2xl lg:bg-white lg:py-8 lg:pr-10 lg:pl-8 xl:grid-cols-[72px_500px_minmax(0,1fr)]">
           <div className="site-container pt-3 lg:contents">
-            <Gallery key={images.join('|')} product={product} images={images} discount={discount} />
+            <Gallery product={product} images={images} focus={focus} onThumb={pickFromGallery} discount={discount} />
           </div>
           <div className="site-container pt-[18px] lg:w-auto lg:max-w-none lg:p-0">
             <BuyBox
