@@ -24,6 +24,7 @@
 - **Comments:** one short comment line above each group of routes (e.g. `// products`). No other comments.
 - **Prices:** never trust prices, totals, discounts or shipping charges sent by the client. Recalculate them from the database (products, coupons, settings) before saving an order.
 - **Collections:** `products`, `categories`, `banners`, `offers`, `coupons`, `settings` (one document: store info, `shippingZones`, `freeShippingThreshold`), `orders`, `reviews`, `admins`. Unique indexes on `products.slug`, `products.code`, `categories.slug`, `orders.orderId`.
+- **Meta tracking:** Pixel ID, Conversions API token and test code live in `settings.meta`, edited in Admin > Settings > Tracking. The token never leaves the server; `GET /settings` exposes only `meta.pixelId` when tracking is on. Purchase is sent from `POST /orders` with the same `event_id` as the browser event.
 - **Seeding:** `npm run seed` runs `seed.js`, which refills `techshajDB` from `techshaj-client/src/data/fakeData.json` after a terminal confirmation. Env keys are listed in `.env.example`.
 
 ## Structure (`techshaj-client/src`)

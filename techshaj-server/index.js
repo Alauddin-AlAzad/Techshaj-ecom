@@ -7,6 +7,7 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const rateLimit = require('express-rate-limit')
+const crypto = require('node:crypto')
 const port=process.env.PORT || 5000;
 // middle ware
 const clientUrls = (process.env.CLIENT_URLS || "http://localhost:5173").split(",").map((url) => url.trim()).filter(Boolean);
@@ -125,6 +126,92 @@ async function run() {
     };
     const cloudinaryUrl = /^https:\/\/res\.cloudinary\.com\/\S+$/;
     const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+    // meta pixel and conversions api
+    const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
+    const graphVersion = process.env.META_GRAPH_VERSION || "v23.0";
+    const adminMeta = (meta) => ({
+      pixelId: meta?.pixelId ?? "",
+      enabled: meta?.enabled === true,
+      testEventCode: meta?.testEventCode ?? "",
+      hasToken: Boolean(meta?.capiToken),
+      tokenHint: meta?.capiToken ? meta.capiToken.slice(-4) : "",
+    });
+    const readMeta = (meta) => {
+      if (!isPlainObject(meta)) return { error: "meta must be an object" };
+      const data = {};
+      if (meta.pixelId !== undefined) {
+        const pixelId = String(meta.pixelId ?? "").trim();
+        if (pixelId && !/^\d{8,20}$/.test(pixelId)) return { error: "Pixel ID must be 8 to 20 digits" };
+        data["meta.pixelId"] = pixelId;
+      }
+      if (meta.enabled !== undefined) data["meta.enabled"] = meta.enabled === true;
+      if (meta.testEventCode !== undefined) {
+        const code = String(meta.testEventCode ?? "").trim();
+        if (code && !/^[A-Za-z0-9_-]{1,40}$/.test(code)) return { error: "Test event code can only have letters, digits, - and _" };
+        data["meta.testEventCode"] = code;
+      }
+      if (meta.capiToken !== undefined) {
+        const token = String(meta.capiToken ?? "").trim();
+        if (token && !/^\S{20,}$/.test(token)) return { error: "The access token looks too short" };
+        data["meta.capiToken"] = token;
+      }
+      return { data };
+    };
+    const sendMetaEvents = async (meta, events, testEventCode) => {
+      const body = { data: events, access_token: meta.capiToken };
+      if (testEventCode) body.test_event_code = testEventCode;
+      const response = await fetch(`https://graph.facebook.com/${graphVersion}/${meta.pixelId}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(3000),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error?.message || "Meta rejected the request");
+      return result;
+    };
+    const sendPurchase = async (meta, order, req, tracking) => {
+      if (!meta?.enabled || !meta.pixelId || !meta.capiToken) return;
+      const [first, ...rest] = order.customer.name.toLowerCase().split(/\s+/);
+      const user = {
+        ph: [sha256(`88${order.phone.replace(/\D/g, "")}`)],
+        fn: [sha256(first)],
+        country: [sha256("bd")],
+        client_ip_address: req.ip,
+        client_user_agent: req.get("user-agent"),
+      };
+      if (rest.length) user.ln = [sha256(rest.join(" "))];
+      if (tracking.fbp) user.fbp = tracking.fbp;
+      if (tracking.fbc) user.fbc = tracking.fbc;
+      const event = {
+        event_name: "Purchase",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: tracking.eventId || order.orderId,
+        action_source: "website",
+        user_data: user,
+        custom_data: {
+          currency: "BDT",
+          value: order.total,
+          order_id: order.orderId,
+          content_type: "product",
+          content_ids: order.items.map((l) => String(l.productId)),
+          contents: order.items.map((l) => ({ id: String(l.productId), quantity: l.quantity, item_price: l.price })),
+          num_items: order.items.reduce((sum, l) => sum + l.quantity, 0),
+        },
+      };
+      if (tracking.sourceUrl) event.event_source_url = tracking.sourceUrl;
+      await sendMetaEvents(meta, [event], meta.testEventCode);
+    };
+    const readTracking = (value) => {
+      const text = (v, pattern) => (typeof v === "string" && pattern.test(v) ? v : "");
+      const tracking = isPlainObject(value) ? value : {};
+      return {
+        eventId: text(tracking.eventId, /^[\w-]{1,64}$/),
+        fbp: text(tracking.fbp, /^[\w.-]{1,100}$/),
+        fbc: text(tracking.fbc, /^[\w.-]{1,200}$/),
+        sourceUrl: text(tracking.sourceUrl, /^https?:\/\/\S{1,480}$/),
+      };
+    };
     const toNumber = (value) => (typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN);
     const toDate = (value) => (value === null || value === "" ? null : new Date(value));
     const isBadDate = (date) => date !== null && isNaN(date.getTime());
@@ -833,7 +920,7 @@ async function run() {
     // admin settings related api
     app.patch("/admin/settings", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const { store, shippingZones, freeShippingThreshold, topBar } = req.body ?? {};
+        const { store, shippingZones, freeShippingThreshold, topBar, meta } = req.body ?? {};
         const data = {};
         if (store !== undefined) {
           if (!isPlainObject(store)) return res.status(400).send({ message: "store must be an object" });
@@ -859,11 +946,46 @@ async function run() {
           if (result.error) return res.status(400).send({ message: result.error });
           data.topBar = result.topBar;
         }
+        if (meta !== undefined) {
+          const result = readMeta(meta);
+          if (result.error) return res.status(400).send({ message: result.error });
+          Object.assign(data, result.data);
+        }
         if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
         const settings = await settingsCollection.findOneAndUpdate({}, { $set: data }, { upsert: true, returnDocument: "after" });
-        res.send(settings);
+        res.send({ ...settings, meta: adminMeta(settings.meta) });
       } catch (error) {
         res.status(500).send({ message: error.message });
+      }
+    });
+
+    // admin meta pixel related api
+    app.get("/admin/meta", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const settings = await settingsCollection.findOne({});
+        res.send(adminMeta(settings?.meta));
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/admin/meta/test", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const settings = await settingsCollection.findOne({});
+        const meta = settings?.meta;
+        if (!meta?.pixelId || !meta.capiToken) return res.status(400).send({ message: "Save the Pixel ID and access token first" });
+        if (!meta.testEventCode) return res.status(400).send({ message: "Save a test event code first, so the test does not count as a real visit" });
+        const event = {
+          event_name: "PageView",
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: `test-${Date.now()}`,
+          action_source: "website",
+          user_data: { client_ip_address: req.ip, client_user_agent: req.get("user-agent") },
+        };
+        const result = await sendMetaEvents(meta, [event], meta.testEventCode);
+        res.send({ ok: true, eventsReceived: result.events_received ?? 0 });
+      } catch (error) {
+        res.status(400).send({ message: error.message });
       }
     });
 
@@ -1208,8 +1330,9 @@ async function run() {
       try {
         const settings = await settingsCollection.findOne({});
         if (!settings) return res.status(404).send({ message: "Settings not found" });
-        const { store, shippingZones, freeShippingThreshold, topBar } = settings;
-        res.send({ ...store, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones }, topBar: topBar ?? null });
+        const { store, shippingZones, freeShippingThreshold, topBar, meta } = settings;
+        const pixel = meta?.enabled && meta.pixelId ? { pixelId: meta.pixelId } : null;
+        res.send({ ...store, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones }, topBar: topBar ?? null, meta: pixel });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -1247,7 +1370,7 @@ async function run() {
     // orders related api
     app.post("/orders", async (req, res) => {
       try {
-        const { customer, zoneId, paymentMethod, transactionId, couponCode, items } = req.body ?? {};
+        const { customer, zoneId, paymentMethod, transactionId, couponCode, items, tracking } = req.body ?? {};
         const name = typeof customer?.name === "string" ? customer.name.trim() : "";
         const phone = typeof customer?.phone === "string" ? customer.phone.trim() : "";
         const address = typeof customer?.address === "string" ? customer.address.trim() : "";
@@ -1335,7 +1458,7 @@ async function run() {
           );
           const orderId = `TS${period}${String(counter.seq).padStart(4, "0")}`;
 
-          await ordersCollection.insertOne({
+          const order = {
             orderId,
             customer: { name, phone, address, note },
             phone,
@@ -1354,8 +1477,10 @@ async function run() {
             courier: null,
             trackingNumber: null,
             createdAt: now,
-          });
+          };
+          await ordersCollection.insertOne(order);
           if (coupon) await couponsCollection.updateOne({ code: coupon }, { $inc: { usedCount: 1 } }).catch(console.dir);
+          await sendPurchase(settings.meta, order, req, readTracking(tracking)).catch(console.dir);
           res.send({ orderId, total });
         } catch (error) {
           for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });

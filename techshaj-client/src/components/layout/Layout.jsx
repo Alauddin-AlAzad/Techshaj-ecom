@@ -2,6 +2,7 @@ import { Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useCartStore } from '../../context/useCartStore.js'
 import { useCategories } from '../../hooks/useCategories.js'
+import { usePixel } from '../../hooks/usePixel.js'
 import { useSettings } from '../../hooks/useSettings.js'
 import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
@@ -20,6 +21,7 @@ export default function Layout() {
   const closeDrawer = useCartStore((s) => s.closeDrawer)
   // These mobile frames replace the site header and footer with their own top bar; checkout also drops the bottom nav.
   const focus = pathname.startsWith('/product/')
+  usePixel(store?.meta?.pixelId, pathname)
   const bareMobile = ['/cart', '/checkout', '/favorite'].includes(pathname)
 
   // Scroll to top on every route change.

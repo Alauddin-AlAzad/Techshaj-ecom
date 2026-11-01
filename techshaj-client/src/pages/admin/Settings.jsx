@@ -18,6 +18,7 @@ import Tabs from '../../components/admin/Tabs.jsx'
 import Toggle from '../../components/admin/Toggle.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { useAdminSettings, useSaveSettings } from '../../hooks/useAdminSettings.js'
+import MetaPixelTab from '../../components/admin/MetaPixelSettings.jsx'
 import TopBarTab, { SaveBar } from '../../components/admin/TopBarSettings.jsx'
 import { useLeaveGuard } from '../../hooks/useLeaveGuard.js'
 import { DEFAULT_STORE_NAME } from '../../lib/branding.js'
@@ -32,12 +33,13 @@ const TABS = [
   { value: 'store', label: 'Store' },
   { value: 'delivery', label: 'Delivery' },
   { value: 'topbar', label: 'Top bar' },
+  { value: 'tracking', label: 'Tracking' },
 ]
 
 const BRANDING_KEYS = ['name', 'logoUrl', 'faviconUrl']
 // GET /settings mixes these into the store fields; they are edited on the Delivery tab.
 // announcements is the older top bar list; the Top bar tab replaces it.
-const NOT_STORE_KEYS = ['_id', 'freeShippingThreshold', 'shippingZones', 'shipping', 'topBar', 'announcements']
+const NOT_STORE_KEYS = ['_id', 'freeShippingThreshold', 'shippingZones', 'shipping', 'topBar', 'announcements', 'meta']
 const CONTACT_DEFAULTS = Object.fromEntries(CONTACT_BUTTONS.map((k) => [k, true]))
 
 // Store fields by card; anything not listed lands in "Other".
@@ -594,7 +596,7 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Settings" subtitle="Store details, branding, delivery charges and the top bar." />
+      <PageHeader title="Settings" subtitle="Store details, branding, delivery charges, the top bar and ad tracking." />
       <Tabs label="Settings section" tabs={TABS} value={tab} onChange={switchTab} />
 
       {isLoading ? (
@@ -607,6 +609,8 @@ export default function Settings() {
         <StoreTab settings={settings} onDirtyChange={setDirty} />
       ) : tab === 'delivery' ? (
         <DeliveryTab settings={settings} onDirtyChange={setDirty} />
+      ) : tab === 'tracking' ? (
+        <MetaPixelTab onDirtyChange={setDirty} />
       ) : (
         <TopBarTab settings={settings} onDirtyChange={setDirty} />
       )}
