@@ -35,20 +35,20 @@ export default function FlashSale({ flashSale, loading = false }) {
             <div className="absolute inset-0 bg-flash/55" />
           </>
         )}
-        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-2 lg:gap-x-4">
-          <h2 className="order-1 flex items-center gap-1.5 font-heading text-[18px] font-bold text-white lg:gap-2 lg:text-[28px]">
-            <Zap className="size-5 fill-highlight text-highlight lg:size-7" />
+        <div className="relative flex items-center gap-1.5 lg:gap-x-4">
+          <h2 className="flex shrink-0 items-center gap-1 font-heading text-[14px] font-bold text-white lg:gap-2 lg:text-[28px]">
+            <Zap className="size-4 fill-highlight text-highlight lg:size-7" />
             {flashSale.title}
           </h2>
-          <div className="order-3 flex w-full items-center gap-2 lg:order-2 lg:w-auto">
-            <span className="text-[12px] font-semibold text-white lg:text-[14px]">Ends in</span>
+          <div className="flex items-center gap-1.5 lg:gap-2">
+            <span className="text-[10px] leading-tight font-semibold text-white lg:text-[14px]">Ends in</span>
             <FlashCountdown endsAt={flashSale.endsAt} />
           </div>
-          <Link to="/offers?tab=flash-sale" className="order-2 ml-auto flex h-8 items-center rounded-lg border border-white px-3 text-[12px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:order-3 lg:px-4 lg:text-[14px]">
+          <Link to="/offers?tab=flash-sale" className="ml-auto flex h-7 shrink-0 items-center rounded-md border border-white px-2 text-[11px] font-semibold text-white hover:bg-white/10 lg:h-9 lg:rounded-lg lg:px-4 lg:text-[14px]">
             See All
           </Link>
         </div>
-        <div className="relative mt-3 lg:mt-5">
+        <div className="relative mt-3.5 lg:mt-5">
           {flashSale.products.length > 5 && (
             <>
               <button type="button" onClick={nav.prev} aria-label="Previous" className={`${arrow} -left-3`}>
