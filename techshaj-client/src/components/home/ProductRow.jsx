@@ -37,7 +37,7 @@ const breakpointsFor = (gap) => (breakpoints[gap] ??= { 768: { slidesPerView: 3,
 const LOOP_MIN = 7
 
 // Moves by itself every 2s. The loop/rewind choice depends only on the product count, so the slider is never re-created.
-export function ProductSwiper({ products, swiperProps, gap = 16, className }) {
+export function ProductSwiper({ products, swiperProps, gap = 16, className, variant }) {
   const loop = products.length >= LOOP_MIN
 
   return (
@@ -56,7 +56,7 @@ export function ProductSwiper({ products, swiperProps, gap = 16, className }) {
     >
       {products.map((p) => (
         <SwiperSlide key={p.id} className="h-auto!">
-          <ProductCard product={p} />
+          <ProductCard product={p} variant={variant} />
         </SwiperSlide>
       ))}
     </Swiper>
