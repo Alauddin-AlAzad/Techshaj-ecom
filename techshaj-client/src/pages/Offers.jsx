@@ -68,8 +68,8 @@ function CouponCard({ coupon }) {
 
 function FlashSaleBar({ title, endsAt }) {
   const t = useCountdown(endsAt)
-  // Three boxes as in Figma; with more than a day left they show days, hours and minutes.
-  const units = Number(t.days) > 0 ? [`${Number(t.days)}d`, t.hours, t.mins] : [t.hours, t.mins, t.secs]
+  // Hours, minutes and seconds; with more than a day left the hours count past 24 so the seconds keep moving.
+  const units = [String(Number(t.days) * 24 + Number(t.hours)).padStart(2, '0'), t.mins, t.secs]
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-[14px] bg-flash-bar px-3.5 py-3">
