@@ -232,6 +232,10 @@ function OptionPictures({ index, control, getValues, setValue }) {
     if (urls.length) next[option] = urls
     else delete next[option]
     setValue(`variants.${index}.images`, next, { shouldDirty: true })
+    // Option pictures are also added to the main product gallery.
+    const current = getValues('images')
+    const added = urls.filter((url) => !current.includes(url))
+    if (added.length) setValue('images', [...current, ...added], { shouldDirty: true, shouldValidate: true })
   }
 
   return (
