@@ -456,7 +456,7 @@ async function run() {
         const admin = await adminsCollection.findOne({ email: { $regex: `^${escapeRegex(email.trim())}$`, $options: "i" } });
         const match = admin?.password ? await bcrypt.compare(password, admin.password) : false;
         if (!match) return res.status(401).send({ message: "Invalid email or password" });
-        const token = jwt.sign({ email: admin.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ email: admin.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
         res.send({ token });
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -1380,10 +1380,10 @@ async function run() {
       try {
         const phone = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
         const orderId = typeof req.query.orderId === "string" ? req.query.orderId.trim().toUpperCase() : "";
+        if (!orderId) return res.status(400).send({ message: "Order ID is required" });
         if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
 
-        const query = { $or: [{ phone }, { "customer.phone": phone }] };
-        if (orderId) query.orderId = orderId;
+        const query = { $or: [{ phone }, { "customer.phone": phone }], orderId };
         const orders = await ordersCollection.find(query).sort({ createdAt: -1 }).toArray();
         const tracked = orders.map((o) => ({
           orderId: o.orderId,
@@ -1400,11 +1400,8 @@ async function run() {
           createdAt: o.createdAt,
         }));
 
-        if (orderId) {
-          if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
-          return res.send(tracked[0]);
-        }
-        res.send(tracked);
+        if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
+        res.send(tracked[0]);
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
