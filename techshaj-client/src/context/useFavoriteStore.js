@@ -5,6 +5,8 @@ export const useFavoriteStore = create(
   persist(
     (set) => ({
       ids: [],
+      setIds: (ids) => set({ ids }),
+      clear: () => set({ ids: [] }),
       toggle: (productId) =>
         set((state) => ({
           ids: state.ids.includes(productId) ? state.ids.filter((id) => id !== productId) : [...state.ids, productId],
