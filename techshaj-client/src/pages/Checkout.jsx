@@ -1,5 +1,5 @@
 import { ShieldCheck, TriangleAlert, Truck, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -120,7 +120,7 @@ function PlaceOrder({ total, submitting, className }) {
   )
 }
 
-function CheckoutForm({ cart, buyNow }) {
+function CheckoutForm({ cart, buyNow, onPlaced }) {
   const navigate = useNavigate()
   const isDesktop = useIsDesktop()
   const clearCart = useCartStore((s) => (buyNow ? s.clearBuyNow : s.clear))
@@ -192,6 +192,7 @@ function CheckoutForm({ cart, buyNow }) {
           paymentMethod: order.paymentMethod,
           items: lines.map((l) => ({ name: l.product.name, qty: l.qty })),
         })
+        onPlaced()
         navigate('/order-success', { replace: true })
         clearCart()
       },
@@ -367,15 +368,19 @@ export default function Checkout() {
   usePageTitle('Checkout')
   const buyNow = useSearchParams()[0].get('buy') === '1'
   const cart = useCart({ buyNow })
+  // Once the order is placed the cart is cleared; keep showing the form until the success page opens.
+  const [placed, setPlaced] = useState(false)
+  const lastCart = useRef(cart)
+  if (cart.lines.length > 0) lastCart.current = cart
 
   if (!cart.ready && cart.isError) return <ErrorState onRetry={cart.refetch} />
   if (!cart.ready) return <div className="min-h-[60vh]" />
-  if (cart.lines.length === 0) {
+  if (cart.lines.length === 0 && !placed) {
     return (
       <div className="pt-10 lg:py-16">
         <EmptyCart />
       </div>
     )
   }
-  return <CheckoutForm cart={cart} buyNow={buyNow} />
+  return <CheckoutForm cart={placed ? lastCart.current : cart} buyNow={buyNow} onPlaced={() => setPlaced(true)} />
 }
