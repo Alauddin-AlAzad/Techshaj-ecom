@@ -1,4 +1,4 @@
-import { Heart, ShoppingCart } from 'lucide-react'
+import { Heart, ShoppingCart, Trash2 } from 'lucide-react'
 import EmptyState from '../components/EmptyState.jsx'
 import PageTopBar from '../components/PageTopBar.jsx'
 import ProductCard from '../components/ProductCard.jsx'
@@ -18,6 +18,8 @@ const itemsLabel = (n) => `${n} ${n === 1 ? 'item' : 'items'}`
 export default function Favorite() {
   usePageTitle('My Favorites')
   const ids = useFavoriteStore((s) => s.ids)
+  const clearFavorites = useFavoriteStore((s) => s.clear)
+  const setIds = useFavoriteStore((s) => s.setIds)
   const { data: products, isError, refetch } = useAllProducts()
   const addItem = useCartStore((s) => s.addItem)
   const openCart = useCartStore((s) => s.openDrawer)
@@ -35,11 +37,27 @@ export default function Favorite() {
     if (isDesktop) openCart()
   }
 
+  const addOne = (p) => {
+    addItem(p.id, 1, defaultVariant(p))
+    notify.success('Added to cart', { description: p.name })
+    if (isDesktop) openCart()
+  }
+  const clearAll = () => {
+    const previous = ids
+    clearFavorites()
+    notify.info('Favorites cleared', { action: { label: 'Undo', onClick: () => setIds(previous) } })
+  }
+
   return (
     <div className="pb-24 lg:pb-[72px]">
-      <PageTopBar back={false} className="gap-2.5">
+      <PageTopBar className="gap-2.5">
         <h1 className="text-[18px] font-bold tracking-[-0.27px] text-text">My Favorites</h1>
         {list.length > 0 && <span className="rounded-[10px] bg-highlight px-2 py-0.5 text-[11px] font-bold text-text">{list.length}</span>}
+        {list.length > 0 && (
+          <button type="button" onClick={clearAll} aria-label="Clear all favorites" className="ml-auto flex size-9 items-center justify-center rounded-full text-text-muted hover:text-error">
+            <Trash2 size={19} />
+          </button>
+        )}
       </PageTopBar>
 
       <div className="site-container">
@@ -48,12 +66,20 @@ export default function Favorite() {
             My Wishlist
             {list.length > 0 && <span className="rounded-[10px] bg-highlight px-[9px] py-[3px] font-body text-label-sm font-bold">{itemsLabel(list.length)}</span>}
           </h1>
-          {inStock.length > 0 && (
-            <button type="button" onClick={addAll} className="flex h-[42px] items-center gap-2 rounded-[10px] border-[1.5px] border-text px-4 text-[13px] font-bold text-text">
-              <ShoppingCart size={17} />
-              Add all to cart
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {list.length > 0 && (
+              <button type="button" onClick={clearAll} className="flex h-[42px] items-center gap-2 rounded-[10px] border border-border-strong px-4 text-[13px] font-bold text-text-muted hover:text-error">
+                <Trash2 size={17} />
+                Clear all
+              </button>
+            )}
+            {inStock.length > 0 && (
+              <button type="button" onClick={addAll} className="flex h-[42px] items-center gap-2 rounded-[10px] border-[1.5px] border-text px-4 text-[13px] font-bold text-text">
+                <ShoppingCart size={17} />
+                Add all to cart
+              </button>
+            )}
+          </div>
         </div>
         <p className="mt-5 hidden items-center gap-2 rounded-[10px] bg-fill-soft px-3.5 py-3 text-[13px] text-text-secondary lg:flex">
           <Heart size={16} className="text-primary" />
@@ -75,7 +101,18 @@ export default function Favorite() {
           <>
             <div className="grid grid-cols-2 gap-x-2.5 gap-y-4 pt-3.5 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-[22px] lg:pt-5 xl:grid-cols-5">
               {list.map((p) => (
-                <ProductCard key={p.id} product={p} orderOnHover />
+                <div key={p.id} className="flex flex-col gap-2">
+                  <ProductCard product={p} orderOnHover />
+                  <button
+                    type="button"
+                    disabled={p.stock <= 0}
+                    onClick={() => addOne(p)}
+                    className="flex h-9 w-full items-center justify-center gap-1.5 rounded-[10px] border-[1.5px] border-text text-[12px] font-bold text-text disabled:border-border-strong disabled:text-text-faint"
+                  >
+                    <ShoppingCart size={15} />
+                    {p.stock > 0 ? 'Add to Cart' : 'Sold out'}
+                  </button>
+                </div>
               ))}
             </div>
             {inStock.length > 0 && (
