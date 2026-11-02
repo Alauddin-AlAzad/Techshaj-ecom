@@ -41,6 +41,7 @@ function ProductDetails({ product, store, reviews, related }) {
   }
   const [qty, setQty] = useState(1)
   const addItem = useCartStore((s) => s.addItem)
+  const setBuyNow = useCartStore((s) => s.setBuyNow)
   const openCart = useCartStore((s) => s.openDrawer)
   const isDesktop = useIsDesktop()
   const navigate = useNavigate()
@@ -68,9 +69,9 @@ function ProductDetails({ product, store, reviews, related }) {
     })
   }
   const orderNow = () => {
-    addItem(product.id, qty, variant)
+    setBuyNow(product.id, qty, variant)
     trackAdd()
-    navigate('/checkout')
+    navigate('/checkout?buy=1')
   }
 
   const crumbs = [{ label: 'Home', to: '/' }, { label: category.name, to: `/category/${category.slug}` }, { label: product.name }]

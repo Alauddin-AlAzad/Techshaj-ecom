@@ -22,11 +22,16 @@ export const useCartStore = create(
         })),
       removeItem: (key) => set((state) => ({ items: state.items.filter((i) => i.key !== key) })),
       clear: () => set({ items: [] }),
+      // Order Now on a product page: one item checked out on its own, never mixed into the cart.
+      buyNow: null,
+      setBuyNow: (productId, qty = 1, variant = {}) => set({ buyNow: { key: itemKey(productId, variant), productId, qty, variant } }),
+      updateBuyNowQty: (qty) => set((state) => ({ buyNow: state.buyNow && qty > 0 ? { ...state.buyNow, qty } : null })),
+      clearBuyNow: () => set({ buyNow: null }),
       drawerOpen: false,
       openDrawer: () => set({ drawerOpen: true }),
       closeDrawer: () => set({ drawerOpen: false }),
     }),
-    { name: 'techshaj-cart', partialize: (state) => ({ items: state.items }) },
+    { name: 'techshaj-cart', partialize: (state) => ({ items: state.items, buyNow: state.buyNow }) },
   ),
 )
 
