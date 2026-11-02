@@ -17,7 +17,18 @@ app.use(express.json())
 // routes are added after the database connects, so every request waits for that first
 app.use(async (req, res, next) => {
     try {
-        await ready
+        const attempt = ready
+        try {
+            await attempt
+        } catch (error) {
+            // a failed first connection is retried on the next request instead of staying failed
+            if (connected) throw error
+            if (ready === attempt) {
+                ready = run()
+                ready.catch(console.dir)
+            }
+            await ready
+        }
         next()
     } catch (error) {
         res.status(500).send({ message: error.message })
@@ -41,6 +52,8 @@ const pass = encodeURIComponent(process.env.DB_PASS);
 const uri = `mongodb+srv://${user}:${pass}@cluster0.gkemlm6.mongodb.net/`
                                                                                               
 const client = new MongoClient(uri, {
+  serverSelectionTimeoutMS: 8000,
+  connectTimeoutMS: 8000,
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -48,10 +61,13 @@ const client = new MongoClient(uri, {
   }
 });
 
+let connected = false;
+
 async function run() {
   try {
 
     await client.connect();
+    connected = true;
 
     const productsCollection = client.db("techshajDB").collection("products");
     const categoriesCollection = client.db("techshajDB").collection("categories");
@@ -1571,7 +1587,7 @@ async function run() {
   }
 }
 
-const ready = run();
+let ready = run();
 ready.catch(console.dir);
 
 module.exports = app;
