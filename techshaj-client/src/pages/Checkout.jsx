@@ -1,7 +1,7 @@
 import { ShieldCheck, TriangleAlert, Truck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import EmptyCart from '../components/cart/EmptyCart.jsx'
 import QtyStepper from '../components/cart/QtyStepper.jsx'
@@ -50,8 +50,10 @@ const schema = z
     }
   })
 
-function OrderItems({ lines }) {
-  const updateQty = useCartStore((s) => s.updateQty)
+function OrderItems({ lines, buyNow }) {
+  const updateCartQty = useCartStore((s) => s.updateQty)
+  const updateBuyNowQty = useCartStore((s) => s.updateBuyNowQty)
+  const updateQty = buyNow ? (_, n) => updateBuyNowQty(n) : updateCartQty
   return (
     <ul className="flex w-full flex-col gap-3.5">
       {lines.map(({ key, product, qty, variant }) => (
@@ -118,10 +120,10 @@ function PlaceOrder({ total, submitting, className }) {
   )
 }
 
-function CheckoutForm({ cart }) {
+function CheckoutForm({ cart, buyNow }) {
   const navigate = useNavigate()
   const isDesktop = useIsDesktop()
-  const clearCart = useCartStore((s) => s.clear)
+  const clearCart = useCartStore((s) => (buyNow ? s.clearBuyNow : s.clear))
   const setLastOrder = useOrderStore((s) => s.setLastOrder)
   // { code, discount, subtotal } as the server last confirmed it.
   const [applied, setApplied] = useState(null)
@@ -332,7 +334,7 @@ function CheckoutForm({ cart }) {
               {delivery}
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-3.5">
-              <OrderItems lines={lines} />
+              <OrderItems lines={lines} buyNow={buyNow} />
               {coupon}
               <Bill subtotal={subtotal} shipping={shipping} discount={discount} total={total} />
               {paymentSection}
@@ -342,7 +344,7 @@ function CheckoutForm({ cart }) {
         ) : (
           <div className="flex flex-col gap-2.5 pt-2.5">
             <div className="bg-white p-4">
-              <OrderItems lines={lines} />
+              <OrderItems lines={lines} buyNow={buyNow} />
             </div>
             {customer}
             {delivery}
@@ -363,7 +365,8 @@ function CheckoutForm({ cart }) {
 // Figma checkout: desktop modal (31:3530), mobile page (33:3561), error state (86:15837).
 export default function Checkout() {
   usePageTitle('Checkout')
-  const cart = useCart()
+  const buyNow = useSearchParams()[0].get('buy') === '1'
+  const cart = useCart({ buyNow })
 
   if (!cart.ready && cart.isError) return <ErrorState onRetry={cart.refetch} />
   if (!cart.ready) return <div className="min-h-[60vh]" />
@@ -374,5 +377,5 @@ export default function Checkout() {
       </div>
     )
   }
-  return <CheckoutForm cart={cart} />
+  return <CheckoutForm cart={cart} buyNow={buyNow} />
 }
