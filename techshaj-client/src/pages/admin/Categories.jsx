@@ -35,6 +35,7 @@ const schema = z.object({
   icon: z.string(),
   image: z.string(),
   active: z.boolean(),
+  featured: z.boolean(),
 })
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -59,6 +60,7 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
     icon: category?.icon ?? 'Package',
     image: category?.image ?? '',
     active: category?.active !== false,
+    featured: category?.featured === true,
   }
   const {
     register,
@@ -99,6 +101,7 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
       icon: values.icon,
       image: values.image,
       active: values.active,
+      featured: values.featured,
     }
     let body = data
     if (isEdit) {
@@ -248,6 +251,13 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
           </div>
           <Controller control={control} name="active" render={({ field }) => <Toggle checked={field.value} onChange={field.onChange} ariaLabel="Active" />} />
         </div>
+        <div className="flex items-start justify-between gap-4 rounded-[10px] bg-fill-soft p-3.5">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] font-semibold text-text">Featured on home page</span>
+            <span className="text-body-sm text-text-muted">Shown in Featured Categories, in the same order as this list. Add an image so it looks right.</span>
+          </div>
+          <Controller control={control} name="featured" render={({ field }) => <Toggle checked={field.value} onChange={field.onChange} ariaLabel="Featured on home page" />} />
+        </div>
       </form>
     </Modal>
   )
@@ -290,6 +300,7 @@ function Row({ category, child, first, last, reordering, expanded, onToggle, onM
           <span className={cn('flex min-w-0 items-center gap-2 text-[13px] text-text', child ? 'font-medium' : 'font-bold')}>
             <span className="truncate">{category.name}</span>
             {category.code && <span className="shrink-0 rounded bg-fill px-1.5 py-0.5 text-[10px] font-bold text-text-muted">{category.code}</span>}
+            {category.featured && <span className="shrink-0 rounded bg-primary-tint px-1.5 py-0.5 text-[10px] font-bold text-primary">Featured</span>}
           </span>
           <span className="truncate text-[11px] text-text-faint">/category/{category.slug}</span>
           <span className="flex items-center gap-2 pt-0.5 text-[11px] text-text-secondary md:hidden">

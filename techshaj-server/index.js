@@ -360,7 +360,7 @@ async function run() {
     };
     const readCategory = async (body, current) => {
       const data = {};
-      const textError = readText(body, data, ["name", "icon", "shortName", "menuName", "image"]) || readFlags(body, data, ["active"]);
+      const textError = readText(body, data, ["name", "icon", "shortName", "menuName", "image"]) || readFlags(body, data, ["active", "featured"]);
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
       if (data.image && !/^https:\/\/\S+$/.test(data.image)) return { error: "image must be empty or an https URL" };
