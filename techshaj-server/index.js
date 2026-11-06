@@ -129,6 +129,41 @@ async function run() {
     };
     const cloudinaryUrl = /^https:\/\/res\.cloudinary\.com\/\S+$/;
     const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+    // cloudinary image cleanup
+    const productImageUrls = (product) => {
+      const urls = [...(product.images ?? [])];
+      for (const options of Object.values(product.optionImages ?? {})) {
+        for (const value of Object.values(options ?? {})) urls.push(...[value].flat());
+      }
+      return [...new Set(urls.filter((url) => typeof url === "string" && cloudinaryUrl.test(url)))];
+    };
+    const cloudinaryPublicId = (url) => {
+      const match = url.match(/^https:\/\/res\.cloudinary\.com\/([^/]+)\/image\/upload\/(?:[^/]+\/)*?v\d+\/(.+?)\.[a-z0-9]+$/i);
+      return match && match[1] === process.env.CLOUDINARY_CLOUD_NAME ? decodeURIComponent(match[2]) : null;
+    };
+    const destroyCloudinaryImage = async (publicId) => {
+      const timestamp = String(Math.floor(Date.now() / 1000));
+      const signature = crypto.createHash("sha1").update(`public_id=${publicId}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`).digest("hex");
+      const body = new URLSearchParams({ public_id: publicId, timestamp, api_key: process.env.CLOUDINARY_API_KEY, signature });
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/destroy`, { method: "POST", body });
+      return (await response.json()).result === "ok";
+    };
+    const removeUnusedImages = async (urls) => {
+      const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+      if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET || !urls.length) return 0;
+      const products = await productsCollection.find({}).project({ images: 1, optionImages: 1 }).toArray();
+      const used = new Set(products.flatMap(productImageUrls));
+      const elsewhere = await Promise.all([
+        ordersCollection.distinct("items.image", { "items.image": { $in: urls } }),
+        ordersCollection.distinct("items.optionImage", { "items.optionImage": { $in: urls } }),
+        categoriesCollection.distinct("image", { image: { $in: urls } }),
+        bannersCollection.distinct("image", { image: { $in: urls } }),
+      ]);
+      elsewhere.flat().forEach((url) => used.add(url));
+      const ids = urls.filter((url) => !used.has(url)).map(cloudinaryPublicId).filter(Boolean);
+      const results = await Promise.allSettled(ids.map(destroyCloudinaryImage));
+      return results.filter((r) => r.status === "fulfilled" && r.value).length;
+    };
     // meta pixel and conversions api
     const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
     const graphVersion = process.env.META_GRAPH_VERSION || "v23.0";
@@ -739,7 +774,8 @@ async function run() {
         const product = await productsCollection.findOneAndDelete(idFilter(req.params.id));
         if (!product) return res.status(404).send({ message: "Product not found" });
         await offersCollection.updateMany({ productIds: product.id }, { $pull: { productIds: product.id } });
-        res.send({ message: "Product deleted", id: product.id });
+        const imagesRemoved = await removeUnusedImages(productImageUrls(product)).catch(() => 0);
+        res.send({ message: "Product deleted", id: product.id, imagesRemoved });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
