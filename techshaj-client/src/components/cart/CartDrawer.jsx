@@ -11,6 +11,11 @@ import FreeShippingBar from './FreeShippingBar.jsx'
 // Figma "Cart Drawer – Desktop 1440" (31:3327). Desktop only; mobile uses the /cart page.
 export default function CartDrawer() {
   const open = useCartStore((s) => s.drawerOpen)
+  return open ? <CartDrawerPanel /> : null
+}
+
+function CartDrawerPanel() {
+  const open = useCartStore((s) => s.drawerOpen)
   const close = useCartStore((s) => s.closeDrawer)
   const cart = useCart()
 

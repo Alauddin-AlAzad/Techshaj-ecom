@@ -501,6 +501,49 @@ async function run() {
           return { ...withCount(parent, children), children };
         });
     };
+    const loadCategories = async () => {
+      const categories = await categoriesCollection.find({ active: { $ne: false } }).toArray();
+      const counts = await productsCollection
+        .aggregate([{ $match: { published: { $ne: false } } }, { $group: { _id: "$categoryId", count: { $sum: 1 } } }])
+        .toArray();
+      const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
+      return Promise.all(
+        categoryTree(categories, countOf).map(async (parent) => {
+          const ids = [parent.id, ...parent.children.map((c) => c.id)];
+          const [bestSeller] = await productsCollection
+            .find({ categoryId: { $in: ids }, published: { $ne: false } })
+            .project(productProjection)
+            .sort({ soldCount: -1, id: 1 })
+            .limit(1)
+            .toArray();
+          return { ...parent, bestSeller: bestSeller ?? null };
+        }),
+      );
+    };
+    const loadBanners = async () => {
+      const now = new Date();
+      const banners = await bannersCollection
+        .find({
+          active: true,
+          $and: [{ $or: [{ startAt: null }, { startAt: { $lte: now } }] }, { $or: [{ endAt: null }, { endAt: { $gt: now } }] }],
+        })
+        .sort({ order: 1, id: 1 })
+        .toArray();
+      const ofType = (type) => banners.filter((b) => b.type === type).map(({ type, ...b }) => b);
+      return { hero: ofType("hero"), side: ofType("side"), promo: ofType("promo"), menu: ofType("menu")[0] ?? null };
+    };
+    const loadOffers = async () => {
+      const sales = await offersCollection.find({ type: "flashSale", active: { $ne: false } }).sort({ endsAt: 1 }).toArray();
+      const sale = sales.find((s) => !s.endsAt || new Date(s.endsAt) > new Date());
+      const coupons = await couponsCollection
+        .find({ active: { $ne: false }, isPublic: { $ne: false } })
+        .project({ usedCount: 0, usageLimit: 0, usedBy: 0, maxUses: 0, perPhoneLimit: 0 })
+        .toArray();
+      const flashSale = sale
+        ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }
+        : null;
+      return { coupons, flashSale };
+    };
     const refreshProductRating = async (productId) => {
       const [stats] = await reviewsCollection
         .aggregate([
@@ -1312,12 +1355,7 @@ async function run() {
     // categories related api
     app.get("/categories", async (req, res) => {
       try {
-        const categories = await categoriesCollection.find({ active: { $ne: false } }).toArray();
-        const counts = await productsCollection
-          .aggregate([{ $match: { published: { $ne: false } } }, { $group: { _id: "$categoryId", count: { $sum: 1 } } }])
-          .toArray();
-        const countOf = (id) => counts.find((c) => c._id === id)?.count ?? 0;
-        res.send(categoryTree(categories, countOf));
+        res.send(await loadCategories());
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -1326,16 +1364,7 @@ async function run() {
     // banners, offers and settings related api
     app.get("/banners", async (req, res) => {
       try {
-        const now = new Date();
-        const banners = await bannersCollection
-          .find({
-            active: true,
-            $and: [{ $or: [{ startAt: null }, { startAt: { $lte: now } }] }, { $or: [{ endAt: null }, { endAt: { $gt: now } }] }],
-          })
-          .sort({ order: 1, id: 1 })
-          .toArray();
-        const ofType = (type) => banners.filter((b) => b.type === type).map(({ type, ...b }) => b);
-        res.send({ hero: ofType("hero"), side: ofType("side"), promo: ofType("promo"), menu: ofType("menu")[0] ?? null });
+        res.send(await loadBanners());
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -1343,16 +1372,46 @@ async function run() {
 
     app.get("/offers", async (req, res) => {
       try {
-        const sales = await offersCollection.find({ type: "flashSale", active: { $ne: false } }).sort({ endsAt: 1 }).toArray();
-        const sale = sales.find((s) => !s.endsAt || new Date(s.endsAt) > new Date());
-        const coupons = await couponsCollection
-          .find({ active: { $ne: false }, isPublic: { $ne: false } })
-          .project({ usedCount: 0, usageLimit: 0, usedBy: 0, maxUses: 0, perPhoneLimit: 0 })
-          .toArray();
-        const flashSale = sale
-          ? { ...sale, products: await productsCollection.find({ id: { $in: sale.productIds }, published: { $ne: false } }).project(productProjection).toArray() }
-          : null;
-        res.send({ coupons, flashSale });
+        res.send(await loadOffers());
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    // home page related api
+    app.get("/storefront", async (req, res) => {
+      try {
+        const [banners, offers, categories] = await Promise.all([loadBanners(), loadOffers(), loadCategories()]);
+        res.send({ banners, offers, categories });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.get("/home", async (req, res) => {
+      try {
+        const categories = await categoriesCollection.find({ active: { $ne: false } }).toArray();
+        const parents = categories.filter((c) => !c.parentId).sort(byOrder);
+        const rowOf = (filter) =>
+          productsCollection
+            .find({ published: { $ne: false }, ...filter })
+            .project(productProjection)
+            .sort(sortOptions.newest)
+            .limit(20)
+            .toArray();
+        const idsOf = (parent) => [parent.id, ...categories.filter((c) => c.parentId === parent.id).map((c) => c.id)];
+        const [bestDeals, bestSellers, newArrivals, ...departments] = await Promise.all([
+          rowOf({ collections: "best-deal" }),
+          rowOf({ collections: "best-seller" }),
+          rowOf({ collections: "new-arrival" }),
+          ...parents.map((parent) => rowOf({ categoryId: { $in: idsOf(parent) } })),
+        ]);
+        res.send({
+          "best-deal": bestDeals,
+          "best-seller": bestSellers,
+          "new-arrival": newArrivals,
+          byCategory: Object.fromEntries(parents.map((parent, i) => [parent.slug, departments[i]])),
+        });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
@@ -1364,7 +1423,12 @@ async function run() {
         if (!settings) return res.status(404).send({ message: "Settings not found" });
         const { store, shippingZones, freeShippingThreshold, topBar, meta } = settings;
         const pixel = meta?.enabled && meta.pixelId ? { pixelId: meta.pixelId } : null;
-        res.send({ ...store, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones }, topBar: topBar ?? null, meta: pixel });
+        const linksFor = async (ids = []) => {
+          const found = await productsCollection.find({ id: { $in: ids }, published: { $ne: false } }).project({ id: 1, name: 1, slug: 1 }).toArray();
+          return ids.map((id) => found.find((p) => p.id === id)).filter(Boolean);
+        };
+        const footerProductLinks = { bestSelling: await linksFor(store?.footerProducts?.bestSelling), bestDeals: await linksFor(store?.footerProducts?.bestDeals) };
+        res.send({ ...store, footerProductLinks, freeShippingThreshold, shippingZones, shipping: { zones: shippingZones }, topBar: topBar ?? null, meta: pixel });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
