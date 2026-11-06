@@ -37,7 +37,9 @@ export default function Home() {
 
   const rows = rowsQuery.data
   const row = (title, key, seeAllTo, tag) => <ProductRow title={title} tag={tag} products={rows?.[key]} loading={rowsQuery.isLoading} seeAllTo={seeAllTo} />
-  const categoryRows = categories.map((category) => (
+  // Until rows are chosen in the admin, every department gets one.
+  const rowCategories = categories.some((c) => c.homeRow) ? categories.filter((c) => c.homeRow) : categories
+  const categoryRows = rowCategories.map((category) => (
     <ProductRow key={category.id} title={category.name} products={rows?.byCategory?.[category.slug]} loading={rowsQuery.isLoading} seeAllTo={`/category/${category.slug}`} />
   ))
 

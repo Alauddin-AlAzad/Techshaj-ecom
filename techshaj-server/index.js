@@ -360,7 +360,7 @@ async function run() {
     };
     const readCategory = async (body, current) => {
       const data = {};
-      const textError = readText(body, data, ["name", "icon", "shortName", "menuName", "image"]) || readFlags(body, data, ["active", "featured"]);
+      const textError = readText(body, data, ["name", "icon", "shortName", "menuName", "image"]) || readFlags(body, data, ["active", "featured", "homeRow"]);
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
       if (data.image && !/^https:\/\/\S+$/.test(data.image)) return { error: "image must be empty or an https URL" };
@@ -1391,7 +1391,8 @@ async function run() {
     app.get("/home", async (req, res) => {
       try {
         const categories = await categoriesCollection.find({ active: { $ne: false } }).toArray();
-        const parents = categories.filter((c) => !c.parentId).sort(byOrder);
+        const allParents = categories.filter((c) => !c.parentId).sort(byOrder);
+        const parents = allParents.some((c) => c.homeRow) ? allParents.filter((c) => c.homeRow) : allParents;
         const rowOf = (filter) =>
           productsCollection
             .find({ published: { $ne: false }, ...filter })

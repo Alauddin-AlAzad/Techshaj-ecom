@@ -36,6 +36,7 @@ const schema = z.object({
   image: z.string(),
   active: z.boolean(),
   featured: z.boolean(),
+  homeRow: z.boolean(),
 })
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -61,6 +62,7 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
     image: category?.image ?? '',
     active: category?.active !== false,
     featured: category?.featured === true,
+    homeRow: category?.homeRow === true,
   }
   const {
     register,
@@ -102,6 +104,7 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
       image: values.image,
       active: values.active,
       featured: values.featured,
+      ...(isSub ? {} : { homeRow: values.homeRow }),
     }
     let body = data
     if (isEdit) {
@@ -258,6 +261,15 @@ function CategoryModal({ category, lockedParent, parents, onClose }) {
           </div>
           <Controller control={control} name="featured" render={({ field }) => <Toggle checked={field.value} onChange={field.onChange} ariaLabel="Featured on home page" />} />
         </div>
+        {!isSub && (
+          <div className="flex items-start justify-between gap-4 rounded-[10px] bg-fill-soft p-3.5">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[13px] font-semibold text-text">Product row on home page</span>
+              <span className="text-body-sm text-text-muted">Shows this category's products as a row on the home page, in the same order as this list.</span>
+            </div>
+            <Controller control={control} name="homeRow" render={({ field }) => <Toggle checked={field.value} onChange={field.onChange} ariaLabel="Product row on home page" />} />
+          </div>
+        )}
       </form>
     </Modal>
   )
@@ -301,6 +313,7 @@ function Row({ category, child, first, last, reordering, expanded, onToggle, onM
             <span className="truncate">{category.name}</span>
             {category.code && <span className="shrink-0 rounded bg-fill px-1.5 py-0.5 text-[10px] font-bold text-text-muted">{category.code}</span>}
             {category.featured && <span className="shrink-0 rounded bg-primary-tint px-1.5 py-0.5 text-[10px] font-bold text-primary">Featured</span>}
+            {category.homeRow && <span className="shrink-0 rounded bg-primary-tint px-1.5 py-0.5 text-[10px] font-bold text-primary">Home row</span>}
           </span>
           <span className="truncate text-[11px] text-text-faint">/category/{category.slug}</span>
           <span className="flex items-center gap-2 pt-0.5 text-[11px] text-text-secondary md:hidden">
