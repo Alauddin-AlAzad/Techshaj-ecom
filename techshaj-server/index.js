@@ -148,6 +148,8 @@ async function run() {
       const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/destroy`, { method: "POST", body });
       return (await response.json()).result === "ok";
     };
+    const imageOf = (doc) => (typeof doc?.image === "string" && cloudinaryUrl.test(doc.image) ? [doc.image] : []);
+    const droppedImages = (before, after) => before.filter((url) => !after.includes(url));
     const removeUnusedImages = async (urls) => {
       const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
       if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET || !urls.length) return 0;
@@ -763,6 +765,7 @@ async function run() {
           await refreshProductRating(current.id);
           product = await productsCollection.findOne({ _id: current._id });
         }
+        await removeUnusedImages(droppedImages(productImageUrls(current), productImageUrls(product))).catch(() => 0);
         res.send(product);
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -845,6 +848,7 @@ async function run() {
         if (data.slug && (await slugTaken(categoriesCollection, data.slug, current.id))) return res.status(400).send({ message: "This slug is already used" });
         if (data.parentId !== undefined && data.parentId !== (current.parentId ?? null) && data.order === undefined) data.order = await nextOrder(data.parentId);
         const category = await categoriesCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
+        await removeUnusedImages(droppedImages(imageOf(current), imageOf(category))).catch(() => 0);
         res.send(category);
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -865,6 +869,7 @@ async function run() {
           });
         }
         await categoriesCollection.deleteOne({ _id: category._id });
+        await removeUnusedImages(imageOf(category)).catch(() => 0);
         res.send({ message: "Category deleted", id: category.id });
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -906,6 +911,7 @@ async function run() {
         if (error) return res.status(400).send({ message: error });
         if (!Object.keys(data).length) return res.status(400).send({ message: "No fields to update" });
         const banner = await bannersCollection.findOneAndUpdate({ _id: current._id }, { $set: data }, { returnDocument: "after" });
+        await removeUnusedImages(droppedImages(imageOf(current), imageOf(banner))).catch(() => 0);
         res.send(banner);
       } catch (error) {
         res.status(500).send({ message: error.message });
@@ -916,6 +922,7 @@ async function run() {
       try {
         const banner = await bannersCollection.findOneAndDelete(idFilter(req.params.id));
         if (!banner) return res.status(404).send({ message: "Banner not found" });
+        await removeUnusedImages(imageOf(banner)).catch(() => 0);
         res.send({ message: "Banner deleted", id: banner.id });
       } catch (error) {
         res.status(500).send({ message: error.message });
