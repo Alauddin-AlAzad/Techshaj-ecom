@@ -19,6 +19,19 @@
       />
     </noscript>
     <title>TechShaj</title>
+    <script>
+      // A cached page that points to scripts from an older deploy: reload once with a fresh URL.
+      window.addEventListener('error', function (e) {
+        var t = e.target
+        if (!t || t.tagName !== 'SCRIPT' || !t.src || t.src.indexOf('/assets/') < 0) return
+        try {
+          if (sessionStorage.getItem('stale-reload')) return
+          sessionStorage.setItem('stale-reload', '1')
+        } catch (err) {}
+        var q = location.search ? location.search + '&' : '?'
+        location.replace(location.pathname + q + 'r=' + Date.now() + location.hash)
+      }, true)
+    </script>
     <style>
       body { margin: 0; background: #fff; }
       .boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fff; opacity: 0; animation: boot-in 0.3s ease 0.3s forwards; }
