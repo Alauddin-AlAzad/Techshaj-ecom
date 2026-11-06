@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { pick } from '../lib/query.js'
-import { useAxiosPublic } from './useAxiosPublic.js'
+import { useStorefrontFetch } from './useStorefront.js'
 
 // The server sends parents with their children nested; a flat list is accepted too.
 const toTree = (categories) => {
@@ -9,11 +9,11 @@ const toTree = (categories) => {
 }
 
 export function useCategories() {
-  const axiosPublic = useAxiosPublic()
+  const fetchStorefront = useStorefrontFetch()
   return pick(
     useQuery({
       queryKey: ['categories'],
-      queryFn: async () => (await axiosPublic.get('/categories')).data,
+      queryFn: async () => (await fetchStorefront()).categories,
       select: toTree,
     }),
   )
