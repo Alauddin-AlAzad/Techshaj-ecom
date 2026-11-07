@@ -94,31 +94,5 @@
     "overhead-headphones",
     "earbuds",
     "mobile-cooler"
-  ],
-  "popularLinks": [
-    {
-      "label": "Power Bank",
-      "to": "/category/power-bank"
-    },
-    {
-      "label": "Earbuds",
-      "to": "/category/earbuds"
-    },
-    {
-      "label": "Smart Watches",
-      "to": "/category/smart-watches"
-    },
-    {
-      "label": "Mobile Cooler",
-      "to": "/category/mobile-cooler"
-    },
-    {
-      "label": "Cables",
-      "to": "/category/cables"
-    },
-    {
-      "label": "Moon Lamp",
-      "to": "/shop?q=moon%20lamp"
-    }
   ]
 }
