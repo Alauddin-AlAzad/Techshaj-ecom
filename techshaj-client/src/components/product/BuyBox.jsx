@@ -39,7 +39,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
   return (
     <div className="flex min-w-0 flex-col items-start gap-3 lg:gap-4">
       {category && (
-        <Link to={`/category/${category.slug}`} className="rounded-xl bg-primary-tint px-[9px] py-1 text-[11px] font-semibold text-primary-deep lg:px-2.5 lg:py-[5px] lg:text-body-sm lg:font-semibold">
+        <Link to={`/category/${category.slug}`} className="hidden rounded-xl bg-primary-tint px-[9px] py-1 text-[11px] font-semibold text-primary-deep lg:block lg:px-2.5 lg:py-[5px] lg:text-body-sm lg:font-semibold">
           {category.name}
         </Link>
       )}

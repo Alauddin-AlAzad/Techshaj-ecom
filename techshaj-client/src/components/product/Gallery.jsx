@@ -35,7 +35,7 @@ function Thumb({ src, active, onClick, index }) {
       onClick={onClick}
       aria-label={`Show image ${index + 1}`}
       aria-current={active}
-      className={cn('size-16 shrink-0 overflow-hidden rounded-lg bg-fill lg:size-[72px]', active ? 'border-2 border-primary' : 'border-2 border-transparent hover:border-primary-soft')}
+      className={cn('size-14 shrink-0 overflow-hidden rounded-lg bg-fill lg:size-[72px]', active ? 'border-2 border-primary' : 'border-2 border-transparent hover:border-primary-soft')}
     >
       <img src={src} alt="" loading="lazy" decoding="async" className="size-full object-contain mix-blend-multiply" />
     </button>
@@ -68,7 +68,7 @@ export default function Gallery({ product, images, focus, onThumb, discount }) {
   }, [focus, swiper]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex flex-col gap-2.5 lg:contents">
+    <div className="flex flex-col gap-2 lg:contents">
       <div className="no-scrollbar order-2 flex gap-2 overflow-x-auto lg:order-none lg:flex-col lg:gap-2.5 lg:overflow-visible">{thumbs}</div>
 
       <div className="relative aspect-square w-full overflow-hidden rounded-[14px] bg-fill">
