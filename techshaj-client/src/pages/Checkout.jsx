@@ -107,9 +107,9 @@ function PlaceOrder({ total, submitting, className }) {
       <button
         type="submit"
         disabled={submitting}
-        className="bg-primary hover:bg-primary-deep h-[50px] w-full rounded-[10px] font-bangla text-body-lg font-semibold whitespace-pre text-white disabled:opacity-60 lg:h-[52px] lg:text-[17px]"
+        className="bg-primary hover:bg-primary-deep h-[50px] w-full rounded-[10px] font-bangla text-body-lg font-semibold text-white disabled:opacity-60 lg:h-[52px] lg:text-[17px]"
       >
-        {`অর্ডার কনফার্ম করুন  •  ${formatPrice(total)}`}
+        অর্ডার কনফার্ম করুন
       </button>
       <p className="flex items-center justify-center gap-1.5 font-bangla text-[11px] text-text-muted lg:text-body-sm">
         <ShieldCheck className="size-3.5 shrink-0 text-success lg:size-[15px]" />

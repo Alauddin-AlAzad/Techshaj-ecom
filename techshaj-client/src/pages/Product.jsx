@@ -78,7 +78,6 @@ function ProductDetails({ product, store, reviews, related }) {
 
   return (
     <div className="pb-[calc(81px+env(safe-area-inset-bottom))] lg:bg-surface lg:pb-[72px]">
-      <Breadcrumbs items={crumbs.slice(0, 2)} className="site-container pt-3 lg:hidden" />
       <Breadcrumbs items={crumbs} className="site-container hidden h-[52px] lg:flex" />
 
       <div className="lg:site-container">
@@ -86,7 +85,7 @@ function ProductDetails({ product, store, reviews, related }) {
           <div className="site-container pt-3 lg:contents">
             <Gallery product={product} images={images} focus={focus} onThumb={pickFromGallery} discount={discount} />
           </div>
-          <div className="site-container pt-[18px] lg:w-auto lg:max-w-none lg:p-0">
+          <div className="site-container pt-3.5 lg:w-auto lg:max-w-none lg:p-0">
             <BuyBox
               product={product}
               category={category}
