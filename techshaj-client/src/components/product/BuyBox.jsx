@@ -98,7 +98,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
           <span className="font-bold text-text">{product.brand}</span>
         </p>
       </div>
-      <p className="text-[12px] leading-[18px] text-text-secondary lg:text-body lg:leading-normal">{product.shortDescription}</p>
+      <p className="whitespace-pre-line break-words text-[12px] leading-[18px] text-text-secondary lg:text-body lg:leading-normal">{product.shortDescription}</p>
       <hr className="hidden w-full border-border lg:block" />
 
       {product.variants.map((group) => (
