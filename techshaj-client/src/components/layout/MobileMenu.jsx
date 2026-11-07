@@ -1,7 +1,6 @@
 import { ArrowRight, BadgePercent, ChevronDown, ChevronRight, Truck, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import storefront from '../../data/storefront.json'
 import { useBranding } from '../../hooks/useSettings.js'
 import { cn } from '../../lib/cn.js'
 import CategoryIcon from '../CategoryIcon.jsx'
@@ -12,7 +11,12 @@ import SocialLinks from '../SocialLinks.jsx'
 export default function MobileMenu({ store, categories = [], onClose }) {
   const { name } = useBranding()
   const [openId, setOpenId] = useState(null)
-  const popular = storefront.popularLinks
+  // Featured categories from the admin; until some are marked, the ones with the most products.
+  const flat = categories.flatMap(({ children = [], ...c }) => [c, ...children]).filter((c) => c.productCount > 0)
+  const featured = flat.filter((c) => c.featured)
+  const popular = (featured.length ? featured : [...flat].sort((a, b) => b.productCount - a.productCount))
+    .slice(0, 8)
+    .map((c) => ({ label: c.name, to: `/category/${c.slug}` }))
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
