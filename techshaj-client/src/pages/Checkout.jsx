@@ -1,4 +1,4 @@
-import { ShieldCheck, TriangleAlert, Truck, X } from 'lucide-react'
+import { Plus, ShieldCheck, TriangleAlert, Truck, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -77,7 +77,7 @@ function OrderItems({ lines, buyNow }) {
 function Bill({ subtotal, shipping, discount, total }) {
   const row = 'flex justify-between text-[13px] lg:text-body'
   return (
-    <div className="flex w-full flex-col gap-3 bg-white p-4 lg:gap-2.5 lg:rounded-[10px] lg:bg-fill-soft lg:p-3.5">
+    <div className="flex w-full flex-col gap-2 bg-white px-4 py-3.5 lg:gap-2.5 lg:rounded-[10px] lg:bg-fill-soft lg:p-3.5">
       <p className={row}>
         <span className="font-bangla text-text-muted">সাবটোটাল</span>
         <span className="font-semibold text-text">{formatPrice(subtotal)}</span>
@@ -128,6 +128,7 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
   // { code, discount, subtotal } as the server last confirmed it.
   const [applied, setApplied] = useState(null)
   const [couponError, setCouponError] = useState(null)
+  const [noteOpen, setNoteOpen] = useState(false)
   const validateCoupon = useValidateCoupon()
   const placeOrder = usePlaceOrder()
   const { store, lines, subtotal, freeShipping, allFreeDelivery } = cart
@@ -206,7 +207,7 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const close = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))
-  const section = 'flex w-full flex-col gap-3 bg-white p-4 lg:contents'
+  const section = 'flex w-full flex-col gap-2.5 bg-white px-4 py-3.5 lg:contents'
   const heading = 'font-bangla text-[15px] font-bold text-text'
 
   const banner = submitCount > 0 && errorCount > 0 && (
@@ -238,7 +239,14 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
         error={errors.address?.message}
         {...register('address')}
       />
-      <Field label="অর্ডার নোট" placeholder={isDesktop ? 'বিশেষ কিছু বলার থাকলে লিখুন (ঐচ্ছিক)' : 'ঐচ্ছিক'} {...register('note')} />
+      {isDesktop || noteOpen ? (
+        <Field label="অর্ডার নোট" placeholder={isDesktop ? 'বিশেষ কিছু বলার থাকলে লিখুন (ঐচ্ছিক)' : 'ঐচ্ছিক'} autoFocus={!isDesktop} {...register('note')} />
+      ) : (
+        <button type="button" onClick={() => setNoteOpen(true)} className="flex items-center gap-1.5 self-start font-bangla text-[13px] font-semibold text-text-secondary">
+          <Plus size={15} className="shrink-0" />
+          অর্ডার নোট যোগ করুন (ঐচ্ছিক)
+        </button>
+      )}
     </div>
   )
 
@@ -280,6 +288,7 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
         setApplied(null)
         setCouponError(null)
       }}
+      onClear={() => setCouponError(null)}
     />
   )
 
@@ -343,8 +352,8 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2.5 pt-2.5">
-            <div className="bg-white p-4">
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="bg-white px-4 py-3.5">
               <OrderItems lines={lines} buyNow={buyNow} />
             </div>
             {customer}
