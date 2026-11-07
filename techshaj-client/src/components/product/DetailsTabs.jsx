@@ -97,11 +97,13 @@ export default function DetailsTabs({ product, reviews, store }) {
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <h3 className="hidden font-body text-price lg:block">Key Features</h3>
             <Bullets items={features} />
-            <p className="text-[13px] leading-5 text-text-secondary lg:text-body lg:leading-normal">{product.description}</p>
+            <p className="whitespace-pre-line break-words text-[13px] leading-6 text-text-secondary lg:text-body lg:leading-7">{product.description}</p>
           </div>
-          <div className="hidden min-w-0 flex-1 lg:block">
-            <SpecTable specs={product.specs} />
-          </div>
+          {product.specs?.length > 0 && (
+            <div className="hidden min-w-0 flex-1 lg:block">
+              <SpecTable specs={product.specs} />
+            </div>
+          )}
         </div>
       ),
     },
