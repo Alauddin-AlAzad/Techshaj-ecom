@@ -63,6 +63,9 @@ async function run() {
     const ordersCollection = client.db("techshajDB").collection("orders");
     const countersCollection = client.db("techshajDB").collection("counters");
     const adminsCollection = client.db("techshajDB").collection("admins");
+    const incompleteOrdersCollection = client.db("techshajDB").collection("incompleteOrders");
+    incompleteOrdersCollection.createIndex({ phone: 1 }, { unique: true }).catch(console.dir);
+    incompleteOrdersCollection.createIndex({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 }).catch(console.dir);
 
     const productProjection = { costPrice: 0, buyingPrice: 0, purchasePrice: 0, supplier: 0, adminNote: 0 };
     const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -626,6 +629,7 @@ async function run() {
     const publicLimiter = (limit, windowMinutes, message) =>
       rateLimit({ windowMs: windowMinutes * 60 * 1000, limit, standardHeaders: "draft-7", legacyHeaders: false, message: { message } });
     const orderLimiter = publicLimiter(20, 60, "Too many orders from this connection, please try again later");
+    const incompleteLimiter = publicLimiter(60, 60, "Too many requests, please try again later");
     const couponLimiter = publicLimiter(30, 10, "Too many coupon checks, please try again in a few minutes");
     const trackLimiter = publicLimiter(30, 10, "Too many tracking requests, please try again in a few minutes");
 
@@ -1267,6 +1271,52 @@ async function run() {
       }
     });
 
+    // admin incomplete orders related api
+    const incompleteStatuses = ["new", "called", "ignored"];
+    app.get("/admin/incomplete-orders", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const status = incompleteStatuses.includes(req.query.status) ? req.query.status : "new";
+        const { page, limit, skip } = pageOf(req.query);
+        const [orders, total, counts] = await Promise.all([
+          incompleteOrdersCollection.find({ status }).sort({ updatedAt: -1 }).skip(skip).limit(limit).toArray(),
+          incompleteOrdersCollection.countDocuments({ status }),
+          incompleteOrdersCollection.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]).toArray(),
+        ]);
+        const countOf = Object.fromEntries(incompleteStatuses.map((s) => [s, counts.find((c) => c._id === s)?.count ?? 0]));
+        res.send({ orders, total, page, totalPages: Math.max(Math.ceil(total / limit), 1), counts: countOf });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.patch("/admin/incomplete-orders/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        if (!/^[a-f\d]{24}$/i.test(req.params.id)) return res.status(400).send({ message: "Invalid id" });
+        const { status } = req.body ?? {};
+        if (!incompleteStatuses.includes(status)) return res.status(400).send({ message: "status must be new, called or ignored" });
+        const result = await incompleteOrdersCollection.findOneAndUpdate(
+          { _id: new ObjectId(req.params.id) },
+          { $set: { status, statusAt: new Date() } },
+          { returnDocument: "after" },
+        );
+        if (!result) return res.status(404).send({ message: "Incomplete order not found" });
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/incomplete-orders/:id", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        if (!/^[a-f\d]{24}$/i.test(req.params.id)) return res.status(400).send({ message: "Invalid id" });
+        const result = await incompleteOrdersCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        if (!result.deletedCount) return res.status(404).send({ message: "Incomplete order not found" });
+        res.send({ message: "Incomplete order deleted" });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     // admin dashboard related api
     app.get("/admin/dashboard", verifyToken, verifyAdmin, async (req, res) => {
       try {
@@ -1625,6 +1675,7 @@ async function run() {
             createdAt: now,
           };
           await ordersCollection.insertOne(order);
+          await incompleteOrdersCollection.deleteMany({ phone }).catch(console.dir);
           if (coupon) await couponsCollection.updateOne({ code: coupon }, { $inc: { usedCount: 1 } }).catch(console.dir);
           await sendPurchase(settings.meta, order, req, readTracking(tracking)).catch(console.dir);
           res.send({ orderId, total });
@@ -1632,6 +1683,58 @@ async function run() {
           for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
           throw error;
         }
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.post("/incomplete-orders", incompleteLimiter, async (req, res) => {
+      try {
+        const { customer, zoneId, items } = req.body ?? {};
+        const text = (value, max) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+        const phone = text(customer?.phone, 11);
+        if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
+        const recentOrder = await ordersCollection.findOne({ phone, createdAt: { $gte: new Date(Date.now() - 30 * 60 * 1000) } }, { projection: { _id: 1 } });
+        if (recentOrder) return res.send({ saved: false });
+
+        const list = Array.isArray(items) ? items.slice(0, 10) : [];
+        const products = await productsCollection
+          .find({ id: { $in: list.map((item) => Number(item?.productId)) } })
+          .project({ id: 1, name: 1, slug: 1, price: 1, images: 1 })
+          .toArray();
+        const lines = list
+          .map((item) => {
+            const product = products.find((p) => p.id === Number(item?.productId));
+            if (!product) return null;
+            const quantity = Math.min(Math.max(Number.parseInt(item.quantity, 10) || 1, 1), 10);
+            const variant = isPlainObject(item.variant)
+              ? Object.fromEntries(Object.entries(item.variant).slice(0, 5).map(([key, value]) => [String(key).slice(0, 40), String(value).slice(0, 40)]))
+              : {};
+            return { productId: product.id, name: product.name, slug: product.slug, image: product.images?.[0] ?? null, variant, price: product.price, quantity, lineTotal: product.price * quantity };
+          })
+          .filter(Boolean);
+        const settings = await settingsCollection.findOne({}, { projection: { shippingZones: 1 } });
+        const zone = settings?.shippingZones?.find((z) => z.id === zoneId);
+        const now = new Date();
+        await incompleteOrdersCollection.updateOne(
+          { phone },
+          {
+            $set: {
+              phone,
+              name: text(customer?.name, 80),
+              address: text(customer?.address, 300),
+              note: text(customer?.note, 300),
+              area: zone?.name ?? null,
+              items: lines,
+              subtotal: lines.reduce((sum, line) => sum + line.lineTotal, 0),
+              status: "new",
+              updatedAt: now,
+            },
+            $setOnInsert: { createdAt: now },
+          },
+          { upsert: true },
+        );
+        res.send({ saved: true });
       } catch (error) {
         res.status(500).send({ message: error.message });
       }
