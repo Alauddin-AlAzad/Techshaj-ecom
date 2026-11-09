@@ -10,5 +10,6 @@ export function useStorefrontFetch() {
       queryKey: ['storefront'],
       queryFn: async () => (await axiosPublic.get('/storefront')).data,
       staleTime: 2000,
+      retry: false,
     })
 }
