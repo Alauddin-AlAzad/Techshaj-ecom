@@ -52,6 +52,7 @@ const AdminProductForm = page(() => import('./pages/admin/ProductForm.jsx'))
 const AdminCategories = page(() => import('./pages/admin/Categories.jsx'))
 const AdminDashboard = page(() => import('./pages/admin/Dashboard.jsx'))
 const AdminOrders = page(() => import('./pages/admin/Orders.jsx'))
+const AdminIncompleteOrders = page(() => import('./pages/admin/IncompleteOrders.jsx'))
 const AdminOrderDetail = page(() => import('./pages/admin/OrderDetail.jsx'))
 
 const AdminBanners = page(() => import('./pages/admin/Banners.jsx'))
@@ -77,6 +78,7 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="incomplete-orders" element={<AdminIncompleteOrders />} />
             <Route path="orders/:orderId" element={<AdminOrderDetail />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="products/new" element={<AdminProductForm />} />

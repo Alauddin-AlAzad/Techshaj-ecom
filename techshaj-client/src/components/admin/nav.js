@@ -1,4 +1,4 @@
-import { ClipboardList, FolderTree, Image, LayoutDashboard, MessageSquareText, Package, Settings, Ticket, UserRound, Zap } from 'lucide-react'
+import { ClipboardList, FolderTree, Image, LayoutDashboard, MessageSquareText, Package, PhoneMissed, Settings, Ticket, UserRound, Zap } from 'lucide-react'
 
 // Sidebar groups from Figma "Admin/Sidebar" (54:7629).
 export const navGroups = [
@@ -7,6 +7,7 @@ export const navGroups = [
     links: [
       { to: '/admin', label: 'Dashboard', Icon: LayoutDashboard, end: true },
       { to: '/admin/orders', label: 'Orders', Icon: ClipboardList },
+      { to: '/admin/incomplete-orders', label: 'Incomplete orders', Icon: PhoneMissed },
     ],
   },
   {

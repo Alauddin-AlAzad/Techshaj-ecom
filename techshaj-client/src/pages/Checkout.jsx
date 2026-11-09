@@ -13,7 +13,7 @@ import PageTopBar from '../components/PageTopBar.jsx'
 import { useCartStore } from '../context/useCartStore.js'
 import { useOrderStore } from '../context/useOrderStore.js'
 import { useCart } from '../hooks/useCart.js'
-import { usePlaceOrder, useValidateCoupon } from '../hooks/useCheckout.js'
+import { usePlaceOrder, useSaveIncompleteOrder, useValidateCoupon } from '../hooks/useCheckout.js'
 import { useIsDesktop } from '../hooks/useMediaQuery.js'
 import { variantLabel } from '../lib/cart.js'
 import { cn } from '../lib/cn.js'
@@ -145,6 +145,9 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
   })
 
   const [zoneId, payment] = useWatch({ control, name: ['zone', 'payment'] })
+  const [phoneInput, nameInput, addressInput, noteInput] = useWatch({ control, name: ['phone', 'name', 'address', 'note'] })
+  const saveIncomplete = useSaveIncompleteOrder()
+  const lastSaved = useRef('')
   const zone = zones.find((z) => z.id === zoneId) ?? zones[0]
   const wallet = store.mobilePayments?.find((m) => m.id === payment)
   // Shown as a preview only; the server works out the real totals when the order is placed.
@@ -200,6 +203,24 @@ function CheckoutForm({ cart, buyNow, onPlaced }) {
       onError: (error) => notify.error('Order failed', { description: errorMessage(error, 'Could not place your order. Please try again.') }),
     })
   }
+
+  // Once a valid phone is typed, keep a copy of the form so the shop can follow up if no order is placed.
+  useEffect(() => {
+    const phone = normalizePhone(String(phoneInput ?? ''))
+    if (!/^01[3-9]\d{8}$/.test(phone) || placeOrder.isPending || placeOrder.isSuccess) return
+    const body = {
+      customer: { phone, name: nameInput?.trim() ?? '', address: addressInput?.trim() ?? '', note: noteInput?.trim() ?? '' },
+      zoneId: zone.id,
+      items: lines.map((l) => ({ productId: l.productId, variant: l.variant, quantity: l.qty })),
+    }
+    const key = JSON.stringify(body)
+    if (key === lastSaved.current) return
+    const timer = setTimeout(() => {
+      lastSaved.current = key
+      saveIncomplete.mutate(body)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [phoneInput, nameInput, addressInput, noteInput, zone.id, lines, placeOrder.isPending, placeOrder.isSuccess]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const pixelItems = lines.map((l) => ({ id: l.productId, qty: l.qty, price: l.product.price }))
   useEffect(() => {
