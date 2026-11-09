@@ -13,6 +13,7 @@ import { usePageTitle } from '../../hooks/usePageTitle.js'
 import { useBranding } from '../../hooks/useSettings.js'
 import { setToken } from '../../lib/adminAuth.js'
 import { cn } from '../../lib/cn.js'
+import { disableTracking } from '../../lib/pixel.js'
 import { notify } from '../../lib/notify.jsx'
 import { errorMessage } from '../../lib/query.js'
 import { zodResolver } from '../../lib/zodResolver.js'
@@ -46,6 +47,7 @@ export default function Login() {
     try {
       const { data } = await axiosPublic.post('/jwt', values)
       setToken(data.token)
+      disableTracking()
       queryClient.removeQueries({ queryKey: ['admin'] })
       navigate(returnPath(location.state?.from), { replace: true })
     } catch (error) {

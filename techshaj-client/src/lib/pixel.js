@@ -1,3 +1,23 @@
+const NO_TRACK_KEY = 'ts_no_track'
+
+// No tracking on admin pages or in the store owner's browser (flagged at admin login).
+export function trackingAllowed() {
+  if (window.location.pathname.startsWith('/admin')) return false
+  try {
+    return localStorage.getItem(NO_TRACK_KEY) !== '1'
+  } catch {
+    return true
+  }
+}
+
+export function disableTracking() {
+  try {
+    localStorage.setItem(NO_TRACK_KEY, '1')
+  } catch {
+    // Private mode: admin pages are still excluded by path.
+  }
+}
+
 function load() {
   if (window.fbq) return
   const fbq = function (...args) {
@@ -10,6 +30,8 @@ function load() {
   fbq.loaded = true
   fbq.version = '2.0'
   fbq.queue = []
+  // Page views are sent by usePixel; without this the Pixel also counts history changes, including into /admin.
+  fbq.disablePushState = true
   const script = document.createElement('script')
   script.async = true
   script.src = 'https://connect.facebook.net/en_US/fbevents.js'
@@ -19,6 +41,7 @@ function load() {
 let initialized = null
 
 export function initPixel(pixelId) {
+  if (!trackingAllowed()) return false
   if (!pixelId || initialized === pixelId) return false
   load()
   window.fbq('init', pixelId)
@@ -27,6 +50,7 @@ export function initPixel(pixelId) {
 }
 
 export function trackPixel(name, data, eventId) {
+  if (!trackingAllowed()) return
   if (!initialized || !window.fbq) return
   if (eventId) window.fbq('track', name, data, { eventID: eventId })
   else window.fbq('track', name, data)
