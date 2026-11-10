@@ -108,13 +108,13 @@ export default function DetailsTabs({ product, reviews, store }) {
       ),
     },
     { id: 'specs', label: 'Specifications', content: <SpecTable specs={product.specs} /> },
-    {
+    product.showReviews !== false && {
       id: 'reviews',
       label: shouldShowRating(product) ? `Reviews (${product.reviewCount})` : 'Reviews',
       content: <Reviews product={product} reviews={reviews} />,
     },
     { id: 'delivery', label: 'Delivery & Return', content: <DeliveryReturn store={store} product={product} /> },
-  ]
+  ].filter(Boolean)
 
   return (
     <>

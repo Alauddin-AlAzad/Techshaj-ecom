@@ -56,6 +56,7 @@ const schema = z
     stock: z.string().trim().regex(/^\d+$/, 'Stock must be a whole number of 0 or more'),
     freeDelivery: z.boolean(),
     isNew: z.boolean(),
+    showReviews: z.boolean(),
     rating: z.string().trim(),
     reviewCount: z.string().trim(),
     soldCount: z.string().trim().regex(/^\d+$/, 'Enter a whole number of 0 or more'),
@@ -101,12 +102,13 @@ const blank = {
   stock: '0',
   freeDelivery: false,
   isNew: true,
+  showReviews: true,
   rating: '0',
   reviewCount: '0',
   soldCount: '0',
   autoRating: false,
   published: true,
-  collections: [],
+  collections: ['new-arrival'],
   images: [],
   variants: [],
   specs: [],
@@ -127,6 +129,7 @@ const toFormValues = (p) => ({
   stock: String(p.stock ?? 0),
   freeDelivery: Boolean(p.freeDelivery),
   isNew: Boolean(p.isNew),
+  showReviews: p.showReviews !== false,
   rating: String(p.rating ?? 0),
   reviewCount: String(p.reviewCount ?? 0),
   soldCount: String(p.soldCount ?? 0),
@@ -153,7 +156,8 @@ const toPayload = (v) => ({
   oldPrice: v.oldPrice ? Number(v.oldPrice) : null,
   stock: Number(v.stock),
   freeDelivery: v.freeDelivery,
-  isNew: v.isNew,
+  isNew: v.collections.includes('new-arrival'),
+  showReviews: v.showReviews,
   // With real review numbers the server keeps rating and reviewCount up to date.
   ...(!v.autoRating && { rating: Number(v.rating), reviewCount: Number(v.reviewCount) }),
   soldCount: Number(v.soldCount),
@@ -560,13 +564,13 @@ function ProductEditor({ product }) {
             <FlagRow label="Free delivery" hint="This product ships free. A Free Delivery badge shows on the card and page.">
               {flag('freeDelivery', 'Free delivery')}
             </FlagRow>
-            <FlagRow label="New arrival" hint="Shows the New badge and sorts it first">
-              {flag('isNew', 'New arrival')}
-            </FlagRow>
           </Card>
 
           <Card title="Social proof">
             <p className="-mt-2 text-body-sm text-text-muted">These are shown on the storefront as you enter them. A later version will use real review and order numbers.</p>
+            <FlagRow label="Show reviews" hint="Off hides the stars, review count and Reviews tab for this product.">
+              {flag('showReviews', 'Show reviews')}
+            </FlagRow>
             <FlagRow label="Use real review numbers" hint="Rating and review count follow approved reviews.">
               {flag('autoRating', 'Use real review numbers')}
             </FlagRow>
@@ -582,7 +586,7 @@ function ProductEditor({ product }) {
           </Card>
 
           <Card title="Collections">
-            <p className="-mt-2 text-body-sm text-text-muted">Choose where this product appears on the store.</p>
+            <p className="-mt-2 text-body-sm text-text-muted">Choose where this product appears on the store. New Arrival also shows the New arrival badge on the product page.</p>
             <Controller
               control={control}
               name="collections"

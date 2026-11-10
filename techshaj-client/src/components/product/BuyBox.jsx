@@ -44,11 +44,11 @@ function useRepeatingCountdown(hours) {
 function OfferBox({ offer, timerHours }) {
   const time = useRepeatingCountdown(timerHours)
   return (
-    <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary bg-primary-tint px-3.5 py-3 lg:px-4 lg:py-3.5">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white lg:size-10">
-        <Gift size={18} />
+    <div className="flex w-full items-center gap-2.5 rounded-xl border border-dashed border-primary bg-primary-tint px-3 py-2 lg:gap-3 lg:px-4 lg:py-3.5">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-white lg:size-10">
+        <Gift size={16} />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col lg:gap-0.5">
         <span className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-bold tracking-wide text-primary-deep uppercase">Special offer</span>
           {time && (
@@ -58,7 +58,7 @@ function OfferBox({ offer, timerHours }) {
             </span>
           )}
         </span>
-        <span className="font-bangla text-[14px] leading-5 font-semibold text-text lg:text-[15px]">{offer}</span>
+        <span className="font-bangla text-[13px] leading-[18px] font-semibold text-text lg:text-[15px] lg:leading-5">{offer}</span>
       </span>
     </div>
   )
@@ -96,7 +96,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
             {product.soldCount > 0 && `  •  ${formatSold(product.soldCount)} sold`}
           </span>
         </p>
-      ) : product.isNew ? (
+      ) : product.collections?.includes('new-arrival') ? (
         <span className="rounded-md bg-secondary-tint px-[7px] py-0.5 text-[11px] font-semibold text-secondary">New arrival</span>
       ) : product.soldCount > 0 ? (
         <p className="text-[11px] text-text-muted lg:text-[13px]">{formatSold(product.soldCount)} sold</p>

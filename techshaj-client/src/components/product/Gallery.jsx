@@ -44,7 +44,7 @@ function Thumb({ src, active, onClick, index }) {
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
 // images: all pictures. focus: { src } to show; onThumb(src) runs when a thumb is clicked.
-export default function Gallery({ product, images, focus, onThumb, discount }) {
+export default function Gallery({ product, images, focus, onThumb, discount, compact }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
   const [sharing, setSharing] = useState(false)
@@ -69,7 +69,7 @@ export default function Gallery({ product, images, focus, onThumb, discount }) {
 
   return (
     <div className="flex flex-col gap-2 lg:contents">
-      <div className="no-scrollbar order-2 flex gap-2 overflow-x-auto lg:order-none lg:flex-col lg:gap-2.5 lg:overflow-visible">{thumbs}</div>
+      <div className={cn('no-scrollbar order-2 flex gap-2 overflow-x-auto lg:order-none lg:flex lg:flex-col lg:gap-2.5 lg:overflow-visible', compact && 'max-lg:hidden')}>{thumbs}</div>
 
       <div className="relative aspect-square w-full overflow-hidden rounded-[14px] bg-fill">
         <Swiper onSwiper={setSwiper} onSlideChange={(s) => setActive(s.activeIndex)} className="size-full">

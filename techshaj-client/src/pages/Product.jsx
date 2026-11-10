@@ -83,7 +83,7 @@ function ProductDetails({ product, store, reviews, related }) {
       <div className="lg:site-container">
         <section className="flex flex-col gap-0 lg:grid lg:grid-cols-[72px_minmax(0,1fr)_minmax(0,1fr)] lg:items-start lg:gap-10 lg:rounded-2xl lg:bg-white lg:py-8 lg:pr-10 lg:pl-8 xl:grid-cols-[72px_500px_minmax(0,1fr)]">
           <div className="site-container pt-3 lg:contents">
-            <Gallery product={product} images={images} focus={focus} onThumb={pickFromGallery} discount={discount} />
+            <Gallery product={product} images={images} focus={focus} onThumb={pickFromGallery} discount={discount} compact={Boolean(product.offer)} />
           </div>
           <div className="site-container pt-3.5 lg:w-auto lg:max-w-none lg:p-0">
             <BuyBox

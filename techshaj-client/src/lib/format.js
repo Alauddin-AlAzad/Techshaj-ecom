@@ -12,7 +12,7 @@ export function formatSold(count) {
 }
 
 export function shouldShowRating(product) {
-  return product.reviewCount >= 3
+  return product.showReviews !== false && product.reviewCount >= 3
 }
 
 export function discountPercent(price, oldPrice) {
