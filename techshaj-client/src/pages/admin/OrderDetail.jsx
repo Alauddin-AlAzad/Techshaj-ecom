@@ -1,10 +1,11 @@
-import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, ImageOff, MapPin, PackageCheck, Phone, Printer, SearchX, Truck } from 'lucide-react'
+import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, ImageOff, MapPin, PackageCheck, Pencil, Phone, Printer, SearchX, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { Link, useParams } from 'react-router-dom'
 import { Skeleton } from '../../components/Skeleton.jsx'
 import Button from '../../components/admin/Button.jsx'
 import ConfirmDialog from '../../components/admin/ConfirmDialog.jsx'
+import EditOrderModal from '../../components/admin/EditOrderModal.jsx'
 import EmptyState from '../../components/admin/EmptyState.jsx'
 import ErrorState from '../../components/admin/ErrorState.jsx'
 import FormField from '../../components/admin/FormField.jsx'
@@ -185,6 +186,7 @@ export default function OrderDetail() {
   const updateStatus = useUpdateOrderStatus()
   const [note, setNote] = useState('')
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   if (isLoading) return <DetailSkeleton />
   if (isError) {
@@ -208,6 +210,7 @@ export default function OrderDetail() {
   const phone = order.customer?.phone ?? order.phone
   const history = order.statusHistory?.length ? order.statusHistory : [{ status: order.status, at: order.createdAt }]
   const count = itemCount(order)
+  const editable = !['cancelled', 'delivered'].includes(order.status)
 
   const changeStatus = (status) =>
     updateStatus.mutate(
@@ -247,6 +250,11 @@ export default function OrderDetail() {
             <p className="text-[13px] text-text-muted">Placed on {formatDate(order.createdAt, { withTime: true })}</p>
           </div>
           <div className="flex flex-wrap gap-2.5">
+            {editable && (
+              <Button variant="secondary" Icon={Pencil} onClick={() => setEditing(true)}>
+                Edit order
+              </Button>
+            )}
             <Button variant="secondary" Icon={Printer} onClick={() => window.print()}>
               Print slip
             </Button>
@@ -318,15 +326,15 @@ export default function OrderDetail() {
             <Card title="Order timeline">
               <ol className="flex flex-col">
                 {history.map((entry, i) => {
-                  const Icon = TIMELINE_ICONS[entry.status] ?? Clock
+                  const Icon = entry.edit ? Pencil : (TIMELINE_ICONS[entry.status] ?? Clock)
                   return (
                     <li key={i} className="relative flex gap-3 pb-5 last:pb-0">
                       {i < history.length - 1 && <span aria-hidden="true" className="absolute top-9 bottom-1 left-[15px] w-px bg-border-strong" />}
-                      <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full', TIMELINE_TONES[entry.status] ?? 'bg-fill text-text-muted')}>
+                      <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full', entry.edit ? 'bg-fill text-text-secondary' : (TIMELINE_TONES[entry.status] ?? 'bg-fill text-text-muted'))}>
                         <Icon size={16} />
                       </span>
                       <div className="flex min-w-0 flex-col gap-0.5 pt-1">
-                        <span className="text-[13px] font-semibold text-text">{i === 0 && entry.status === 'pending' ? 'Order placed by customer' : (STATUS_LABELS[entry.status] ?? entry.status)}</span>
+                        <span className="text-[13px] font-semibold text-text">{entry.edit ? 'Order edited' : i === 0 && entry.status === 'pending' ? 'Order placed by customer' : (STATUS_LABELS[entry.status] ?? entry.status)}</span>
                         <span className="text-body-sm text-text-muted">
                           {formatDate(entry.at, { withTime: true })}
                           {entry.by && ` · ${entry.by}`}
@@ -425,6 +433,8 @@ export default function OrderDetail() {
           </div>
         )}
       </div>
+
+      {editing && <EditOrderModal order={order} open={editing} onClose={() => setEditing(false)} />}
 
       <ConfirmDialog
         open={confirmCancel}

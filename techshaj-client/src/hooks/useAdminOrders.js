@@ -61,3 +61,9 @@ export function useUpdateCourier() {
   const axiosSecure = useAxiosSecure()
   return useOrderMutation(async ({ orderId, courier, trackingNumber }) => (await axiosSecure.patch(`/admin/orders/${encodeURIComponent(orderId)}/courier`, { courier, trackingNumber })).data)
 }
+
+// { orderId, customer, items: [{ price, quantity }], shipping, discount } -> the updated order. Quantity changes move stock.
+export function useEditOrder() {
+  const axiosSecure = useAxiosSecure()
+  return useOrderMutation(async ({ orderId, ...changes }) => (await axiosSecure.patch(`/admin/orders/${encodeURIComponent(orderId)}`, changes)).data, { stockChanges: true })
+}
