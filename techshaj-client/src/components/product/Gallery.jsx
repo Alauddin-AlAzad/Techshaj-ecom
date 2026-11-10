@@ -43,8 +43,9 @@ function Thumb({ src, active, onClick, index }) {
 }
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
+// compact (products with an offer): on mobile the thumbs are hidden and a counter with dots shows instead.
 // images: all pictures. focus: { src } to show; onThumb(src) runs when a thumb is clicked.
-export default function Gallery({ product, images, focus, onThumb, discount }) {
+export default function Gallery({ product, images, focus, onThumb, discount, compact }) {
   const [swiper, setSwiper] = useState(null)
   const [active, setActive] = useState(0)
   const [sharing, setSharing] = useState(false)
@@ -69,7 +70,7 @@ export default function Gallery({ product, images, focus, onThumb, discount }) {
 
   return (
     <div className="flex flex-col gap-2 lg:contents">
-      <div className="no-scrollbar order-2 flex gap-2 overflow-x-auto lg:order-none lg:flex-col lg:gap-2.5 lg:overflow-visible">{thumbs}</div>
+      <div className={cn('no-scrollbar order-2 flex gap-2 overflow-x-auto lg:order-none lg:flex lg:flex-col lg:gap-2.5 lg:overflow-visible', compact && 'max-lg:hidden')}>{thumbs}</div>
 
       <div className="relative aspect-square w-full overflow-hidden rounded-[14px] bg-fill">
         <Swiper onSwiper={setSwiper} onSlideChange={(s) => setActive(s.activeIndex)} className="size-full">
@@ -98,7 +99,19 @@ export default function Gallery({ product, images, focus, onThumb, discount }) {
         <span className="absolute bottom-6 left-4 z-10 hidden rounded-xl bg-white px-2.5 py-[5px] text-label-sm text-text lg:block">
           {active + 1} / {images.length}
         </span>
-        {images.length > 1 && (
+        {images.length > 1 && compact && (
+          <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-dark/60 px-2.5 py-1.5 backdrop-blur-sm lg:hidden">
+            <span className="text-[11px] font-bold text-white tabular-nums">
+              {active + 1}/{images.length}
+            </span>
+            <span className="flex gap-1">
+              {images.map((_, i) => (
+                <span key={i} className={cn('h-1.5 rounded-full transition-all', i === active ? 'w-4 bg-primary' : 'w-1.5 bg-white/70')} />
+              ))}
+            </span>
+          </div>
+        )}
+        {images.length > 1 && !compact && (
           <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-[5px] lg:hidden">
             {images.map((_, i) => (
               <span key={i} className={cn('h-1.5 rounded-[3px]', i === active ? 'w-[18px] bg-text' : 'w-1.5 bg-check-line')} />

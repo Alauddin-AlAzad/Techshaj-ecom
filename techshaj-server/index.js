@@ -305,7 +305,7 @@ async function run() {
     const readProduct = async (body, current) => {
       const data = {};
       let category = null;
-      const textError = readText(body, data, ["name", "brand", "shortDescription", "offer", "description", "adminNote"]) || readFlags(body, data, ["freeDelivery", "isNew", "published"]);
+      const textError = readText(body, data, ["name", "brand", "shortDescription", "offer", "description", "adminNote"]) || readFlags(body, data, ["freeDelivery", "isNew", "published", "showReviews"]);
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
       if (data.offer?.length > 200) return { error: "Offer must be 200 characters or less" };
@@ -737,6 +737,7 @@ async function run() {
           stock: 0,
           freeDelivery: false,
           isNew: true,
+          showReviews: true,
           collections: [],
           published: true,
           rating: 0,
