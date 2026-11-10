@@ -43,6 +43,7 @@ function Thumb({ src, active, onClick, index }) {
 }
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
+// compact (products with an offer): on mobile the thumbs sit on the photo instead of below it.
 // images: all pictures. focus: { src } to show; onThumb(src) runs when a thumb is clicked.
 export default function Gallery({ product, images, focus, onThumb, discount, compact }) {
   const [swiper, setSwiper] = useState(null)
@@ -98,7 +99,25 @@ export default function Gallery({ product, images, focus, onThumb, discount, com
         <span className="absolute bottom-6 left-4 z-10 hidden rounded-xl bg-white px-2.5 py-[5px] text-label-sm text-text lg:block">
           {active + 1} / {images.length}
         </span>
-        {images.length > 1 && (
+        {images.length > 1 && compact && (
+          <div className="absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-24px)] -translate-x-1/2 gap-1.5 overflow-x-auto rounded-xl bg-white/85 p-1.5 shadow-menu backdrop-blur-sm lg:hidden">
+            {images.map((src, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Show image ${i + 1}`}
+                onClick={() => {
+                  swiper?.slideTo(i)
+                  onThumb?.(src)
+                }}
+                className={cn('size-9 shrink-0 overflow-hidden rounded-lg border-2 bg-white', i === active ? 'border-primary' : 'border-transparent opacity-70')}
+              >
+                <img src={src} alt="" loading="lazy" className="size-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+        {images.length > 1 && !compact && (
           <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-[5px] lg:hidden">
             {images.map((_, i) => (
               <span key={i} className={cn('h-1.5 rounded-[3px]', i === active ? 'w-[18px] bg-text' : 'w-1.5 bg-check-line')} />
