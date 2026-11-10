@@ -1,4 +1,5 @@
-import { CreditCard, Gift, MessageCircle, ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
+import { Clock, CreditCard, Gift, MessageCircle, ShieldCheck, ShoppingCart, Truck } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/cn.js'
 import { formatPrice, formatSold, shouldShowRating } from '../../lib/format.js'
@@ -23,6 +24,46 @@ function QuantityStepper({ value, max, onChange }) {
 }
 
 // Right column of the desktop product card (28:3368) and the mobile info block (30:3670).
+const pad = (n) => String(n).padStart(2, '0')
+// Fixed start so every visitor sees the same time left in the cycle.
+const TIMER_START = Date.UTC(2026, 0, 1, -6)
+
+function useRepeatingCountdown(hours) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!hours) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [hours])
+  if (!hours) return null
+  const cycle = hours * 3600
+  const left = cycle - (Math.floor((now - TIMER_START) / 1000) % cycle)
+  return `${pad(Math.floor(left / 3600))}:${pad(Math.floor((left % 3600) / 60))}:${pad(left % 60)}`
+}
+
+function OfferBox({ offer, timerHours }) {
+  const time = useRepeatingCountdown(timerHours)
+  return (
+    <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary bg-primary-tint px-3.5 py-3 lg:px-4 lg:py-3.5">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white lg:size-10">
+        <Gift size={18} />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center justify-between gap-2">
+          <span className="text-[11px] font-bold tracking-wide text-primary-deep uppercase">Special offer</span>
+          {time && (
+            <span className="flex shrink-0 items-center gap-1 rounded-md bg-white px-1.5 py-0.5 text-[12px] font-bold text-primary-deep tabular-nums" aria-label={`Countdown ${time}`}>
+              <Clock size={12} />
+              {time}
+            </span>
+          )}
+        </span>
+        <span className="font-bangla text-[14px] leading-5 font-semibold text-text lg:text-[15px]">{offer}</span>
+      </span>
+    </div>
+  )
+}
+
 export default function BuyBox({ product, category, store, discount, variant, onVariant, qty, onQty, onAddToCart, onOrderNow }) {
   const inStock = product.stock > 0
   const saved = product.oldPrice ? product.oldPrice - product.price : 0
@@ -73,17 +114,7 @@ export default function BuyBox({ product, category, store, discount, variant, on
         )}
       </p>
 
-      {product.offer && (
-        <div className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary bg-primary-tint px-3.5 py-3 lg:px-4 lg:py-3.5">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white lg:size-10">
-            <Gift size={18} />
-          </span>
-          <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[11px] font-bold tracking-wide text-primary-deep uppercase">Special offer</span>
-            <span className="font-bangla text-[14px] leading-5 font-semibold text-text lg:text-[15px]">{product.offer}</span>
-          </span>
-        </div>
-      )}
+      {product.offer && <OfferBox offer={product.offer} timerHours={product.offerTimerHours} />}
 
       {product.freeDelivery && (
         <div className="flex w-full items-center gap-3 rounded-[10px] border border-highlight-line bg-highlight-tint px-3 py-2.5 lg:px-3.5 lg:py-3">

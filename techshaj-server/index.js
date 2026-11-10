@@ -309,6 +309,11 @@ async function run() {
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
       if (data.offer?.length > 200) return { error: "Offer must be 200 characters or less" };
+      if (body.offerTimerHours !== undefined) {
+        const hours = body.offerTimerHours === null || body.offerTimerHours === "" ? null : Number(body.offerTimerHours);
+        if (hours !== null && (!Number.isInteger(hours) || hours < 1 || hours > 168)) return { error: "offerTimerHours must be a whole number from 1 to 168" };
+        data.offerTimerHours = hours;
+      }
       for (const key of ["price", "oldPrice", "costPrice"]) {
         if (body[key] === undefined) continue;
         if (key !== "price" && body[key] === null) {
@@ -727,6 +732,7 @@ async function run() {
           specs: [],
           shortDescription: "",
           offer: "",
+          offerTimerHours: null,
           description: "",
           stock: 0,
           freeDelivery: false,
