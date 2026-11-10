@@ -1249,6 +1249,109 @@ async function run() {
       }
     });
 
+    app.patch("/admin/orders/:orderId", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { customer, items, shipping, discount } = req.body ?? {};
+        const current = await ordersCollection.findOne({ orderId: req.params.orderId.trim().toUpperCase() });
+        if (!current) return res.status(404).send({ message: "Order not found" });
+        if (["cancelled", "delivered"].includes(current.status)) return res.status(400).send({ message: `A ${current.status} order cannot be edited` });
+
+        const money = (value, label) => {
+          const number = Number(value);
+          if (!Number.isInteger(number) || number < 0 || number > 10000000) throw new Error(`${label} must be a whole number of 0 or more`);
+          return number;
+        };
+        const nextCustomer = { ...current.customer };
+        if (customer !== undefined) {
+          if (!isPlainObject(customer)) return res.status(400).send({ message: "customer must be an object" });
+          for (const [key, max] of [["name", 80], ["address", 300], ["note", 300], ["phone", 11]]) {
+            if (customer[key] === undefined) continue;
+            if (typeof customer[key] !== "string") return res.status(400).send({ message: `${key} must be text` });
+            nextCustomer[key] = customer[key].trim().slice(0, max);
+          }
+          if (!nextCustomer.name) return res.status(400).send({ message: "Name is required" });
+          if (!nextCustomer.address) return res.status(400).send({ message: "Address is required" });
+          if (!phonePattern.test(nextCustomer.phone ?? "")) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
+        }
+
+        let nextItems = current.items;
+        let nextShipping = current.shipping;
+        let nextDiscount = current.discount ?? 0;
+        try {
+          if (items !== undefined) {
+            if (!Array.isArray(items) || items.length !== current.items.length) {
+              return res.status(400).send({ message: "items must list every item of the order" });
+            }
+            nextItems = current.items
+              .map((item, i) => {
+                const quantity = money(items[i]?.quantity ?? item.quantity, "Quantity");
+                if (quantity > 99) throw new Error("Quantity must be 99 or less");
+                const price = money(items[i]?.price ?? item.price, "Price");
+                return { ...item, price, quantity, lineTotal: price * quantity };
+              })
+              .filter((item) => item.quantity > 0);
+            if (!nextItems.length) return res.status(400).send({ message: "Keep at least one item, or cancel the order instead" });
+          }
+          if (shipping !== undefined) nextShipping = money(shipping, "Delivery charge");
+          if (discount !== undefined) nextDiscount = money(discount, "Discount");
+        } catch (error) {
+          return res.status(400).send({ message: error.message });
+        }
+        const subtotal = nextItems.reduce((sum, item) => sum + item.lineTotal, 0);
+        if (nextDiscount > subtotal + nextShipping) return res.status(400).send({ message: "Discount cannot be more than the order amount" });
+        const total = subtotal + nextShipping - nextDiscount;
+
+        const quantityOf = (list) => {
+          const map = {};
+          for (const item of list) map[item.productId] = (map[item.productId] ?? 0) + item.quantity;
+          return map;
+        };
+        const before = quantityOf(current.items);
+        const after = quantityOf(nextItems);
+        const changes = [...new Set([...Object.keys(before), ...Object.keys(after)])]
+          .map((id) => ({ id: Number(id), delta: (after[id] ?? 0) - (before[id] ?? 0) }))
+          .filter((c) => c.delta !== 0);
+        const applied = [];
+        const undo = async () => {
+          for (const c of applied) await productsCollection.updateOne({ id: c.id }, { $inc: { stock: c.delta } });
+        };
+        for (const c of changes) {
+          const filter = c.delta > 0 ? { id: c.id, stock: { $gte: c.delta } } : { id: c.id };
+          const result = await productsCollection.updateOne(filter, { $inc: { stock: -c.delta } });
+          if (c.delta > 0 && result.modifiedCount === 0) {
+            await undo();
+            const name = current.items.find((item) => item.productId === c.id)?.name ?? "A product";
+            return res.status(400).send({ message: `${name} does not have ${c.delta} more in stock` });
+          }
+          if (result.matchedCount) applied.push(c);
+        }
+
+        const now = new Date();
+        const entry = {
+          status: current.status,
+          at: now,
+          by: req.admin.email,
+          edit: true,
+          note: `Order edited. Total ${current.total} → ${total}`,
+        };
+        const order = await ordersCollection.findOneAndUpdate(
+          { _id: current._id, status: current.status, total: current.total },
+          {
+            $set: { customer: nextCustomer, phone: nextCustomer.phone ?? current.phone, items: nextItems, subtotal, shipping: nextShipping, discount: nextDiscount, total, updatedAt: now },
+            $push: { statusHistory: entry },
+          },
+          { returnDocument: "after" },
+        );
+        if (!order) {
+          await undo();
+          return res.status(409).send({ message: "This order was just updated by someone else. Refresh and try again." });
+        }
+        res.send(order);
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     app.patch("/admin/orders/:orderId/courier", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { courier, trackingNumber } = req.body ?? {};
