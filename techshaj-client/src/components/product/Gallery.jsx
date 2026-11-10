@@ -43,7 +43,7 @@ function Thumb({ src, active, onClick, index }) {
 }
 
 // Figma: desktop thumbs on the left + "1 / 6" counter (28:3326), mobile dots + thumbs below (30:3626).
-// compact (products with an offer): on mobile the thumbs sit on the photo instead of below it.
+// compact (products with an offer): on mobile the thumbs are hidden and a counter with dots shows instead.
 // images: all pictures. focus: { src } to show; onThumb(src) runs when a thumb is clicked.
 export default function Gallery({ product, images, focus, onThumb, discount, compact }) {
   const [swiper, setSwiper] = useState(null)
@@ -100,21 +100,15 @@ export default function Gallery({ product, images, focus, onThumb, discount, com
           {active + 1} / {images.length}
         </span>
         {images.length > 1 && compact && (
-          <div className="absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-24px)] -translate-x-1/2 gap-1.5 overflow-x-auto rounded-xl bg-white/85 p-1.5 shadow-menu backdrop-blur-sm lg:hidden">
-            {images.map((src, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Show image ${i + 1}`}
-                onClick={() => {
-                  swiper?.slideTo(i)
-                  onThumb?.(src)
-                }}
-                className={cn('size-9 shrink-0 overflow-hidden rounded-lg border-2 bg-white', i === active ? 'border-primary' : 'border-transparent opacity-70')}
-              >
-                <img src={src} alt="" loading="lazy" className="size-full object-cover" />
-              </button>
-            ))}
+          <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-dark/60 px-2.5 py-1.5 backdrop-blur-sm lg:hidden">
+            <span className="text-[11px] font-bold text-white tabular-nums">
+              {active + 1}/{images.length}
+            </span>
+            <span className="flex gap-1">
+              {images.map((_, i) => (
+                <span key={i} className={cn('h-1.5 rounded-full transition-all', i === active ? 'w-4 bg-primary' : 'w-1.5 bg-white/70')} />
+              ))}
+            </span>
           </div>
         )}
         {images.length > 1 && !compact && (
