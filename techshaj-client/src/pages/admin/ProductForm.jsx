@@ -40,6 +40,7 @@ const schema = z
     code: z.string(),
     brand: z.string(),
     shortDescription: z.string(),
+    offer: z.string().max(200, 'Keep the offer under 200 characters'),
     description: z.string(),
     categoryId: z.string().min(1, 'Choose a category'),
     price: z
@@ -87,6 +88,7 @@ const blank = {
   code: '',
   brand: '',
   shortDescription: '',
+  offer: '',
   description: '',
   categoryId: '',
   price: '',
@@ -111,6 +113,7 @@ const toFormValues = (p) => ({
   code: p.code ?? '',
   brand: p.brand ?? '',
   shortDescription: p.shortDescription ?? '',
+  offer: p.offer ?? '',
   description: p.description ?? '',
   categoryId: p.categoryId != null ? String(p.categoryId) : '',
   price: p.price != null ? String(p.price) : '',
@@ -136,6 +139,7 @@ const toPayload = (v) => ({
   ...(v.code.trim() && { code: v.code.trim().toUpperCase() }),
   brand: v.brand.trim(),
   shortDescription: v.shortDescription.trim(),
+  offer: v.offer.trim(),
   description: v.description.trim(),
   categoryId: Number(v.categoryId),
   price: Number(v.price),
@@ -452,6 +456,7 @@ function ProductEditor({ product }) {
               {text('brand', 'Brand', { placeholder: 'e.g. Hoco' })}
             </div>
             {text('shortDescription', 'Short description', { multiline: true, rows: 2, placeholder: 'One line shown near the price' })}
+            {text('offer', 'Offer', { multiline: true, rows: 2, placeholder: 'e.g. Order now and get 2 lipsticks free!', hint: 'Shown in a highlighted box under the price. Leave empty when there is no offer.' })}
             {text('description', 'Description', { multiline: true, rows: 6, placeholder: 'Full details shown in the Description tab' })}
           </Card>
 

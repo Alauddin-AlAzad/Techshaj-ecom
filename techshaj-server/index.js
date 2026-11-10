@@ -305,9 +305,10 @@ async function run() {
     const readProduct = async (body, current) => {
       const data = {};
       let category = null;
-      const textError = readText(body, data, ["name", "brand", "shortDescription", "description", "adminNote"]) || readFlags(body, data, ["freeDelivery", "isNew", "published"]);
+      const textError = readText(body, data, ["name", "brand", "shortDescription", "offer", "description", "adminNote"]) || readFlags(body, data, ["freeDelivery", "isNew", "published"]);
       if (textError) return { error: textError };
       if (data.name === "") return { error: "Name is required" };
+      if (data.offer?.length > 200) return { error: "Offer must be 200 characters or less" };
       for (const key of ["price", "oldPrice", "costPrice"]) {
         if (body[key] === undefined) continue;
         if (key !== "price" && body[key] === null) {
@@ -725,6 +726,7 @@ async function run() {
           optionImages: {},
           specs: [],
           shortDescription: "",
+          offer: "",
           description: "",
           stock: 0,
           freeDelivery: false,
