@@ -41,6 +41,10 @@ const schema = z
     brand: z.string(),
     shortDescription: z.string(),
     offer: z.string().max(200, 'Keep the offer under 200 characters'),
+    offerTimerHours: z
+      .string()
+      .trim()
+      .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 168), 'Enter whole hours from 1 to 168'),
     description: z.string(),
     categoryId: z.string().min(1, 'Choose a category'),
     price: z
@@ -89,6 +93,7 @@ const blank = {
   brand: '',
   shortDescription: '',
   offer: '',
+  offerTimerHours: '',
   description: '',
   categoryId: '',
   price: '',
@@ -114,6 +119,7 @@ const toFormValues = (p) => ({
   brand: p.brand ?? '',
   shortDescription: p.shortDescription ?? '',
   offer: p.offer ?? '',
+  offerTimerHours: p.offerTimerHours ? String(p.offerTimerHours) : '',
   description: p.description ?? '',
   categoryId: p.categoryId != null ? String(p.categoryId) : '',
   price: p.price != null ? String(p.price) : '',
@@ -140,6 +146,7 @@ const toPayload = (v) => ({
   brand: v.brand.trim(),
   shortDescription: v.shortDescription.trim(),
   offer: v.offer.trim(),
+  offerTimerHours: v.offer.trim() && v.offerTimerHours ? Number(v.offerTimerHours) : null,
   description: v.description.trim(),
   categoryId: Number(v.categoryId),
   price: Number(v.price),
@@ -457,6 +464,7 @@ function ProductEditor({ product }) {
             </div>
             {text('shortDescription', 'Short description', { multiline: true, rows: 2, placeholder: 'One line shown near the price' })}
             {text('offer', 'Offer', { multiline: true, rows: 2, placeholder: 'e.g. Order now and get 2 lipsticks free!', hint: 'Shown in a highlighted box under the price. Leave empty when there is no offer.' })}
+            {text('offerTimerHours', 'Offer countdown (hours)', { placeholder: 'e.g. 5', hint: 'Optional. Shows a countdown that starts again every this many hours. Leave empty for no countdown.' })}
             {text('description', 'Description', { multiline: true, rows: 6, placeholder: 'Full details shown in the Description tab' })}
           </Card>
 
