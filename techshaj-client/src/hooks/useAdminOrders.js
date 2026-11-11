@@ -67,3 +67,24 @@ export function useEditOrder() {
   const axiosSecure = useAxiosSecure()
   return useOrderMutation(async ({ orderId, ...changes }) => (await axiosSecure.patch(`/admin/orders/${encodeURIComponent(orderId)}`, changes)).data, { stockChanges: true })
 }
+
+// { customer, zoneId, paymentMethod, transactionId, items: [{ productId, variant, quantity, price }], shipping, discount, status } -> the new order
+export function useCreateOrder() {
+  const axiosSecure = useAxiosSecure()
+  return useOrderMutation(async (body) => (await axiosSecure.post('/admin/orders', body)).data, { stockChanges: true })
+}
+
+export function useDeleteOrder() {
+  const axiosSecure = useAxiosSecure()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (orderId) => (await axiosSecure.delete(`/admin/orders/${encodeURIComponent(orderId)}`)).data,
+    onSuccess: (_, orderId) => {
+      queryClient.removeQueries({ queryKey: ['admin', 'orders', 'one', orderId] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'products'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}

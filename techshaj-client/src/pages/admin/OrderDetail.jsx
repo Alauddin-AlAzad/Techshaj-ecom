@@ -1,7 +1,7 @@
-import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, ImageOff, MapPin, PackageCheck, Pencil, Phone, Printer, SearchX, Truck } from 'lucide-react'
+import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, ImageOff, MapPin, PackageCheck, Pencil, Phone, Printer, SearchX, Trash2, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { FaWhatsapp } from 'react-icons/fa'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Skeleton } from '../../components/Skeleton.jsx'
 import Button from '../../components/admin/Button.jsx'
 import ConfirmDialog from '../../components/admin/ConfirmDialog.jsx'
@@ -12,7 +12,7 @@ import FormField from '../../components/admin/FormField.jsx'
 import StatusBadge from '../../components/admin/StatusBadge.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { NEXT_STATUS, PAYMENT_LABELS, STATUS_LABELS, canCancel, itemCount, variantText, whatsappNumber } from '../../components/admin/orderMeta.js'
-import { useAdminOrder, useUpdateCourier, useUpdateOrderStatus } from '../../hooks/useAdminOrders.js'
+import { useAdminOrder, useDeleteOrder, useUpdateCourier, useUpdateOrderStatus } from '../../hooks/useAdminOrders.js'
 import { formatDate, formatPrice } from '../../lib/adminFormat.js'
 import { copyText } from '../../lib/clipboard.js'
 import { cn } from '../../lib/cn.js'
@@ -184,6 +184,9 @@ export default function OrderDetail() {
   const { orderId } = useParams()
   const { data: order, isLoading, isError, error, refetch } = useAdminOrder(orderId)
   const updateStatus = useUpdateOrderStatus()
+  const deleteOrder = useDeleteOrder()
+  const navigate = useNavigate()
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [note, setNote] = useState('')
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -257,6 +260,9 @@ export default function OrderDetail() {
             )}
             <Button variant="secondary" Icon={Printer} onClick={() => window.print()}>
               Print slip
+            </Button>
+            <Button variant="secondary" Icon={Trash2} onClick={() => setConfirmDelete(true)} className="hover:border-error hover:text-error">
+              Delete
             </Button>
             {cancellable && (
               <Button variant="secondary" Icon={Ban} onClick={() => setConfirmCancel(true)} disabled={updateStatus.isPending} className="hover:border-error hover:text-error max-lg:hidden">
@@ -445,6 +451,30 @@ export default function OrderDetail() {
         title={`Cancel order #${order.orderId}?`}
         message="The stock for every item in this order will be added back. This cannot be undone."
         confirmLabel="Cancel order"
+        cancelLabel="Keep order"
+      />
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() =>
+          deleteOrder.mutate(order.orderId, {
+            onSuccess: (result) => {
+              notify.success('Order deleted', { description: result.restocked ? `#${order.orderId} · stock added back` : `#${order.orderId}` })
+              navigate('/admin/orders')
+            },
+            onError: (error) => notify.error('Could not delete the order', { description: errorMessage(error) }),
+          })
+        }
+        loading={deleteOrder.isPending}
+        danger
+        title={`Delete order #${order.orderId}?`}
+        message={
+          ['pending', 'confirmed', 'shipped'].includes(order.status)
+            ? 'The order is removed from the list and dashboard, and its items are added back to stock. This cannot be undone.'
+            : 'The order is removed from the list and dashboard. Stock does not change. This cannot be undone.'
+        }
+        confirmLabel="Delete order"
         cancelLabel="Keep order"
       />
     </>
