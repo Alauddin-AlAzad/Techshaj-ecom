@@ -1266,7 +1266,7 @@ async function run() {
 
     app.post("/admin/orders", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const { customer, zoneId, paymentMethod, transactionId, items, shipping, discount, status } = req.body ?? {};
+        const { customer, zoneId, paymentMethod, transactionId, items, shipping, discount, status, advancePaid } = req.body ?? {};
         const text = (value, max) => (typeof value === "string" ? value.trim().slice(0, max) : "");
         const name = text(customer?.name, 80);
         const phone = text(customer?.phone, 11);
@@ -1328,6 +1328,8 @@ async function run() {
         const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
         if (discountAmount > subtotal + shippingCharge) return res.status(400).send({ message: "Discount cannot be more than the order amount" });
         const total = subtotal + shippingCharge - discountAmount;
+        const advance = paymentMethod === "cod" && advancePaid !== undefined && advancePaid !== null && advancePaid !== "" ? Number(advancePaid) : 0;
+        if (!Number.isInteger(advance) || advance < 0 || advance > total) return res.status(400).send({ message: "Advance paid must be a whole number from 0 to the order total" });
 
         const reserved = [];
         for (const [id, quantity] of Object.entries(quantities)) {
@@ -1349,13 +1351,14 @@ async function run() {
             shippingZoneId: zone.id,
             area: zone.name,
             paymentMethod,
-            transactionId: paymentMethod === "cod" ? null : trxId || null,
+            transactionId: paymentMethod === "cod" && !advance ? null : trxId || null,
             coupon: null,
             items: lines,
             subtotal,
             shipping: shippingCharge,
             discount: discountAmount,
             total,
+            advancePaid: advance,
             status: orderStatus,
             statusHistory: [{ status: orderStatus, at: now, by: req.admin.email, note: "Created in admin" }],
             courier: null,
@@ -1392,7 +1395,7 @@ async function run() {
 
     app.patch("/admin/orders/:orderId", verifyToken, verifyAdmin, async (req, res) => {
       try {
-        const { customer, items, shipping, discount } = req.body ?? {};
+        const { customer, items, shipping, discount, advancePaid } = req.body ?? {};
         const current = await ordersCollection.findOne({ orderId: req.params.orderId.trim().toUpperCase() });
         if (!current) return res.status(404).send({ message: "Order not found" });
         if (["cancelled", "delivered"].includes(current.status)) return res.status(400).send({ message: `A ${current.status} order cannot be edited` });
@@ -1418,6 +1421,7 @@ async function run() {
         let nextItems = current.items;
         let nextShipping = current.shipping;
         let nextDiscount = current.discount ?? 0;
+        let nextAdvance = current.advancePaid ?? 0;
         try {
           if (items !== undefined) {
             if (!Array.isArray(items) || items.length !== current.items.length) {
@@ -1435,12 +1439,14 @@ async function run() {
           }
           if (shipping !== undefined) nextShipping = money(shipping, "Delivery charge");
           if (discount !== undefined) nextDiscount = money(discount, "Discount");
+          if (advancePaid !== undefined && current.paymentMethod === "cod") nextAdvance = money(advancePaid, "Advance paid");
         } catch (error) {
           return res.status(400).send({ message: error.message });
         }
         const subtotal = nextItems.reduce((sum, item) => sum + item.lineTotal, 0);
         if (nextDiscount > subtotal + nextShipping) return res.status(400).send({ message: "Discount cannot be more than the order amount" });
         const total = subtotal + nextShipping - nextDiscount;
+        if (nextAdvance > total) return res.status(400).send({ message: "Advance paid cannot be more than the order total" });
 
         const quantityOf = (list) => {
           const map = {};
@@ -1473,12 +1479,12 @@ async function run() {
           at: now,
           by: req.admin.email,
           edit: true,
-          note: `Order edited. Total ${current.total} → ${total}`,
+          note: `Order edited. Total ${current.total} → ${total}${nextAdvance !== (current.advancePaid ?? 0) ? `, advance paid ${current.advancePaid ?? 0} → ${nextAdvance}` : ""}`,
         };
         const order = await ordersCollection.findOneAndUpdate(
           { _id: current._id, status: current.status, total: current.total },
           {
-            $set: { customer: nextCustomer, phone: nextCustomer.phone ?? current.phone, items: nextItems, subtotal, shipping: nextShipping, discount: nextDiscount, total, updatedAt: now },
+            $set: { customer: nextCustomer, phone: nextCustomer.phone ?? current.phone, items: nextItems, subtotal, shipping: nextShipping, discount: nextDiscount, total, advancePaid: nextAdvance, updatedAt: now },
             $push: { statusHistory: entry },
           },
           { returnDocument: "after" },
@@ -1997,6 +2003,7 @@ async function run() {
           shipping: o.shipping,
           discount: o.discount,
           total: o.total,
+          advancePaid: o.advancePaid ?? 0,
           courier: o.courier ?? null,
           trackingNumber: o.trackingNumber ?? o.courier?.trackingId ?? null,
           area: o.area ?? null,

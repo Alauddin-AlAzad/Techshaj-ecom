@@ -1,7 +1,7 @@
 import logoMark from '../assets/logo-mark.png'
 import { DEFAULT_STORE_NAME } from './branding.js'
 import { formatPrice } from './format.js'
-import { PAYMENT_LABELS } from './order.js'
+import { dueOnDelivery, PAYMENT_LABELS } from './order.js'
 
 const STATUS_LABELS = { pending: 'Pending', placed: 'Pending', confirmed: 'Confirmed', shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled' }
 
@@ -43,7 +43,7 @@ function invoiceHtml(order, store) {
       </tr>`,
     )
     .join('')
-  const cod = order.paymentMethod === 'cod' && order.status !== 'delivered'
+  const due = order.status === 'delivered' ? 0 : dueOnDelivery(order)
   const facebook = store?.social?.facebook?.replace(/^https?:\/\/(www\.)?/, '')
 
   return `
@@ -82,7 +82,9 @@ function invoiceHtml(order, store) {
   .inv .note{flex:1;color:${c('text-muted')};font-size:11.5px;line-height:1.65}
   .inv .pay{display:inline-block;background:${c('highlight-tint')};color:${c('highlight-ink')};border:1px solid ${c('highlight-line')};border-radius:9px;padding:9px 13px;font-weight:700;font-size:12.5px;margin-bottom:12px}
   .inv .tot{width:290px} .inv .tot div{display:flex;justify-content:space-between;padding:7px 0;color:${c('text-secondary')}}
-  .inv .tot .disc b{color:${c('success')}}
+  .inv .tot .disc b,.inv .tot .adv b{color:${c('success')}}
+  .inv .tot .adv{margin-top:6px}
+  .inv .tot .due{border-top:1px dashed ${c('border-strong')};color:${c('text')};font-size:15px;font-weight:700}
   .inv .tot .grand{margin-top:8px;background:linear-gradient(120deg,${c('primary')} 0%,${c('primary-deep')} 100%);color:${c('white')};border-radius:11px;padding:14px 18px;font-size:17px;font-weight:800}
   .inv .thanks{text-align:center;margin:44px 0 36px}
   .inv .thanks b{font-size:17px;color:${c('primary')}}
@@ -110,12 +112,13 @@ function invoiceHtml(order, store) {
   </div>
   <table><thead><tr><th>#</th><th>Item</th><th class="c">Qty</th><th class="r">Price</th><th class="r">Amount</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="sum">
-    <div class="note">${cod ? `<div class="pay">Pay ${formatPrice(order.total)} on delivery</div><br>` : ''}Please check the product in front of the delivery person. Manufacturing faults are replaced within 7 days.</div>
+    <div class="note">${due ? `<div class="pay">Pay ${formatPrice(due)} on delivery</div><br>` : ''}Please check the product in front of the delivery person. Manufacturing faults are replaced within 7 days.</div>
     <div class="tot">
       <div><span>Subtotal</span><b>${formatPrice(order.subtotal)}</b></div>
       <div><span>Delivery${order.area ? ` (${escape(order.area)})` : ''}</span><b>${order.shipping ? formatPrice(order.shipping) : 'Free'}</b></div>
       ${order.discount ? `<div class="disc"><span>Discount${order.coupon ? ` (${escape(order.coupon)})` : ''}</span><b>−${formatPrice(order.discount)}</b></div>` : ''}
       <div class="grand"><span>Total</span><span>${formatPrice(order.total)}</span></div>
+      ${order.advancePaid ? `<div class="adv"><span>Advance paid</span><b>−${formatPrice(order.advancePaid)}</b></div><div class="due"><span>Due on delivery</span><b>${formatPrice(dueOnDelivery(order))}</b></div>` : ''}
     </div>
   </div>
   <div class="thanks"><b>Thank you for shopping with ${escape(name)}!</b><p>আমাদের সাথে কেনাকাটার জন্য ধন্যবাদ</p></div>
