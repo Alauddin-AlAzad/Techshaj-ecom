@@ -41,6 +41,8 @@ export const itemCount = (order) => order.items.reduce((sum, i) => sum + i.qty, 
 
 export const PAYMENT_LABELS = { cod: 'Cash on Delivery', bkash: 'bKash', nagad: 'Nagad' }
 
+export const dueOnDelivery = (order) => (order.paymentMethod === 'cod' ? Math.max((order.total ?? 0) - (order.advancePaid ?? 0), 0) : 0)
+
 export const STATUS_LABELS = {
   placed: 'Order Placed',
   confirmed: 'Confirmed',

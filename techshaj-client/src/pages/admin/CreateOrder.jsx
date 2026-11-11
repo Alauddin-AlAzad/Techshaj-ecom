@@ -68,6 +68,7 @@ export default function CreateOrder() {
   const [discount, setDiscount] = useState('')
   const [payment, setPayment] = useState('cod')
   const [transactionId, setTransactionId] = useState('')
+  const [advance, setAdvance] = useState('')
   const [status, setStatus] = useState('confirmed')
 
   if (settings.isLoading) return <Skeleton className="h-[480px] rounded-xl" />
@@ -78,6 +79,7 @@ export default function CreateOrder() {
   const shippingValue = shipping ?? String(zone?.charge ?? 0)
   const subtotal = lines.reduce((sum, l) => sum + amount(l.price) * l.quantity, 0)
   const total = subtotal + amount(shippingValue) - amount(discount)
+  const advancePaid = payment === 'cod' ? amount(advance) : 0
 
   const addProduct = (p) =>
     setLines((list) => [...list, { key: `${p.id}-${Date.now()}`, product: p, price: String(p.price), quantity: 1, variant: Object.fromEntries((p.variants ?? []).map((v) => [v.name, v.options[0]])) }])
@@ -92,6 +94,7 @@ export default function CreateOrder() {
     if (!customer.address.trim()) return 'Enter the delivery address'
     if (!zone) return 'Add a delivery zone in Settings first'
     if (total < 0) return 'Discount cannot be more than the order amount'
+    if (advancePaid > total) return 'Advance paid cannot be more than the total'
     return null
   })()
 
@@ -101,7 +104,8 @@ export default function CreateOrder() {
         customer: { ...customer, name: customer.name.trim(), address: customer.address.trim(), note: customer.note.trim() },
         zoneId: zone.id,
         paymentMethod: payment,
-        transactionId: payment === 'cod' ? '' : transactionId.trim(),
+        transactionId: payment === 'cod' && !advancePaid ? '' : transactionId.trim(),
+        advancePaid,
         items: lines.map((l) =>
           l.custom ? { custom: true, name: l.name.trim(), quantity: l.quantity, price: amount(l.price) } : { productId: l.product.id, variant: l.variant, quantity: l.quantity, price: amount(l.price) },
         ),
@@ -251,8 +255,13 @@ export default function CreateOrder() {
                 ))}
               </select>
             </FormField>
-            {payment !== 'cod' && (
-              <FormField label="Transaction ID (optional)" htmlFor="new-trx">
+            {payment === 'cod' && (
+              <FormField label="Advance paid (optional)" htmlFor="new-advance">
+                <input id="new-advance" inputMode="numeric" placeholder="0" value={advance} onChange={(e) => setAdvance(digits(e.target.value))} className={inputClass()} />
+              </FormField>
+            )}
+            {(payment !== 'cod' || advancePaid > 0) && (
+              <FormField label={payment === 'cod' ? 'Advance TrxID (optional)' : 'Transaction ID (optional)'} htmlFor="new-trx">
                 <input id="new-trx" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} className={inputClass()} />
               </FormField>
             )}
@@ -278,6 +287,16 @@ export default function CreateOrder() {
               <p className="flex justify-between pt-1 text-[16px] font-bold text-text">
                 Total <span>{formatPrice(Math.max(total, 0))}</span>
               </p>
+              {advancePaid > 0 && (
+                <>
+                  <p className="flex justify-between text-text-muted">
+                    Advance paid <span className="text-success">−{formatPrice(advancePaid)}</span>
+                  </p>
+                  <p className="flex justify-between font-bold text-text">
+                    Collect on delivery (COD) <span>{formatPrice(Math.max(total - advancePaid, 0))}</span>
+                  </p>
+                </>
+              )}
             </div>
             {problem && <p className="text-body-sm text-text-muted">{problem}</p>}
             <Button onClick={submit} loading={create.isPending} disabled={Boolean(problem)} className="h-11">

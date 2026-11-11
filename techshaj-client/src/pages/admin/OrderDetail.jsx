@@ -19,6 +19,7 @@ import { formatDate, formatPrice } from '../../lib/adminFormat.js'
 import { copyText } from '../../lib/clipboard.js'
 import { cn } from '../../lib/cn.js'
 import { notify } from '../../lib/notify.jsx'
+import { dueOnDelivery } from '../../lib/order.js'
 import { errorMessage, isNotFound } from '../../lib/query.js'
 
 const COURIERS = ['Steadfast', 'Pathao', 'RedX', 'Sundarban', 'eCourier']
@@ -109,7 +110,7 @@ function PrintSlip({ order }) {
       </div>
       <p className="mt-1">
         Payment: {PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}
-        {order.paymentMethod === 'cod' ? ` (collect ${formatPrice(order.total)})` : order.transactionId ? `, paid, TrxID ${order.transactionId}` : ''}
+        {order.paymentMethod === 'cod' ? `${order.advancePaid ? `, advance ${formatPrice(order.advancePaid)} paid` : ''} (collect ${formatPrice(dueOnDelivery(order))})` : order.transactionId ? `, paid, TrxID ${order.transactionId}` : ''}
       </p>
     </div>
   )
@@ -332,10 +333,18 @@ export default function OrderDetail() {
                     <span className="font-semibold text-text">{PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}</span>
                   </div>
                   {order.paymentMethod === 'cod' ? (
-                    <div className="flex justify-between gap-3">
-                      <span className="text-text-muted">Amount to collect</span>
-                      <span className="font-bold text-text">{formatPrice(order.total)}</span>
-                    </div>
+                    <>
+                      {order.advancePaid > 0 && (
+                        <div className="flex justify-between gap-3">
+                          <span className="text-text-muted">Advance paid{order.transactionId ? ` (TrxID ${order.transactionId})` : ''}</span>
+                          <span className="font-semibold text-success">{formatPrice(order.advancePaid)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between gap-3">
+                        <span className="text-text-muted">Amount to collect (COD)</span>
+                        <span className="font-bold text-text">{formatPrice(dueOnDelivery(order))}</span>
+                      </div>
+                    </>
                   ) : (
                     <div className="flex justify-between gap-3">
                       <span className="text-text-muted">Transaction ID</span>

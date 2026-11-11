@@ -19,6 +19,8 @@ export default function EditOrderModal({ order, open, onClose }) {
   const [items, setItems] = useState(order.items.map((item) => ({ price: String(item.price), quantity: item.quantity })))
   const [shipping, setShipping] = useState(String(order.shipping ?? 0))
   const [discount, setDiscount] = useState(String(order.discount ?? 0))
+  const [advance, setAdvance] = useState(String(order.advancePaid ?? 0))
+  const isCod = order.paymentMethod === 'cod'
 
   const setItem = (i, next) => setItems((list) => list.map((item, j) => (j === i ? { ...item, ...next } : item)))
   const subtotal = items.reduce((sum, item) => sum + (toNumber(item.price) || 0) * item.quantity, 0)
@@ -30,10 +32,11 @@ export default function EditOrderModal({ order, open, onClose }) {
     if (!customer.address.trim()) return 'Address is required'
     if (items.some((item) => !Number.isInteger(toNumber(item.price)) || toNumber(item.price) < 0)) return 'Prices must be whole numbers'
     if (!items.some((item) => item.quantity > 0)) return 'Keep at least one item, or cancel the order instead'
-    for (const [value, label] of [[shipping, 'Delivery charge'], [discount, 'Discount']]) {
+    for (const [value, label] of [[shipping, 'Delivery charge'], [discount, 'Discount'], [advance, 'Advance paid']]) {
       if (!Number.isInteger(toNumber(value)) || toNumber(value) < 0) return `${label} must be a whole number`
     }
     if (total < 0) return 'Discount cannot be more than the order amount'
+    if (isCod && toNumber(advance) > total) return 'Advance paid cannot be more than the total'
     return null
   })()
 
@@ -45,6 +48,7 @@ export default function EditOrderModal({ order, open, onClose }) {
         items: items.map((item) => ({ price: toNumber(item.price), quantity: item.quantity })),
         shipping: toNumber(shipping),
         discount: toNumber(discount),
+        ...(isCod && { advancePaid: toNumber(advance) }),
       },
       {
         onSuccess: () => {
@@ -72,6 +76,11 @@ export default function EditOrderModal({ order, open, onClose }) {
           <span className="text-body text-text-muted">
             New total <b className="text-text">{formatPrice(Math.max(total, 0))}</b>
             {total !== order.total && <span className="ml-1.5 text-body-sm">(was {formatPrice(order.total)})</span>}
+            {isCod && toNumber(advance) > 0 && (
+              <span className="block text-body-sm">
+                COD to collect <b className="text-text">{formatPrice(Math.max(total - toNumber(advance), 0))}</b>
+              </span>
+            )}
           </span>
           <div className="flex gap-2.5">
             <Button variant="secondary" onClick={onClose} className="h-11 flex-1 sm:h-10">
@@ -142,6 +151,11 @@ export default function EditOrderModal({ order, open, onClose }) {
           <FormField label="Discount" htmlFor="edit-discount">
             <input id="edit-discount" inputMode="numeric" value={discount} onChange={(e) => setDiscount(e.target.value.replace(/\D/g, ''))} className={inputClass()} />
           </FormField>
+          {isCod && (
+            <FormField label="Advance paid" htmlFor="edit-advance">
+              <input id="edit-advance" inputMode="numeric" value={advance} onChange={(e) => setAdvance(e.target.value.replace(/\D/g, ''))} className={inputClass()} />
+            </FormField>
+          )}
         </section>
 
         <section className="flex flex-col gap-4">
