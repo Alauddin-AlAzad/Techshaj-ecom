@@ -138,8 +138,8 @@ export async function downloadInvoice(order, store) {
       .set({
         margin: 0,
         filename: `${order.orderId}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#fff' },
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait', hotfixes: ['px_scaling'] },
       })
       .from(holder.firstElementChild)
