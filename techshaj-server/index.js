@@ -1253,7 +1253,7 @@ async function run() {
 
         if (status === "cancelled") {
           const quantities = {};
-          for (const item of current.items ?? []) quantities[item.productId] = (quantities[item.productId] ?? 0) + item.quantity;
+          for (const item of current.items ?? []) if (item.productId != null) quantities[item.productId] = (quantities[item.productId] ?? 0) + item.quantity;
           for (const [id, quantity] of Object.entries(quantities)) {
             await productsCollection.updateOne({ id: Number(id) }, { $inc: { stock: quantity } });
           }
@@ -1289,13 +1289,22 @@ async function run() {
           if (!Number.isInteger(number) || number < 0 || number > max) throw new Error(`${label} must be a whole number from 0 to ${max}`);
           return number;
         };
-        const products = await productsCollection.find({ id: { $in: [...new Set(items.map((item) => Number(item?.productId)))] } }).toArray();
+        const products = await productsCollection.find({ id: { $in: [...new Set(items.filter((item) => !item?.custom).map((item) => Number(item?.productId)))] } }).toArray();
         const quantities = {};
         const lines = [];
         let shippingCharge;
         let discountAmount;
         try {
           for (const item of items) {
+            if (item?.custom) {
+              const itemName = text(item.name, 120);
+              if (!itemName) return res.status(400).send({ message: "Enter a name for the custom item" });
+              const quantity = wholeNumber(item.quantity, "Quantity", 99);
+              if (quantity < 1) return res.status(400).send({ message: "Quantity must be at least 1" });
+              const price = wholeNumber(item.price, "Price");
+              lines.push({ productId: null, custom: true, name: itemName, slug: null, image: null, optionImage: null, variant: {}, price, quantity, lineTotal: price * quantity });
+              continue;
+            }
             const product = products.find((p) => p.id === Number(item?.productId));
             if (!product) return res.status(400).send({ message: `Product ${item?.productId} not found` });
             const quantity = wholeNumber(item.quantity, "Quantity", 99);
@@ -1372,7 +1381,7 @@ async function run() {
         if (!order) return res.status(404).send({ message: "Order not found" });
         let restocked = false;
         if (["pending", "confirmed", "shipped"].includes(order.status)) {
-          for (const item of order.items) await productsCollection.updateOne({ id: item.productId }, { $inc: { stock: item.quantity } });
+          for (const item of order.items) if (item.productId != null) await productsCollection.updateOne({ id: item.productId }, { $inc: { stock: item.quantity } });
           restocked = true;
         }
         res.send({ message: "Order deleted", orderId: order.orderId, restocked });
@@ -1435,7 +1444,7 @@ async function run() {
 
         const quantityOf = (list) => {
           const map = {};
-          for (const item of list) map[item.productId] = (map[item.productId] ?? 0) + item.quantity;
+          for (const item of list) if (item.productId != null) map[item.productId] = (map[item.productId] ?? 0) + item.quantity;
           return map;
         };
         const before = quantityOf(current.items);
@@ -1575,6 +1584,7 @@ async function run() {
             .aggregate([
               { $match: notCancelled },
               { $unwind: "$items" },
+              { $match: { "items.productId": { $ne: null } } },
               { $group: { _id: "$items.productId", name: { $last: "$items.name" }, image: { $last: "$items.image" }, quantity: { $sum: "$items.quantity" }, revenue: { $sum: "$items.lineTotal" } } },
               { $sort: { quantity: -1, revenue: -1 } },
               { $limit: 5 },

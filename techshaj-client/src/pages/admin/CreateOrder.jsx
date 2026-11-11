@@ -81,10 +81,12 @@ export default function CreateOrder() {
 
   const addProduct = (p) =>
     setLines((list) => [...list, { key: `${p.id}-${Date.now()}`, product: p, price: String(p.price), quantity: 1, variant: Object.fromEntries((p.variants ?? []).map((v) => [v.name, v.options[0]])) }])
+  const addCustom = () => setLines((list) => [...list, { key: `custom-${Date.now()}`, custom: true, name: '', price: '', quantity: 1, variant: {} }])
   const setLine = (key, next) => setLines((list) => list.map((l) => (l.key === key ? { ...l, ...next } : l)))
 
   const problem = (() => {
     if (!lines.length) return 'Add at least one product'
+    if (lines.some((l) => l.custom && (!l.name.trim() || l.price === ''))) return 'Enter a name and price for each custom item'
     if (!customer.name.trim()) return 'Enter the customer name'
     if (!/^01[3-9]\d{8}$/.test(customer.phone)) return 'Phone must be 11 digits, like 01XXXXXXXXX'
     if (!customer.address.trim()) return 'Enter the delivery address'
@@ -100,7 +102,9 @@ export default function CreateOrder() {
         zoneId: zone.id,
         paymentMethod: payment,
         transactionId: payment === 'cod' ? '' : transactionId.trim(),
-        items: lines.map((l) => ({ productId: l.product.id, variant: l.variant, quantity: l.quantity, price: amount(l.price) })),
+        items: lines.map((l) =>
+          l.custom ? { custom: true, name: l.name.trim(), quantity: l.quantity, price: amount(l.price) } : { productId: l.product.id, variant: l.variant, quantity: l.quantity, price: amount(l.price) },
+        ),
         shipping: amount(shippingValue),
         discount: amount(discount),
         status,
@@ -134,23 +138,39 @@ export default function CreateOrder() {
         <div className="flex flex-col gap-5">
           <Card title="Products">
             <div className="flex flex-col gap-3">
-              <ProductPicker onPick={addProduct} />
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="min-w-0 flex-1">
+                  <ProductPicker onPick={addProduct} />
+                </div>
+                <Button variant="secondary" Icon={Plus} onClick={addCustom} className="h-11 shrink-0">
+                  Custom item
+                </Button>
+              </div>
               {lines.length > 0 && (
                 <ul className="flex flex-col divide-y divide-row-line rounded-xl border border-border">
                   {lines.map((l) => (
                     <li key={l.key} className="flex flex-col gap-3 p-3">
                       <div className="flex items-start gap-3">
-                        {l.product.images?.[0] && <img src={l.product.images[0]} alt="" className="size-12 shrink-0 rounded-lg object-cover" />}
-                        <div className="min-w-0 flex-1">
-                          <p className="line-clamp-2 text-body font-semibold text-text">{l.product.name}</p>
-                          <p className="text-body-sm text-text-muted">{l.product.stock} in stock</p>
-                        </div>
-                        <button type="button" aria-label={`Remove ${l.product.name}`} onClick={() => setLines((list) => list.filter((x) => x.key !== l.key))} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-error-tint hover:text-error">
+                        {l.custom ? (
+                          <div className="min-w-0 flex-1">
+                            <input aria-label="Custom item name" autoFocus maxLength={120} placeholder="Item name, e.g. Gift box" value={l.name} onChange={(e) => setLine(l.key, { name: e.target.value })} className={inputClass()} />
+                            <p className="mt-1 text-body-sm text-text-muted">Custom item. Stock is not changed.</p>
+                          </div>
+                        ) : (
+                          <>
+                            {l.product.images?.[0] && <img src={l.product.images[0]} alt="" className="size-12 shrink-0 rounded-lg object-cover" />}
+                            <div className="min-w-0 flex-1">
+                              <p className="line-clamp-2 text-body font-semibold text-text">{l.product.name}</p>
+                              <p className="text-body-sm text-text-muted">{l.product.stock} in stock</p>
+                            </div>
+                          </>
+                        )}
+                        <button type="button" aria-label={`Remove ${l.custom ? l.name || 'custom item' : l.product.name}`} onClick={() => setLines((list) => list.filter((x) => x.key !== l.key))} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-error-tint hover:text-error">
                           <Trash2 size={16} />
                         </button>
                       </div>
                       <div className="flex flex-wrap items-center gap-2.5">
-                        {(l.product.variants ?? []).map((v) => (
+                        {(l.product?.variants ?? []).map((v) => (
                           <select key={v.name} aria-label={v.name} value={l.variant[v.name]} onChange={(e) => setLine(l.key, { variant: { ...l.variant, [v.name]: e.target.value } })} className={cn(inputClass(), 'h-10 w-auto')}>
                             {v.options.map((o) => (
                               <option key={o} value={o}>
@@ -161,7 +181,7 @@ export default function CreateOrder() {
                         ))}
                         <label className="flex items-center gap-1.5 text-body-sm text-text-muted">
                           ৳
-                          <input aria-label={`Price of ${l.product.name}`} inputMode="numeric" value={l.price} onChange={(e) => setLine(l.key, { price: digits(e.target.value) })} className={cn(inputClass(), 'h-10 w-24 text-right')} />
+                          <input aria-label={`Price of ${l.custom ? l.name || 'custom item' : l.product.name}`} inputMode="numeric" placeholder="0" value={l.price} onChange={(e) => setLine(l.key, { price: digits(e.target.value) })} className={cn(inputClass(), 'h-10 w-24 text-right')} />
                         </label>
                         <div className="flex h-10 items-center rounded-lg border border-border-strong">
                           <button type="button" aria-label="Decrease quantity" onClick={() => setLine(l.key, { quantity: Math.max(l.quantity - 1, 1) })} className="flex size-10 items-center justify-center text-text-muted hover:text-text">
