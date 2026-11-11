@@ -1995,7 +1995,8 @@ async function run() {
 
         if (orderId) {
           if (!tracked.length) return res.status(404).send({ message: "No order found with this order ID and phone number" });
-          return res.send(tracked[0]);
+          const { customer, paymentMethod, coupon } = orders[0];
+          return res.send({ ...tracked[0], customer: { name: customer?.name ?? "", phone: customer?.phone ?? phone, address: customer?.address ?? "" }, paymentMethod, coupon: coupon ?? null });
         }
         res.send(tracked);
       } catch (error) {

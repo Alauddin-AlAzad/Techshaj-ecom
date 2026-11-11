@@ -1,4 +1,4 @@
-import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, ImageOff, MapPin, PackageCheck, Pencil, Phone, Printer, SearchX, Trash2, Truck } from 'lucide-react'
+import { Ban, Check, ChevronLeft, CircleCheck, Clock, Copy, FileDown, ImageOff, MapPin, PackageCheck, Pencil, Phone, Printer, SearchX, Trash2, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { FaWhatsapp } from 'react-icons/fa'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -12,6 +12,8 @@ import FormField from '../../components/admin/FormField.jsx'
 import StatusBadge from '../../components/admin/StatusBadge.jsx'
 import { inputClass } from '../../components/admin/inputClass.js'
 import { NEXT_STATUS, PAYMENT_LABELS, STATUS_LABELS, canCancel, itemCount, variantText, whatsappNumber } from '../../components/admin/orderMeta.js'
+import { useSettings } from '../../hooks/useSettings.js'
+import { downloadInvoice } from '../../lib/invoice.js'
 import { useAdminOrder, useDeleteOrder, useUpdateCourier, useUpdateOrderStatus } from '../../hooks/useAdminOrders.js'
 import { formatDate, formatPrice } from '../../lib/adminFormat.js'
 import { copyText } from '../../lib/clipboard.js'
@@ -187,6 +189,18 @@ export default function OrderDetail() {
   const deleteOrder = useDeleteOrder()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const { data: store } = useSettings()
+  const [invoicing, setInvoicing] = useState(false)
+  const saveInvoice = async () => {
+    setInvoicing(true)
+    try {
+      await downloadInvoice(order, store)
+    } catch (error) {
+      notify.error('Could not create the invoice', { description: error.message })
+    } finally {
+      setInvoicing(false)
+    }
+  }
   const [note, setNote] = useState('')
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -258,6 +272,9 @@ export default function OrderDetail() {
                 Edit order
               </Button>
             )}
+            <Button variant="secondary" Icon={FileDown} onClick={saveInvoice} loading={invoicing}>
+              Invoice
+            </Button>
             <Button variant="secondary" Icon={Printer} onClick={() => window.print()}>
               Print slip
             </Button>
