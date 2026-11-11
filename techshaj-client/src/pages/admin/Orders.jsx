@@ -1,4 +1,4 @@
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Plus } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Skeleton } from '../../components/Skeleton.jsx'
 import DataTable from '../../components/admin/DataTable.jsx'
@@ -94,7 +94,7 @@ export default function Orders() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Orders" subtitle="All orders appear here as soon as customers place them." />
+      <PageHeader title="Orders" subtitle="All orders appear here as soon as customers place them." action={{ label: 'New order', Icon: Plus, to: '/admin/orders/new' }} />
 
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:gap-1 lg:border-b lg:border-border lg:px-0" role="tablist" aria-label="Order status">
         {TABS.map(([value, label]) => {

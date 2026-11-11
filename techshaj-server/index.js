@@ -590,6 +590,12 @@ async function run() {
         : null;
       return { coupons, flashSale };
     };
+    const nextOrderId = async () => {
+      const now = new Date();
+      const period = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const counter = await countersCollection.findOneAndUpdate({ _id: `order-${period}` }, { $inc: { seq: 1 } }, { upsert: true, returnDocument: "after" });
+      return `TS${period}${String(counter.seq).padStart(4, "0")}`;
+    };
     const refreshProductRating = async (productId) => {
       const [stats] = await reviewsCollection
         .aggregate([
@@ -1258,6 +1264,123 @@ async function run() {
       }
     });
 
+    app.post("/admin/orders", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { customer, zoneId, paymentMethod, transactionId, items, shipping, discount, status } = req.body ?? {};
+        const text = (value, max) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+        const name = text(customer?.name, 80);
+        const phone = text(customer?.phone, 11);
+        const address = text(customer?.address, 300);
+        const note = text(customer?.note, 300);
+        const trxId = text(transactionId, 60);
+        if (!name) return res.status(400).send({ message: "Name is required" });
+        if (!phonePattern.test(phone)) return res.status(400).send({ message: "Phone must be a valid 11 digit number like 01XXXXXXXXX" });
+        if (!address) return res.status(400).send({ message: "Address is required" });
+        if (!paymentMethods.includes(paymentMethod)) return res.status(400).send({ message: "Payment method must be cod, bkash or nagad" });
+        if (!["pending", "confirmed"].includes(status ?? "confirmed")) return res.status(400).send({ message: "status must be pending or confirmed" });
+        if (!Array.isArray(items) || items.length === 0 || items.length > 30) return res.status(400).send({ message: "Add between 1 and 30 items" });
+
+        const settings = await settingsCollection.findOne({});
+        const zone = settings?.shippingZones?.find((z) => z.id === zoneId);
+        if (!zone) return res.status(400).send({ message: "Please select a valid delivery zone" });
+
+        const wholeNumber = (value, label, max = 10000000) => {
+          const number = Number(value);
+          if (!Number.isInteger(number) || number < 0 || number > max) throw new Error(`${label} must be a whole number from 0 to ${max}`);
+          return number;
+        };
+        const products = await productsCollection.find({ id: { $in: [...new Set(items.map((item) => Number(item?.productId)))] } }).toArray();
+        const quantities = {};
+        const lines = [];
+        let shippingCharge;
+        let discountAmount;
+        try {
+          for (const item of items) {
+            const product = products.find((p) => p.id === Number(item?.productId));
+            if (!product) return res.status(400).send({ message: `Product ${item?.productId} not found` });
+            const quantity = wholeNumber(item.quantity, "Quantity", 99);
+            if (quantity < 1) return res.status(400).send({ message: "Quantity must be at least 1" });
+            const variant = isPlainObject(item.variant) ? item.variant : {};
+            for (const [key, value] of Object.entries(variant)) {
+              const group = product.variants?.find((v) => v.name === key);
+              if (!group || !group.options.includes(value)) return res.status(400).send({ message: `Invalid ${key} option for ${product.name}` });
+            }
+            const price = item.price === undefined || item.price === null || item.price === "" ? product.price : wholeNumber(item.price, "Price");
+            const optionImage = Object.entries(variant).map(([key, value]) => [product.optionImages?.[key]?.[value]].flat()[0]).find(Boolean) ?? null;
+            quantities[product.id] = (quantities[product.id] ?? 0) + quantity;
+            if ((product.stock ?? 0) < quantities[product.id]) return res.status(400).send({ message: `${product.name} has only ${product.stock ?? 0} in stock` });
+            lines.push({ productId: product.id, name: product.name, slug: product.slug, image: product.images?.[0] ?? null, optionImage, variant, price, quantity, lineTotal: price * quantity });
+          }
+          shippingCharge = shipping === undefined || shipping === null || shipping === "" ? zone.charge : wholeNumber(shipping, "Delivery charge");
+          discountAmount = discount === undefined || discount === null || discount === "" ? 0 : wholeNumber(discount, "Discount");
+        } catch (error) {
+          return res.status(400).send({ message: error.message });
+        }
+        const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+        if (discountAmount > subtotal + shippingCharge) return res.status(400).send({ message: "Discount cannot be more than the order amount" });
+        const total = subtotal + shippingCharge - discountAmount;
+
+        const reserved = [];
+        for (const [id, quantity] of Object.entries(quantities)) {
+          const result = await productsCollection.updateOne({ id: Number(id), stock: { $gte: quantity } }, { $inc: { stock: -quantity } });
+          if (result.modifiedCount === 0) {
+            for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
+            const product = products.find((p) => p.id === Number(id));
+            return res.status(400).send({ message: `${product.name} is out of stock` });
+          }
+          reserved.push({ id: Number(id), quantity });
+        }
+        try {
+          const now = new Date();
+          const orderStatus = status ?? "confirmed";
+          const order = {
+            orderId: await nextOrderId(),
+            customer: { name, phone, address, note },
+            phone,
+            shippingZoneId: zone.id,
+            area: zone.name,
+            paymentMethod,
+            transactionId: paymentMethod === "cod" ? null : trxId || null,
+            coupon: null,
+            items: lines,
+            subtotal,
+            shipping: shippingCharge,
+            discount: discountAmount,
+            total,
+            status: orderStatus,
+            statusHistory: [{ status: orderStatus, at: now, by: req.admin.email, note: "Created in admin" }],
+            courier: null,
+            trackingNumber: null,
+            source: "admin",
+            createdAt: now,
+          };
+          await ordersCollection.insertOne(order);
+          await incompleteOrdersCollection.deleteMany({ phone }).catch(console.dir);
+          res.send(order);
+        } catch (error) {
+          for (const r of reserved) await productsCollection.updateOne({ id: r.id }, { $inc: { stock: r.quantity } });
+          throw error;
+        }
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
+    app.delete("/admin/orders/:orderId", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const order = await ordersCollection.findOneAndDelete({ orderId: req.params.orderId.trim().toUpperCase() });
+        if (!order) return res.status(404).send({ message: "Order not found" });
+        let restocked = false;
+        if (["pending", "confirmed", "shipped"].includes(order.status)) {
+          for (const item of order.items) await productsCollection.updateOne({ id: item.productId }, { $inc: { stock: item.quantity } });
+          restocked = true;
+        }
+        res.send({ message: "Order deleted", orderId: order.orderId, restocked });
+      } catch (error) {
+        res.status(500).send({ message: error.message });
+      }
+    });
+
     app.patch("/admin/orders/:orderId", verifyToken, verifyAdmin, async (req, res) => {
       try {
         const { customer, items, shipping, discount } = req.body ?? {};
@@ -1758,13 +1881,7 @@ async function run() {
 
         try {
           const now = new Date();
-          const period = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}`;
-          const counter = await countersCollection.findOneAndUpdate(
-            { _id: `order-${period}` },
-            { $inc: { seq: 1 } },
-            { upsert: true, returnDocument: "after" }
-          );
-          const orderId = `TS${period}${String(counter.seq).padStart(4, "0")}`;
+          const orderId = await nextOrderId();
 
           const order = {
             orderId,
