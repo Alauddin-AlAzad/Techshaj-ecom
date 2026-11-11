@@ -224,7 +224,7 @@ function LogoPreview({ name, logoUrl }) {
 // A browser tab with the favicon at 32px, and a note when it is not a square PNG of 64px or more.
 function FaviconPreview({ name, faviconUrl }) {
   const [size, setSize] = useState(null)
-  const src = faviconUrl || '/favicon.svg'
+  const src = faviconUrl || '/favicon.png'
   const warning =
     faviconUrl && size
       ? size.width !== size.height
