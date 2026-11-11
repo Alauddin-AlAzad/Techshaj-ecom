@@ -1,7 +1,12 @@
-import { ArrowRight, Check, Copy, PackageSearch, Phone } from 'lucide-react'
+import { ArrowRight, Check, Copy, FileDown, LoaderCircle, PackageSearch, Phone } from 'lucide-react'
+import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useOrderStore } from '../context/useOrderStore.js'
+import { useAxiosPublic } from '../hooks/useAxiosPublic.js'
 import { useSettings } from '../hooks/useSettings.js'
+import { downloadInvoice } from '../lib/invoice.js'
+import { notify } from '../lib/notify.jsx'
+import { errorMessage } from '../lib/query.js'
 import { copyText } from '../lib/clipboard.js'
 import { formatPrice } from '../lib/format.js'
 import { itemCount, PAYMENT_LABELS } from '../lib/order.js'
@@ -12,10 +17,23 @@ export default function OrderSuccess() {
   usePageTitle('Order Placed')
   const order = useOrderStore((s) => s.lastOrder)
   const { data: store } = useSettings()
+  const axiosPublic = useAxiosPublic()
+  const [invoicing, setInvoicing] = useState(false)
 
   if (!order) return <Navigate to="/" replace />
 
   const count = itemCount(order)
+  const saveInvoice = async () => {
+    setInvoicing(true)
+    try {
+      const { data } = await axiosPublic.get('/orders/track', { params: { phone: order.phone, orderId: order.orderId } })
+      await downloadInvoice(data, store)
+    } catch (error) {
+      notify.error('Could not download the invoice', { description: errorMessage(error, 'Please try again in a moment.') })
+    } finally {
+      setInvoicing(false)
+    }
+  }
   const details = [
     { label: 'Items', value: `${count} ${count === 1 ? 'item' : 'items'}  •  ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` },
     { label: 'Delivery to', value: order.address },
@@ -55,6 +73,16 @@ export default function OrderSuccess() {
             </div>
           ))}
         </dl>
+
+        <button
+          type="button"
+          onClick={saveInvoice}
+          disabled={invoicing}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-primary-tint text-body font-bold text-primary-deep disabled:opacity-70"
+        >
+          {invoicing ? <LoaderCircle size={18} className="animate-spin" /> : <FileDown size={18} />}
+          {invoicing ? 'Preparing invoice…' : 'Download Invoice (PDF)'}
+        </button>
 
         <div className="flex w-full flex-col gap-2.5 lg:flex-row">
           <Link
